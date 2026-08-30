@@ -31,8 +31,8 @@ const BASE = self.location.pathname.replace(/sw\.js$/, "");
 
 self.addEventListener("push", (event) => {
   let payload = {};
-  try { payload = event.data ? event.data.json() : {}; } catch { payload = { title: "Life Planner", body: event.data ? event.data.text() : "" }; }
-  const title = payload.title || "Life Planner";
+  try { payload = event.data ? event.data.json() : {}; } catch { payload = { title: "Align", body: event.data ? event.data.text() : "" }; }
+  const title = payload.title || "Align";
   const options = {
     body: payload.body || "",
     icon: BASE + "icon-192.png",
