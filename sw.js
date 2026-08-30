@@ -22,22 +22,29 @@ self.addEventListener("activate", (event) => {
 // intentionally does nothing but pass the request through.)
 self.addEventListener("fetch", () => {});
 
+// This file is a static asset (not processed by Vite), so it can't read
+// import.meta.env.BASE_URL like the rest of the app — but its own script
+// location already reflects wherever it was registered from (domain root
+// on Vercel, "/life-planner-app/" on GitHub Pages), so deriving "here" from
+// self.location works the same way BASE_URL does elsewhere.
+const BASE = self.location.pathname.replace(/sw\.js$/, "");
+
 self.addEventListener("push", (event) => {
   let payload = {};
   try { payload = event.data ? event.data.json() : {}; } catch { payload = { title: "Life Planner", body: event.data ? event.data.text() : "" }; }
   const title = payload.title || "Life Planner";
   const options = {
     body: payload.body || "",
-    icon: "/icon-192.png",
-    badge: "/icon-192.png",
-    data: { url: payload.url || "/" },
+    icon: BASE + "icon-192.png",
+    badge: BASE + "icon-192.png",
+    data: { url: payload.url || BASE },
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || "/";
+  const url = event.notification.data?.url || BASE;
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
       const existing = clients.find((c) => c.url.includes(self.location.origin));
