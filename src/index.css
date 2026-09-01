@@ -1,0 +1,868 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --font-heading: "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  --space-1: 2.8px;
+  --space-2: 5.6px;
+  --space-3: 8.4px;
+  --space-4: 11.2px;
+  --space-6: 16.8px;
+  --space-8: 22.4px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+}
+
+/* ---- theme token sets ---- */
+/* Dark (default — Nocturne, the original design system) */
+:root,
+:root[data-theme="dark"] {
+  --color-bg: #161826;
+  --color-surface: #232532;
+  --color-text: #e9e9ed;
+  --color-accent: #9184d9;
+  --color-accent-400: #b5abfc;
+  --color-accent-900: #2b2741;
+  --color-on-accent: #161826;
+  --color-neutral-400: #b2b6ca;
+  --color-neutral-500: #9397ab;
+  --color-neutral-600: #83879b;
+  --color-neutral-700: #7d8196;
+  --color-del: #9397ab;
+  --color-neutral-800: #3f424d;
+  --color-neutral-900: #292b31;
+  --shadow-sm: 0 0 0 1px #3f424d;
+  --cat-l: 0.734; --cat-c: 0.125; --cat-money-l: 0.734;
+  /* Solid-fill lightness for .status-chip only (see below) — kept separate
+     from --cat-l, which every other chip/tint in the app already relies on
+     at its current value, so this fix can't shift anyone else's colors. */
+  --status-l: 0.734;
+}
+
+/* Light — same violet accent, deepened for contrast on a light ground */
+:root[data-theme="light"] {
+  --color-bg: #f7f6fb;
+  --color-surface: #ffffff;
+  --color-text: #201f2e;
+  --color-accent: #6f61c2;
+  --color-accent-400: #8b7ddb;
+  --color-accent-900: #ece9f9;
+  --color-on-accent: #ffffff;
+  --color-neutral-400: #57566b;
+  --color-neutral-500: #6e6d82;
+  --color-neutral-600: #6b6a80;
+  --color-neutral-700: #706f85;
+  --color-del: #6e6d82;
+  --color-neutral-800: #dcdae6;
+  --color-neutral-900: #eeecf5;
+  --shadow-sm: 0 0 0 1px #dcdae6;
+  --cat-l: 0.58; --cat-c: 0.13; --cat-money-l: 0.64;
+  --status-l: 0.54;
+}
+
+/* Warm — cream ground, warm-brown ink, terracotta accent */
+:root[data-theme="warm"] {
+  --color-bg: #e8d6b8;
+  --color-surface: #faf3e6;
+  --color-text: #2a2118;
+  /* --color-accent and --color-neutral-500 were each computed (not
+     eyeballed) at ~4.1-4.2:1 against --color-surface — just under the
+     4.5:1 AA floor for normal text. Darkened by the minimal amount that
+     clears 4.5:1 (verified via script): accent #b0623a->#a65c36 (4.51:1),
+     neutral-500 #83725f->#7d6d5a (4.55:1). Small enough that the warm
+     theme's terracotta identity is unchanged. */
+  --color-accent: #a65c36;
+  --color-accent-400: #c98354;
+  --color-accent-900: #f0dcc3;
+  --color-on-accent: #ffffff;
+  --color-neutral-400: #6b5d4d;
+  --color-neutral-500: #7d6d5a;
+  --color-neutral-600: #5f5346;
+  --color-neutral-700: #695c4e;
+  --color-del: #5f5346;
+  --color-neutral-800: #ddceb0;
+  --color-neutral-900: #f3e9d4;
+  --shadow-sm: 0 0 0 1px #ddceb0;
+  /* --cat-l likewise dropped 0.58->0.55: the "home" hue's error/danger
+     text (.push-optin-error, .btn-danger) measured 4.13:1, below 4.5:1;
+     0.55 clears it (4.69:1) and only uniformly deepens category-tinted
+     text/tints elsewhere in this theme rather than changing any one hue
+     relative to another. */
+  --cat-l: 0.55; --cat-c: 0.13; --cat-money-l: 0.64;
+  --status-l: 0.54;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+a { color: var(--color-accent); text-decoration: none; }
+a:hover { color: var(--color-accent-400); }
+
+input, select {
+  font-family: inherit; font-size: 13.5px; color: var(--color-text);
+  background: transparent; border: none; outline: none; width: 100%;
+  border-radius: var(--radius-sm); padding: 2px 4px;
+}
+input:hover, select:hover, .cell-edit:hover { box-shadow: inset 0 0 0 1px var(--color-neutral-800); }
+input:focus, select:focus, .cell-edit:focus {
+  box-shadow: inset 0 0 0 1.5px var(--color-accent);
+  background: var(--color-bg); outline: none;
+}
+select { cursor: pointer; }
+.cell-select-custom { display: flex; align-items: center; gap: 2px; }
+.cell-select-custom input { flex: 1; min-width: 0; }
+.cell-select-back {
+  flex-shrink: 0; background: transparent; border: none; color: var(--color-neutral-500);
+  font-size: 11px; line-height: 1; padding: 2px 3px; cursor: pointer; border-radius: var(--radius-sm);
+}
+.cell-select-back:hover { color: var(--color-text); background: var(--color-neutral-900); }
+option { background: var(--color-surface); color: var(--color-text); }
+input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.65); cursor: pointer; }
+
+button { font-family: inherit; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+
+/* ---- category tints ----
+   L/C ride on theme-supplied --cat-l/--cat-c/--cat-money-l so every hue
+   keeps equal visual weight against whichever ground is active — a light
+   or warm ground needs a darker, slightly more saturated mark than a dark
+   one to hold the same contrast. */
+[data-c="work"] { --c: oklch(var(--cat-l) var(--cat-c) 289); --t: oklch(var(--cat-l) var(--cat-c) 289 / 0.16); }
+[data-c="home"] { --c: oklch(var(--cat-l) var(--cat-c) 25); --t: oklch(var(--cat-l) var(--cat-c) 25 / 0.16); }
+[data-c="health"] { --c: oklch(var(--cat-l) var(--cat-c) 165); --t: oklch(var(--cat-l) var(--cat-c) 165 / 0.16); }
+[data-c="money"] { --c: oklch(var(--cat-money-l) var(--cat-c) 95); --t: oklch(var(--cat-money-l) var(--cat-c) 95 / 0.16); }
+[data-c="people"] { --c: oklch(var(--cat-l) var(--cat-c) 225); --t: oklch(var(--cat-l) var(--cat-c) 225 / 0.16); }
+[data-c="accent"] { --c: var(--color-accent); --t: var(--color-accent-900); }
+
+.chip {
+  display: inline-flex; padding: 2px 9px; border-radius: 99px; font-size: 11.5px;
+  white-space: nowrap; background: var(--t, var(--color-neutral-900)); color: var(--c, var(--color-neutral-400));
+}
+/* Status badge (Account > Plan): the standard translucent .chip tint reads
+   at only ~3.2-4.0:1 here (checked precisely, not eyeballed — a 16%-alpha
+   tint over a dark or light surface never gets vivid text far enough from
+   its own background), below the 4.5:1 AA floor for 11.5px text in every
+   theme. A solid fill at --status-l (deliberately darker than --cat-l, so
+   this doesn't touch how the same hues look as translucent chips/category
+   tints everywhere else) plus on-accent text clears 4.5:1 with room in
+   dark/light/warm alike. */
+.status-chip { color: var(--color-on-accent); }
+.status-chip[data-c="work"] { background: oklch(var(--status-l) var(--cat-c) 289); }
+.status-chip[data-c="home"] { background: oklch(var(--status-l) var(--cat-c) 25); }
+.status-chip[data-c="health"] { background: oklch(var(--status-l) var(--cat-c) 165); }
+[data-tint="1"] { background: var(--t, var(--color-neutral-900)); }
+[data-today="1"] { box-shadow: inset 0 0 0 1.5px var(--color-accent); }
+[data-dim="1"] { opacity: 0.4; }
+
+.text-muted { color: var(--color-neutral-500); }
+
+/* ---- layout ---- */
+.app-shell {
+  display: grid; grid-template-columns: 264px 1fr; min-height: 100vh;
+  background: var(--color-bg); color: var(--color-text);
+  font-family: var(--font-body); font-size: 13.5px; line-height: 1.5;
+}
+
+/* ---- sidebar ---- */
+.sidebar { border-right: 1px solid var(--color-neutral-800); display: flex; flex-direction: column; }
+.brand-block { padding: var(--space-8) var(--space-6) var(--space-6); }
+.brand-row { display: flex; align-items: center; gap: var(--space-3); }
+.brand-dot { width: 10px; height: 10px; border-radius: 2px; background: var(--color-accent); }
+.brand-name { font-family: var(--font-heading); font-weight: 500; font-size: 15px; letter-spacing: -0.01em; }
+.brand-sub { color: var(--color-neutral-500); font-size: 11.5px; margin-top: var(--space-2); padding-left: 19px; }
+
+.storage-warning {
+  margin: 0 var(--space-6) var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--t, var(--color-neutral-900));
+  color: var(--c, var(--color-text));
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.find-box {
+  margin: 0 var(--space-6) var(--space-6); border: 1px solid var(--color-neutral-800);
+  border-radius: var(--radius-md); padding: var(--space-3) var(--space-4);
+  display: flex; align-items: center; gap: var(--space-3); position: relative;
+  transition: box-shadow 0.15s ease;
+}
+.find-box:focus-within { box-shadow: 0 0 0 1.5px var(--color-accent); border-color: var(--color-accent); }
+.find-label { color: var(--color-neutral-600); font-size: 12px; white-space: nowrap; }
+.find-box input { flex: 1; min-width: 0; }
+.find-shortcut {
+  position: absolute; right: var(--space-4); top: 50%; transform: translateY(-50%);
+  font-size: 10.5px; color: var(--color-neutral-600); border: 1px solid var(--color-neutral-800);
+  border-radius: var(--radius-sm); padding: 1px 6px; pointer-events: none;
+}
+
+.nav-groups { flex: 1; padding-bottom: var(--space-6); overflow-y: auto; }
+.sidebar-footer { padding: var(--space-3) var(--space-6) var(--space-6); border-top: 1px solid var(--color-neutral-800); }
+.sidebar-footer .nav-item { margin: 0 calc(var(--space-6) * -1); border-radius: var(--radius-sm); }
+.nav-group { margin-bottom: var(--space-6); }
+.nav-group-name {
+  display: flex; align-items: center; justify-content: space-between; cursor: pointer;
+  font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--color-neutral-600); padding: 0 var(--space-6) var(--space-3);
+}
+.nav-group-name:hover { color: var(--color-neutral-400); }
+.nav-group-chevron { display: inline-block; transition: transform 0.15s ease; transform: rotate(-90deg); }
+.nav-group-chevron[data-open="1"] { transform: rotate(0deg); }
+.nav-group-desc { font-size: 11px; color: var(--color-neutral-600); padding: 0 var(--space-6) var(--space-3); margin-top: -4px; }
+.nav-item {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: 7px var(--space-6); color: var(--color-neutral-400); cursor: pointer;
+}
+.nav-item:hover { background: var(--color-accent-900); color: var(--color-text); }
+.nav-item[data-on="1"] {
+  background: var(--color-accent-900); color: var(--color-text);
+  box-shadow: inset 2px 0 0 var(--color-accent);
+}
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--c, var(--color-neutral-700)); flex-shrink: 0; }
+.nav-badge { font-size: 10px; color: var(--color-neutral-700); margin-left: auto; }
+
+.theme-swatch { display: inline-block; width: 16px; height: 16px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--color-neutral-800); }
+.theme-swatch-dark { background: linear-gradient(135deg, #161826 50%, #9184d9 50%); }
+.theme-swatch-light { background: linear-gradient(135deg, #f7f6fb 50%, #6f61c2 50%); }
+.theme-swatch-warm { background: linear-gradient(135deg, #e8d6b8 50%, #b0623a 50%); }
+
+/* ---- header actions: theme switch, reset, sign out ----
+   Lives in the top-right of the page header (every tab, not just one)
+   instead of the bottom of the sidebar, so it's reachable the moment the
+   page loads rather than after scrolling down the whole nav list. */
+.header-actions {
+  display: flex; align-items: center; gap: var(--space-4); white-space: normal; flex-wrap: wrap;
+  justify-content: flex-end; margin-bottom: var(--space-3);
+}
+.theme-switch-compact { display: flex; gap: var(--space-2); flex-shrink: 0; }
+.theme-swatch-btn {
+  background: transparent; border: none; padding: 3px; border-radius: 50%; cursor: pointer;
+  box-shadow: inset 0 0 0 1.5px transparent; flex-shrink: 0;
+}
+.theme-swatch-btn:hover { box-shadow: inset 0 0 0 1.5px var(--color-neutral-700); }
+.theme-swatch-btn[data-on="1"] { box-shadow: inset 0 0 0 1.5px var(--color-accent); }
+.header-link-btn {
+  background: transparent; border: none; color: var(--color-neutral-500);
+  font-family: inherit; font-size: 11.5px; cursor: pointer; flex-shrink: 0; white-space: nowrap;
+  /* Same invisible-hit-area-expansion trick as .welcome-link below: padding
+     brings the real click/tap target to the WCAG 2.2 24x24px minimum, and
+     the matching negative margin cancels it back out visually so nothing
+     shifts in the flex rows (push-optin, header-actions, health-sync-row)
+     this is used inside. */
+  padding: 6px 4px; margin: -6px -4px;
+}
+.header-link-btn:hover { color: var(--color-text); }
+
+/* ---- main column ---- */
+.main-col { display: flex; flex-direction: column; min-width: 0; }
+
+.page-header {
+  padding: var(--space-8) var(--space-8) var(--space-6); border-bottom: 1px solid var(--color-neutral-800);
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-8); flex-wrap: wrap;
+}
+.page-title-row { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+.page-title { margin: 0; font-size: 27px; letter-spacing: -0.02em; font-family: var(--font-heading); font-weight: 500; }
+.page-sub { color: var(--color-neutral-500); margin-top: var(--space-3); max-width: 88ch; text-wrap: pretty; }
+.page-quote { font-style: italic; }
+.page-info-reveal { margin-top: 4px; }
+.info-toggle {
+  background: transparent; border: 1px solid var(--color-neutral-800); border-radius: 50%;
+  width: 20px; height: 20px; font-size: 12px; line-height: 1; color: var(--color-neutral-600);
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+}
+.info-toggle:hover { color: var(--color-text); border-color: var(--color-neutral-600); }
+.page-header-right { text-align: right; white-space: nowrap; color: var(--color-neutral-600); font-size: 11.5px; line-height: 1.6; }
+.page-ref { color: var(--color-neutral-700); }
+
+.page-body { flex: 1; padding: var(--space-8); display: flex; flex-direction: column; gap: var(--space-8); animation: page-fade-in 0.22s ease; }
+.welcome-card { background: var(--color-accent-900); border-radius: var(--radius-lg); padding: var(--space-6) var(--space-8); }
+.welcome-title { font-weight: 600; font-size: 15px; margin-bottom: var(--space-3); }
+.welcome-list { margin: 0 0 var(--space-4); padding-left: var(--space-6); font-size: 13px; line-height: 1.6; color: var(--color-text); }
+.welcome-list li + li { margin-top: 4px; }
+/* Negative margin cancels the padding visually (no shift in surrounding
+   layout, no extra visible space around the underlined text) while the
+   padding itself still expands the real hit area — a plain padding:0 text
+   link is barely bigger than its glyphs, an easy miss on a real touchscreen
+   even though a precise mouse click never has trouble with it. */
+.welcome-link {
+  background: none; border: none; padding: 10px 6px; margin: -10px -6px;
+  color: var(--color-accent); text-decoration: underline; cursor: pointer; font: inherit;
+}
+.welcome-dismiss { background: transparent; }
+.health-sync-card { margin-top: var(--space-4); }
+.health-sync-note { font-size: 12.5px; line-height: 1.6; color: var(--color-neutral-400); margin: 0 0 var(--space-4); }
+.health-sync-row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-3); }
+.health-sync-label { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-neutral-600); min-width: 80px; }
+.health-sync-token {
+  background: var(--color-neutral-900); border-radius: var(--radius-sm); padding: 4px 8px;
+  font-size: 12px; color: var(--color-accent-400); word-break: break-all;
+}
+.health-sync-steps { margin-top: var(--space-4); }
+.health-sync-steps code { background: var(--color-neutral-900); border-radius: 3px; padding: 1px 5px; font-size: 12px; }
+.onboarding-card { display: flex; flex-direction: column; }
+.onboarding-header { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); }
+.onboarding-header .welcome-title { margin-bottom: 0; }
+.onboarding-progress-label { font-size: 12px; color: var(--color-neutral-500); white-space: nowrap; }
+.onboarding-track { height: 4px; border-radius: 2px; background: rgba(0, 0, 0, 0.18); margin-top: var(--space-3); overflow: hidden; }
+.onboarding-fill { height: 4px; border-radius: 2px; background: var(--color-accent); transition: width 0.3s ease; }
+.onboarding-list { list-style: none; margin: var(--space-4) 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.onboarding-step { display: flex; align-items: center; gap: var(--space-4); }
+.onboarding-box { flex-shrink: 0; }
+.onboarding-step-text { flex: 1; min-width: 0; }
+.onboarding-step-label { font-size: 13px; color: var(--color-text); }
+.onboarding-step-note { font-size: 12px; color: var(--color-neutral-500); margin-top: 1px; }
+.onboarding-go { flex-shrink: 0; padding: 5px 12px; font-size: 12px; }
+@keyframes page-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- kpis ----
+   Flex with wrap, not a horizontal scroll: this used to be `overflow-x:
+   auto` with a fade mask hinting there was more off to the side, which
+   read as boxes that wouldn't stay put rather than a swipeable strip —
+   dragging one through the fade zone visibly changed how much of it was
+   masked. Wrapping means a row with more cards than fit (Today can have
+   up to six) just grows to a second line instead, at any screen width,
+   with nothing to drag. */
+.kpi-row { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+.kpi-card {
+  background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+  padding: var(--space-6) var(--space-6) var(--space-4);
+  flex: 1 0 150px;
+}
+.kpi-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-600); }
+.kpi-value {
+  font-family: var(--font-heading); font-weight: 500; font-size: 30px; letter-spacing: -0.025em;
+  margin-top: var(--space-3); color: var(--c, var(--color-text));
+}
+.kpi-note { color: var(--color-neutral-500); font-size: 12px; margin-top: var(--space-2); height: 18px; }
+.kpi-card[data-tappable="1"] { cursor: pointer; }
+.kpi-explain { font-size: 11.5px; color: var(--color-neutral-500); margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--color-neutral-800); }
+.kpi-bar-track { height: 4px; border-radius: 2px; background: var(--color-neutral-900); margin-top: var(--space-3); overflow: hidden; }
+.kpi-bar-fill { height: 4px; border-radius: 2px; background: var(--c, var(--color-accent)); }
+
+/* ---- dashboard hero: the one isolated focal point (Von Restorff) ----
+   A muted left-border accent, not a full-bleed color block — reads as
+   calm/confident rather than an alert, even for the "overdue" tone. */
+.hero-card {
+  background: var(--color-surface); border-radius: var(--radius-lg);
+  border-left: 3px solid var(--c, var(--color-accent));
+  padding: var(--space-6) var(--space-8);
+}
+.hero-title { font-family: var(--font-heading); font-weight: 500; font-size: 19px; letter-spacing: -0.01em; }
+.hero-sub { color: var(--color-neutral-500); font-size: 13px; margin-top: 4px; }
+
+/* ---- dashboard progress row: trend/motivational stats, deliberately
+   quieter than .kpi-card — smaller type, no big colored numbers, single
+   line each — so they read as "also true" rather than competing with
+   today's status above. ---- */
+.progress-row {
+  display: flex; flex-wrap: wrap; gap: var(--space-6) var(--space-8);
+  padding: var(--space-4) var(--space-2);
+}
+.progress-item { display: flex; align-items: baseline; gap: 6px; font-size: 12.5px; }
+.progress-label { color: var(--color-neutral-600); }
+.progress-value { font-weight: 600; }
+.progress-note { color: var(--color-neutral-600); }
+
+/* ---- block card ---- */
+.block-card { background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+.block-header {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-6);
+  padding: var(--space-6) var(--space-6) var(--space-4); flex-wrap: wrap;
+}
+.block-title { margin: 0; font-size: 15px; font-family: var(--font-heading); font-weight: 500; }
+.block-note { color: var(--color-neutral-500); font-size: 11.5px; }
+.block-body {
+  overflow-x: auto;
+  /* Scroll-shadow hint: a soft edge fade that only shows on the side
+     there's actually more to see. The solid `local`-attached gradients
+     scroll with the content and cover the `scroll`-attached shadow near
+     the true start/end, so it self-hides once you've scrolled all the
+     way — no JS needed. */
+  background:
+    linear-gradient(to right, var(--color-surface) 50%, transparent) left,
+    linear-gradient(to left, var(--color-surface) 50%, transparent) right,
+    linear-gradient(to right, rgba(0, 0, 0, 0.18), transparent) left,
+    linear-gradient(to left, rgba(0, 0, 0, 0.18), transparent) right;
+  background-repeat: no-repeat;
+  background-size: 24px 100%, 24px 100%, 10px 100%, 10px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+
+/* ---- table ----
+   `.grid-table` is the *only* grid container — it alone owns
+   grid-template-columns. `.grid-row` is display:contents purely so each
+   row can stay a separate DOM element (for React keys, for the delete
+   button, for hover grouping) without starting a new column-width
+   computation: its cells become direct grid items of `.grid-table`, so
+   every row's columns resolve against the same shared widths. Because
+   display:contents rows generate no box of their own, row-level
+   borders/backgrounds/hover live on the cells instead — plain CSS can't
+   paint a border or background on an element that isn't there. */
+.grid-table { display: grid; min-width: max-content; }
+.grid-row { display: contents; }
+.head-cell {
+  padding: var(--space-3) var(--space-6); font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--color-neutral-600); border-top: 1px solid var(--color-neutral-800);
+  border-bottom: 1px solid var(--color-neutral-800); white-space: nowrap;
+}
+.body-cell, .del-cell { border-bottom: 1px solid var(--color-neutral-900); }
+.body-row:hover .body-cell, .body-row:hover .del-cell { background: var(--color-neutral-900); }
+.body-cell { padding: 7px var(--space-6); min-width: 0; display: flex; align-items: center; }
+/* Toggle columns are deliberately narrow (34px) to hold just a 17px box —
+   the standard text-cell padding above (16.8px a side) alone exceeds that,
+   which was squeezing the actual checkbox down to a sub-1px sliver: still
+   there for automated/element-targeted clicks, but functionally untappable
+   by a real finger or cursor. Every checkbox in every table (Today's
+   checklist, Task Tracker, Bills, Recurring) shared this column style, so
+   this was an app-wide "tapping does nothing" bug, not one specific tab. */
+.body-cell[data-kind="toggle"] { padding-left: 4px; padding-right: 4px; }
+.add-row { grid-column: 1 / -1; }
+.table-empty { grid-column: 1 / -1; padding: var(--space-6) var(--space-6) var(--space-4); text-align: center; }
+.table-empty-label { font-size: 13.5px; margin: 0 0 2px; }
+.table-empty-note { font-size: 12.5px; color: var(--color-neutral-500); margin: 0; }
+/* Same empty-state typography as .table-empty above, reused for chart
+   blocks (line/donut/columns) — those aren't CSS grids, so this drops the
+   grid-column span the table version needs. */
+.chart-empty { padding: var(--space-6) var(--space-4); text-align: center; }
+/* Sticky first column: on a table wide enough to need side-scrolling, the
+   row's label stays put so you always know which row you're looking at. */
+.head-cell:first-child, .body-cell:first-child {
+  position: sticky; left: 0; z-index: 1; background: var(--color-surface);
+}
+.body-row:hover .body-cell:first-child { background: var(--color-neutral-900); }
+/* Now a <button> (was a plain onClick div — not keyboard-operable or
+   exposed as a control to assistive tech), so its native button chrome
+   needs resetting back to how the div used to look: no border/background,
+   and font-size inherited instead of the UA form-control default. */
+.del-cell { background: none; border: none; font: inherit; width: 100%; padding: 7px var(--space-4); text-align: center; cursor: pointer; color: var(--color-del); }
+.del-cell:hover { color: oklch(var(--cat-l) var(--cat-c) 25); }
+.add-row { padding: var(--space-4) var(--space-6) var(--space-6); display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.btn-outline {
+  background: transparent; border: 1px solid var(--color-accent); color: var(--color-accent);
+  font-size: 12px; padding: 7px 14px; border-radius: var(--radius-md); cursor: pointer;
+}
+.btn-outline:hover { background: var(--color-accent-900); }
+/* Filled primary-action button — reserved for the one action per screen that
+   should read as "the" thing to do (e.g. auth submit), as opposed to
+   .btn-outline which is used for secondary/repeatable actions like "+ New task". */
+.btn-solid {
+  background: var(--color-accent); border: 1px solid var(--color-accent); color: var(--color-on-accent);
+  font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: var(--radius-md); cursor: pointer;
+}
+.btn-solid:hover { filter: brightness(0.94); }
+.btn-solid:disabled { opacity: 0.6; cursor: not-allowed; filter: none; }
+.back-today-btn { margin-left: auto; }
+
+.cell-plain { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell-edit {
+  border-radius: var(--radius-sm); padding: 2px 4px; min-height: 20px; width: 100%;
+  white-space: nowrap; overflow: hidden; display: inline-block;
+}
+.cell-box {
+  width: 17px; height: 17px; border-radius: var(--radius-sm); background: var(--color-neutral-900);
+  cursor: pointer; display: inline-block;
+}
+.cell-box:hover { box-shadow: inset 0 0 0 1.5px var(--color-accent); }
+/* Higher specificity than the plain [data-tint="1"] rule above (which
+   .cell-box's own background was silently winning against on source
+   order, a real bug — every checkbox/toggle in the app, not just Habit
+   Tracker, has never actually shown its checked color until this fix). */
+.cell-box[data-tint="1"] { background: var(--t, var(--color-accent)); animation: cell-check-pulse 0.35s ease; }
+@keyframes cell-check-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+.cell-bar-wrap { display: flex; align-items: center; gap: var(--space-3); width: 100%; }
+.cell-bar-track { flex: 1; height: 4px; border-radius: 2px; background: var(--color-neutral-900); overflow: hidden; }
+.cell-bar-fill { display: block; height: 4px; background: var(--c, var(--color-accent)); }
+.cell-bar-label { color: var(--color-neutral-500); font-size: 11.5px; width: 38px; text-align: right; }
+
+/* ---- calendar ---- */
+.cal-wrap { padding: 0 var(--space-6) var(--space-6); }
+.cal-daynames { display: grid; grid-template-columns: repeat(7, 1fr); }
+.cal-dayname { padding: var(--space-3) var(--space-4); font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--color-neutral-600); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--color-neutral-800); border-radius: var(--radius-md); overflow: hidden; }
+.cal-cell { background: var(--color-surface); min-height: 112px; padding: var(--space-3) var(--space-4); display: flex; flex-direction: column; gap: 3px; cursor: pointer; }
+.cal-cell:hover { background: var(--color-neutral-900); }
+.cal-cell-top { display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; }
+.cal-more { font-size: 10px; color: var(--color-neutral-700); }
+.cal-event { font-size: 11px; line-height: 1.3; padding: 3px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+
+/* ---- weekly planner ---- */
+.week-grid {
+  margin: 0 var(--space-6) var(--space-6); display: grid; grid-template-columns: 64px repeat(7, 1fr);
+  gap: 1px; background: var(--color-neutral-800); border-radius: var(--radius-md); overflow: hidden;
+}
+.week-cell { background: var(--color-surface); min-height: 34px; padding: 5px 7px; font-size: 11.5px; display: flex; align-items: center; color: var(--color-neutral-400); }
+.week-nav { display: flex; gap: var(--space-4); }
+
+/* ---- habit grid ---- */
+.habit-grid-head, .habit-row {
+  display: grid; grid-template-columns: 180px 100px 1fr 56px 48px 24px;
+  gap: var(--space-4) var(--space-6); align-items: center;
+  padding: 0 var(--space-6);
+}
+.habit-grid-head { padding-bottom: var(--space-3); }
+.habit-ticks { display: flex; gap: 3px; }
+.habit-ticks span { width: 24px; text-align: center; font-size: 10px; color: var(--color-neutral-700); }
+.habit-col-label { font-size: 10px; color: var(--color-neutral-600); text-align: right; }
+.habit-row { padding-top: var(--space-2); padding-bottom: var(--space-2); }
+.habit-days { display: flex; gap: 3px; }
+/* 24x24 CSS px is the WCAG 2.2 SC 2.5.8 (Target Size, Minimum) floor for a
+   pointer target; the tick labels above (.habit-ticks span) match this
+   width so each day number still lines up with its own square. Any card
+   too narrow to fit a month's worth of these at width just scrolls inside
+   .block-body's existing overflow-x, same as the wide tables already do. */
+.habit-box { width: 24px; height: 24px; }
+.habit-metric { text-align: right; color: var(--color-neutral-500); }
+
+/* ---- columns chart ---- */
+.columns-plot { padding: 0 var(--space-6); display: flex; align-items: flex-end; gap: var(--space-4); height: 200px; border-bottom: 1px solid var(--color-neutral-800); }
+.columns-bar-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: var(--space-2); height: 100%; }
+.columns-value { font-size: 11.5px; color: var(--color-neutral-400); }
+.columns-bar { width: 100%; border-radius: var(--radius-sm) var(--radius-sm) 0 0; background: var(--c, var(--color-accent)); }
+.columns-labels { padding: 0 var(--space-6); display: flex; gap: var(--space-4); margin-top: var(--space-3); }
+.columns-label { flex: 1; text-align: center; font-size: 11px; color: var(--color-neutral-600); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- line chart ---- */
+.line-wrap { padding: 0 var(--space-6); display: flex; gap: var(--space-4); }
+.line-yaxis { display: flex; flex-direction: column; justify-content: space-between; height: 210px; font-size: 11px; color: var(--color-neutral-600); text-align: right; width: 64px; padding: 2px 0; }
+.line-plot { flex: 1; position: relative; height: 210px; }
+.line-gridlines { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; }
+.line-gridlines div { height: 1px; background: var(--color-neutral-900); }
+.line-gridlines div:last-child { background: var(--color-neutral-800); }
+.line-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.line-xlabels { padding: 0 var(--space-6); display: flex; gap: var(--space-4); margin-top: var(--space-3); padding-left: calc(var(--space-6) + 64px + var(--space-4)); }
+.line-xlabel { flex: 1; text-align: center; font-size: 11px; color: var(--color-neutral-600); white-space: nowrap; }
+
+/* ---- donut ---- */
+.donut-wrap { padding: 0 var(--space-6) var(--space-6); display: grid; grid-template-columns: 200px 1fr; gap: var(--space-8); align-items: center; }
+.donut-svg-wrap { position: relative; width: 180px; height: 180px; }
+.donut-svg { width: 180px; height: 180px; transform: rotate(-90deg); }
+.donut-centre { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.donut-centre-value { font-family: var(--font-heading); font-weight: 500; font-size: 24px; letter-spacing: -0.02em; }
+.donut-centre-note { font-size: 11px; color: var(--color-neutral-600); }
+.donut-legend { display: flex; flex-direction: column; gap: var(--space-4); }
+.donut-legend-row { display: grid; grid-template-columns: 14px 1fr 90px 60px; gap: var(--space-4); align-items: center; }
+.donut-swatch { width: 10px; height: 10px; border-radius: 2px; background: var(--c, var(--color-accent)); }
+.donut-legend-value { text-align: right; color: var(--color-neutral-500); }
+.donut-legend-share { text-align: right; color: var(--color-neutral-600); }
+
+/* ---- settings block ---- */
+.settings-grid { padding: 0 var(--space-6) var(--space-6); display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-6) var(--space-8); }
+.settings-field { display: grid; grid-template-columns: 180px 1fr; gap: var(--space-4); align-items: center; }
+.settings-label { color: var(--color-neutral-500); }
+.settings-hint { font-size: 11px; color: var(--color-neutral-500); margin-top: 2px; }
+
+/* ---- notes block ---- */
+.notes-grid { padding: 0 var(--space-6) var(--space-6); display: grid; gap: var(--space-6); }
+.notes-term { margin-bottom: var(--space-2); }
+.notes-body { color: var(--color-neutral-500); line-height: 1.6; text-wrap: pretty; }
+
+/* ---- badges: earned vs locked reads through fill contrast alone — no
+   glow or motion. A playful/game-like treatment doesn't fit a calm/
+   trustworthy product; the color difference already does the job. ---- */
+.badges-grid {
+  padding: 0 var(--space-6) var(--space-6);
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: var(--space-4);
+}
+.badge-card { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+.badge-medal {
+  width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 700; background: var(--color-neutral-900); color: var(--color-neutral-700);
+  box-shadow: inset 0 0 0 1.5px var(--color-neutral-800);
+}
+.badge-medal[data-earned="1"] {
+  background: var(--t, var(--color-accent-900)); color: var(--c, var(--color-accent));
+  box-shadow: inset 0 0 0 1.5px var(--c, var(--color-accent));
+}
+.badge-label { font-size: 12px; line-height: 1.3; }
+.badge-status { font-size: 10.5px; color: var(--color-neutral-600); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ---- account settings ----
+   Reuses .block-card/.block-header/.block-body chrome (Account reads as
+   one more tab, not a bolted-on screen) plus .settings-field, .push-optin,
+   and .health-sync-row from elsewhere in the app — only what's genuinely
+   new to this screen gets a new class below. */
+.account-section-body { padding: 0 var(--space-6) var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); }
+.account-fields { display: flex; flex-direction: column; gap: var(--space-4); }
+.account-jump-link { align-self: flex-start; }
+
+.account-row {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+  flex-wrap: wrap; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-neutral-900);
+}
+.account-row:last-of-type { border-bottom: none; padding-bottom: 0; }
+.account-row-label { display: flex; flex-direction: column; gap: 2px; font-size: 13.5px; }
+
+.theme-switch-full { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+.theme-option-btn {
+  display: flex; align-items: center; gap: var(--space-2); background: transparent;
+  border: 1px solid var(--color-neutral-800); border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-4); font: inherit; font-size: 12.5px; color: var(--color-text); cursor: pointer;
+}
+.theme-option-btn:hover { border-color: var(--color-neutral-600); }
+.theme-option-btn[data-on="1"] { border-color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
+
+.account-details summary {
+  cursor: pointer; color: var(--color-accent); font-size: 12.5px;
+  /* ~19px tall with no padding — under the 24x24 CSS px target-size
+     minimum (2.5.8). Padding + a matching negative margin brings the real
+     hit area up to spec without shifting surrounding layout, same trick
+     already used by .welcome-link/.header-link-btn in this file. */
+  padding: 4px 0; margin: -4px 0;
+}
+.account-details summary:hover { color: var(--color-accent-400); }
+
+/* Destructive-action button — same shape as .btn-outline, tinted with the
+   category-tint system's existing "home" red (oklch hue 25) instead of a
+   new hardcoded color. */
+.btn-danger {
+  background: transparent; border: 1px solid oklch(var(--cat-l) var(--cat-c) 25);
+  color: oklch(var(--cat-l) var(--cat-c) 25); font-size: 12px; font-weight: 600;
+  padding: 7px 14px; border-radius: var(--radius-md); cursor: pointer;
+}
+.btn-danger:hover { background: oklch(var(--cat-l) var(--cat-c) 25 / 0.12); }
+.btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-outline:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Was a 30%-alpha ring — computed at only 1.3-2.5:1 against the card
+   surface (needs 3:1 for 1.4.11 Non-text Contrast) in every theme, and
+   even a 90%-alpha version barely reached 3.4:1 in the light theme, so no
+   alpha value gets there without reading as an almost-solid border anyway.
+   Solid color, no alpha, matches the same technique [data-today="1"]
+   already uses elsewhere in this file for its own highlight ring. */
+.block-card[data-danger="1"] { box-shadow: inset 0 0 0 1.5px oklch(var(--cat-l) var(--cat-c) 25); }
+
+.account-delete-confirm { background: var(--color-neutral-900); border-radius: var(--radius-md); padding: var(--space-4); font-size: 13px; }
+.account-delete-confirm p { margin: 0 0 var(--space-3); color: var(--color-neutral-400); line-height: 1.5; }
+.account-delete-confirm-row { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; }
+.account-delete-confirm-row input {
+  max-width: 260px; border: 1px solid var(--color-neutral-800); border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4); font-size: 13.5px;
+}
+
+.mobile-tabs-btn { display: none; }
+@media (max-width: 900px) {
+  /* Fixed-viewport app on mobile: the outer shell never scrolls, the
+     sidebar is an off-canvas drawer instead of stacking above the content
+     (which used to mean scrolling all the way up past a full page of
+     table rows just to switch tabs), and the content column scrolls
+     internally instead. 100dvh (not 100vh) so mobile Safari's shifting
+     address bar doesn't leave a gap or clip content. */
+  html, body, #root { height: 100%; }
+  .app-shell { grid-template-columns: 1fr; height: 100dvh; overflow: hidden; }
+
+  .sidebar {
+    position: fixed; inset: 0; z-index: 30; width: 84vw; max-width: 320px;
+    border-right: 1px solid var(--color-neutral-800); border-bottom: none;
+    background: var(--color-bg); overflow-y: auto;
+    transform: translateX(-100%); transition: transform 0.22s ease;
+  }
+  .sidebar[data-open="1"] { transform: translateX(0); }
+  .sidebar-backdrop { position: fixed; inset: 0; z-index: 29; background: rgba(0, 0, 0, 0.5); }
+
+  .main-col { height: 100dvh; overflow-y: auto; }
+
+  .mobile-tabs-btn {
+    display: flex; align-items: center; gap: var(--space-2);
+    position: fixed; right: var(--space-6); bottom: var(--space-6); z-index: 10;
+    background: var(--color-accent); color: var(--color-bg); border: none;
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    padding: 11px 18px; border-radius: 999px; box-shadow: var(--shadow-md, 0 6px 18px rgba(0, 0, 0, 0.35));
+    cursor: pointer;
+    /* Fades out after a moment of no touch/scroll activity (see
+       useAutoHide) rather than sitting on screen permanently. Opacity,
+       not display:none, so the fade is smooth; pointer-events off while
+       hidden so a faded-out button can't still catch a stray tap. */
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .mobile-tabs-btn[data-visible="1"] { opacity: 1; pointer-events: auto; }
+  .mobile-tabs-btn:hover { background: var(--color-accent-400); }
+
+  /* The base rule already wraps at any width (see .kpi-row above) — this
+     just forces a clean 2-up grid on a phone specifically, rather than
+     leaving it to however many 150px cards happen to fit. */
+  .kpi-card { flex: 1 1 calc(50% - var(--space-4) / 2); min-width: 140px; }
+
+  /* Below 900px the 2-column settings grid squeezes each input into a
+     sliver next to its 180px label — stack label above field instead so
+     text inputs (like "Your name") get the full row width to type into. */
+  .settings-grid { grid-template-columns: 1fr; }
+  .settings-field { grid-template-columns: 1fr; gap: var(--space-2); }
+}
+
+/* ---- update-available banner ----
+   Shown whenever useVersionCheck notices the server is serving a newer
+   build than the one currently running — the active fix for iOS caching
+   home-screen web apps too aggressively for passive HTTP headers alone
+   to reliably bust. */
+.update-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center; gap: var(--space-4);
+  background: var(--color-accent); color: var(--color-bg);
+  font-size: 13px; padding: var(--space-3) var(--space-6);
+}
+.update-banner button {
+  background: var(--color-bg); color: var(--color-accent); border: none;
+  font-family: inherit; font-size: 12.5px; font-weight: 500;
+  padding: 6px 14px; border-radius: var(--radius-md); cursor: pointer;
+}
+.update-banner button:hover { opacity: 0.85; }
+
+.push-optin { margin-top: var(--space-2); font-size: 12.5px; display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.push-optin-on { color: var(--color-neutral-500); }
+.push-optin-error { color: oklch(var(--cat-l) var(--cat-c) 25); }
+
+/* ---- badge-earned celebration burst (see App.jsx) ---- */
+.celebrate-burst { position: fixed; top: 30%; left: 50%; width: 0; height: 0; z-index: 60; pointer-events: none; }
+.celebrate-dot { position: absolute; top: 0; left: 0; width: 8px; height: 8px; border-radius: 50%; animation: celebrate-pop 1.1s ease-out forwards; }
+@keyframes celebrate-pop {
+  0% { transform: translate(0, 0) scale(0); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 0; }
+}
+
+/* ---- AI assistant (feature-flagged, see AIAssistant.jsx) ----
+   Bottom-left, mirroring the bottom-right .mobile-tabs-btn, so the two
+   floating controls never overlap on mobile. */
+.ai-assistant-btn {
+  position: fixed; left: var(--space-6); bottom: var(--space-6); z-index: 20;
+  background: var(--color-accent); color: var(--color-bg); border: none;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  padding: 11px 18px; border-radius: 999px; box-shadow: var(--shadow-md, 0 6px 18px rgba(0, 0, 0, 0.35));
+  cursor: pointer;
+}
+.ai-assistant-btn:hover { background: var(--color-accent-400); }
+.ai-assistant-panel {
+  position: fixed; left: var(--space-6); bottom: 76px; z-index: 20;
+  width: min(340px, calc(100vw - var(--space-6) * 2)); max-height: min(480px, 70vh);
+  display: flex; flex-direction: column;
+  background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md, 0 6px 18px rgba(0, 0, 0, 0.35));
+  overflow: hidden;
+}
+.ai-assistant-header {
+  padding: var(--space-3) var(--space-4); font-weight: 600; font-size: 13px;
+  border-bottom: 1px solid var(--color-neutral-800);
+}
+.ai-assistant-messages { flex: 1; overflow-y: auto; padding: var(--space-3) var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.ai-assistant-hint { color: var(--color-neutral-500); font-size: 12.5px; }
+.ai-assistant-msg { font-size: 13px; line-height: 1.4; padding: 8px 10px; border-radius: var(--radius-md); max-width: 90%; }
+.ai-assistant-msg-user { align-self: flex-end; background: var(--color-accent-900); }
+.ai-assistant-msg-assistant { align-self: flex-start; background: var(--color-neutral-900); }
+.ai-assistant-confirm { background: var(--color-neutral-900); border-radius: var(--radius-md); padding: var(--space-3); font-size: 13px; }
+.ai-assistant-confirm-actions { display: flex; gap: var(--space-3); margin-top: var(--space-2); }
+.ai-assistant-input-row { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-neutral-800); }
+.ai-assistant-input-row input { flex: 1; min-width: 0; }
+
+/* ---- auth / paywall screens ---- */
+.auth-shell {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: var(--color-bg); padding: var(--space-8);
+}
+.auth-card {
+  width: min(400px, 100%); background: var(--color-surface); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm); padding: var(--space-8);
+}
+.auth-title { text-align: center; font-size: 20px; margin: 0 0 var(--space-6); }
+.auth-body { color: var(--color-neutral-500); text-align: center; margin: 0 0 var(--space-6); line-height: 1.6; }
+.auth-form { display: flex; flex-direction: column; gap: var(--space-4); }
+.auth-field { display: flex; flex-direction: column; gap: var(--space-2); font-size: 12px; color: var(--color-neutral-500); }
+.auth-field input {
+  border: 1px solid var(--color-neutral-800); border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4); font-size: 13.5px;
+}
+.password-field { position: relative; display: flex; }
+.password-field input { flex: 1; padding-right: 36px; }
+.password-toggle {
+  position: absolute; top: 0; right: 0; height: 100%; width: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; color: var(--color-neutral-500); cursor: pointer;
+}
+.password-toggle:hover { color: var(--color-accent); }
+.auth-submit { width: 100%; padding: var(--space-3) var(--space-4); margin-top: var(--space-2); }
+.auth-links { display: flex; flex-direction: column; gap: var(--space-2); align-items: center; margin-top: var(--space-6); }
+.auth-links button {
+  background: none; border: none; color: var(--color-accent); font-size: 12.5px; cursor: pointer; padding: 0;
+}
+.auth-links button:hover { color: var(--color-accent-400); }
+.auth-notice {
+  padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); margin-bottom: var(--space-4);
+  background: var(--t, var(--color-neutral-900)); color: var(--c, var(--color-text)); font-size: 12.5px; line-height: 1.5;
+}
+
+/* ---- Today: focus timer ---- */
+.focus-timer {
+  background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+  padding: var(--space-6); display: flex; align-items: center; justify-content: space-between; gap: var(--space-8);
+  flex-wrap: wrap;
+}
+.focus-timer-left { flex: 1; min-width: 220px; }
+.focus-timer-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-600); }
+.focus-timer-clock {
+  font-family: var(--font-heading); font-size: 44px; font-weight: 500; letter-spacing: -0.02em;
+  margin-top: var(--space-2); font-variant-numeric: tabular-nums;
+}
+.focus-timer-track { height: 4px; border-radius: 2px; background: var(--color-neutral-900); margin-top: var(--space-4); overflow: hidden; max-width: 280px; }
+.focus-timer-fill { height: 4px; border-radius: 2px; background: var(--color-accent); transition: width 1s linear; }
+.focus-timer-done { color: var(--c, var(--color-text)); margin-top: var(--space-3); font-size: 12.5px; }
+.focus-timer-right { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-3); }
+.focus-timer-buttons { display: flex; gap: var(--space-3); }
+.focus-timer-sessions { color: var(--color-neutral-500); font-size: 12px; }
+
+/* ---- Today: fasting timer ---- */
+.fasting-timer {
+  background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+  padding: var(--space-6); display: flex; align-items: center; justify-content: space-between; gap: var(--space-8);
+  flex-wrap: wrap;
+}
+.fasting-timer-left { flex: 1; min-width: 220px; }
+.fasting-timer-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-600); }
+.fasting-timer-clock {
+  font-family: var(--font-heading); font-size: 44px; font-weight: 500; letter-spacing: -0.02em;
+  margin-top: var(--space-2); font-variant-numeric: tabular-nums;
+}
+.fasting-timer-track { height: 4px; border-radius: 2px; background: var(--color-neutral-900); margin-top: var(--space-4); overflow: hidden; max-width: 280px; }
+.fasting-timer-fill { height: 4px; border-radius: 2px; transition: width 30s linear; }
+.fasting-timer-fill[data-state="fasting"] { background: var(--color-accent); }
+.fasting-timer-fill[data-state="eating"] { background: oklch(0.734 0.125 165); }
+.fasting-timer-right { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-3); }
+.fasting-timer-note { color: var(--color-neutral-500); font-size: 12px; max-width: 200px; text-align: right; }
+
+/* ---- Today: journal ---- */
+.journal-card {
+  background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+  padding: var(--space-6);
+}
+.journal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-4); }
+.journal-title { font-size: 15px; }
+.journal-sub { color: var(--color-neutral-600); font-size: 11.5px; margin-top: var(--space-2); }
+.mic-btn {
+  display: flex; align-items: center; gap: var(--space-2); flex-shrink: 0;
+  background: transparent; border: 1px solid var(--color-neutral-800); color: var(--color-neutral-500);
+  font-size: 11.5px; padding: 6px 12px; border-radius: var(--radius-md); cursor: pointer;
+}
+.mic-btn:hover { border-color: var(--color-neutral-700); color: var(--color-text); }
+.mic-btn[data-on="1"] { border-color: var(--color-accent); color: var(--color-accent); background: var(--color-accent-900); }
+.journal-box {
+  width: 100%; min-height: 140px; resize: vertical; border: 1px solid var(--color-neutral-800);
+  border-radius: var(--radius-md); padding: var(--space-4); font-family: inherit; font-size: 13.5px;
+  line-height: 1.6; color: var(--color-text); background: transparent;
+}
+.journal-box:hover { box-shadow: inset 0 0 0 1px var(--color-neutral-800); }
+.journal-box:focus { box-shadow: inset 0 0 0 1.5px var(--color-accent); outline: none; background: var(--color-bg); }
