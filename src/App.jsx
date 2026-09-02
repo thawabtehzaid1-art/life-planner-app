@@ -623,15 +623,26 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             <div className="kpi-row">
               {kpis.map((k, i) => {
                 const key = "kpi-" + i;
+                const tappable = !!(k.explain || k.jump);
+                const activate = () => {
+                  if (k.explain) toggleReveal(key);
+                  if (k.jump) triggerHighlight(k.jump.ids, k.jump.blockId);
+                };
                 return (
                   <div
                     key={i}
                     className="kpi-card"
-                    data-tappable={(k.explain || k.jump) ? "1" : ""}
-                    onClick={() => {
-                      if (k.explain) toggleReveal(key);
-                      if (k.jump) triggerHighlight(k.jump.ids, k.jump.blockId);
-                    }}
+                    data-tappable={tappable ? "1" : ""}
+                    // A plain div with only onClick was never reachable by
+                    // keyboard at all (no tabIndex, no Enter/Space handler)
+                    // -- same role/tabIndex/onKeyDown shape .cal-cell and
+                    // .nav-item already use for the same reason. Only
+                    // tappable cards join the tab order; a card with
+                    // neither explain nor jump has nothing to activate.
+                    role={tappable ? "button" : undefined}
+                    tabIndex={tappable ? 0 : undefined}
+                    onClick={tappable ? activate : undefined}
+                    onKeyDown={tappable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(); } } : undefined}
                   >
                     <div className="kpi-label">{k.label}</div>
                     <div className="kpi-value" data-c={k.tint}>{k.value}</div>
