@@ -122,9 +122,15 @@ function CalendarBlock({ b }) {
               <span style={{ color: d.numColor }}>{d.n}</span>
               <span className="cal-more">{d.more}</span>
             </div>
-            {d.events.map((e, ei) => (
-              <div key={ei} className="chip cal-event" data-c={e.tint}>{e.t}</div>
-            ))}
+            {/* Wrapped so mobile can lay these out as a row of small dots
+                (see .cal-events in index.css) instead of the desktop's
+                stacked full-text chips — title gives desktop users a
+                hover tooltip once there's no visible label to read. */}
+            <div className="cal-events">
+              {d.events.map((e, ei) => (
+                <div key={ei} className="chip cal-event" data-c={e.tint} title={e.t}>{e.t}</div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
