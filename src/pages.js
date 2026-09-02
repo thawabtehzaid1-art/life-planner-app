@@ -416,6 +416,10 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay }) {
   const daySpend = d.expenses.filter((x) => parseISO(x.date) === viewTs);
   const daySpendTotal = daySpend.reduce((s, x) => s + num(x.amount), 0);
 
+  const healthSynced = !!(d.health && (
+    Object.keys(d.health.steps || {}).length || Object.keys(d.health.sleepHours || {}).length
+  ));
+
   P.today = {
     title: isViewingToday ? "Today" : fmtDate(viewTs), role: isViewingToday ? "Check off as you go" : "Day detail", roleTint: "accent",
     sub: isViewingToday
@@ -423,18 +427,23 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay }) {
       : "Whatever was (or is) due that day, its journal entry, and its spending — clicked from the Monthly Calendar.",
     greeting: isViewingToday ? greetingFor(ownName, today, d.settings.birthday) : null,
     kpis: [
-      { label: "Progress", value: dayPct + "%", note: dayTotal ? dayDone + " of " + dayTotal + " done" : "nothing due", hasBar: true, pct: dayPct, tint: "health", explain: "Everything due today across tasks, recurring items, bills, habits, and your workout split, done vs total." },
       { label: "Still open", value: String(dayOpen), note: dayOpen ? "left" : "all clear", tint: dayOpen ? "" : "health", explain: "Rows still showing in the checklist below." },
       { label: "Focus sessions", value: String(sessionsView), note: isViewingToday ? "today" : "that day", tint: "work", explain: "30-minute focus timer sessions completed, from the timer above." },
       { label: "Spent", value: mon(daySpendTotal), note: daySpend.length + " logged", tint: daySpendTotal ? "money" : "" , explain: "Logged in the Spending table below, for this date only." },
-      {
-        label: "Steps", value: d.health?.steps?.[viewISO] != null ? String(d.health.steps[viewISO]) : "—",
-        note: "from Health via Shortcuts", explain: "Sent in by an Apple Shortcut you set up on Overview — not tracked directly in Align.",
-      },
-      {
-        label: "Sleep", value: d.health?.sleepHours?.[viewISO] != null ? d.health.sleepHours[viewISO] + "h" : "—",
-        note: "from Health via Shortcuts", explain: "Sent in by an Apple Shortcut you set up on Overview — not tracked directly in Align.",
-      },
+      // Steps/Sleep depend on a manual Apple Shortcuts setup (see Overview's
+      // Health Sync card) — most visitors never do it, so these only join
+      // the row once there's at least one synced day, same as .fasting-timer
+      // only rendering when settings.fasts === "Yes" in App.jsx.
+      ...(healthSynced ? [
+        {
+          label: "Steps", value: d.health?.steps?.[viewISO] != null ? String(d.health.steps[viewISO]) : "—",
+          note: "from Health via Shortcuts", explain: "Sent in by an Apple Shortcut you set up on Overview — not tracked directly in Align.",
+        },
+        {
+          label: "Sleep", value: d.health?.sleepHours?.[viewISO] != null ? d.health.sleepHours[viewISO] + "h" : "—",
+          note: "from Health via Shortcuts", explain: "Sent in by an Apple Shortcut you set up on Overview — not tracked directly in Align.",
+        },
+      ] : []),
     ],
     blocks: [
       donut("Progress", "everything due that day", dayPct + "%", dayDone + " of " + dayTotal, [
