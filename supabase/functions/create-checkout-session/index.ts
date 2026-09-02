@@ -12,6 +12,7 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import Stripe from "npm:stripe@14";
+import { getBackendKey } from "../_shared/serviceRoleKey.ts";
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { apiVersion: "2023-10-16" });
 
@@ -34,7 +35,7 @@ Deno.serve(async (req) => {
     // Reuse an existing Stripe customer id if we already have one on file.
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      getBackendKey(),
     );
     const { data: sub } = await admin
       .from("subscriptions")

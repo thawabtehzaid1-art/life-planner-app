@@ -8,6 +8,7 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { getBackendKey } from "../_shared/serviceRoleKey.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -23,7 +24,7 @@ Deno.serve(async (req) => {
     const { data: userData, error } = await supabase.auth.getUser();
     if (error || !userData?.user) return new Response("Unauthorized", { status: 401, headers: corsHeaders });
 
-    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, getBackendKey());
     const { data } = await admin
       .from("google_calendar_tokens")
       .select("user_id")

@@ -13,6 +13,7 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { getBackendKey } from "../_shared/serviceRoleKey.ts";
 
 async function refreshedAccessToken(admin, userId: string, row) {
   if (new Date(row.expires_at).getTime() > Date.now() + 60_000) return row.access_token;
@@ -95,7 +96,7 @@ Deno.serve(async (req) => {
 
     const { tasks = [], bills = [], timezone = "UTC" } = await req.json();
 
-    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, getBackendKey());
     const { data: tokenRow } = await admin.from("google_calendar_tokens").select("*").eq("user_id", userId).maybeSingle();
     if (!tokenRow) return new Response(JSON.stringify({ synced: 0, skipped: "not connected" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 

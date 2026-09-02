@@ -3,10 +3,14 @@
 // is the only place that's meant to write status/stripe_* columns).
 //
 // Secrets this function needs (set via `supabase secrets set`):
-//   STRIPE_SECRET_KEY          - same as create-checkout-session
-//   STRIPE_WEBHOOK_SECRET      - from the Stripe Dashboard webhook endpoint
-//   SUPABASE_SERVICE_ROLE_KEY  - Project Settings -> API -> service_role
-//                                (never put this in frontend code or .env.local)
+//   STRIPE_SECRET_KEY     - same as create-checkout-session
+//   STRIPE_WEBHOOK_SECRET - from the Stripe Dashboard webhook endpoint
+//   SUPABASE_SECRET_KEYS  - Project Settings -> API Keys -> Secret keys,
+//                           already present in every Edge Function
+//                           environment automatically; the "backend_key"
+//                           entry within it is what's actually read, see
+//                           _shared/serviceRoleKey.ts
+//                           (never put a raw key in frontend code or .env.local)
 //
 // After deploying, register this function's URL as a webhook endpoint in
 // the Stripe Dashboard, subscribed to:
@@ -17,9 +21,10 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import Stripe from "npm:stripe@14";
+import { getBackendKey } from "../_shared/serviceRoleKey.ts";
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { apiVersion: "2023-10-16" });
-const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+const admin = createClient(Deno.env.get("SUPABASE_URL")!, getBackendKey());
 
 function statusFromStripe(stripeStatus) {
   if (stripeStatus === "active" || stripeStatus === "trialing") return "active";

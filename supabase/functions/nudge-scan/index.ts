@@ -10,14 +10,17 @@
 // is simpler and more robust than trying to share it across runtimes.
 //
 // Secrets this function needs (set via `supabase secrets set`):
-//   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (both already present in every
-//   Supabase project's Edge Function environment automatically)
+//   SUPABASE_URL, SUPABASE_SECRET_KEYS (both already present in every
+//   Supabase project's Edge Function environment automatically — the
+//   "backend_key" entry within the latter is what's actually read, see
+//   _shared/serviceRoleKey.ts)
 //   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (same as send-push)
 //
 // Deploy: supabase functions deploy nudge-scan --no-verify-jwt
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import webpush from "npm:web-push@3";
+import { getBackendKey } from "../_shared/serviceRoleKey.ts";
 
 webpush.setVapidDetails(
   Deno.env.get("VAPID_SUBJECT") || "mailto:support@example.com",
@@ -101,7 +104,7 @@ function nudgesFor(data, todayISO, tomorrowISO, todayTsValue, currentHour) {
 }
 
 Deno.serve(async (_req) => {
-  const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const admin = createClient(Deno.env.get("SUPABASE_URL")!, getBackendKey());
 
   const now = new Date();
 

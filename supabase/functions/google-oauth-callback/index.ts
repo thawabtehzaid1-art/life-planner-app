@@ -11,11 +11,12 @@
 // Deploy: supabase functions deploy google-oauth-callback --no-verify-jwt
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { getBackendKey } from "../_shared/serviceRoleKey.ts";
 
 async function sign(payload: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!),
+    new TextEncoder().encode(getBackendKey()),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
@@ -60,7 +61,7 @@ Deno.serve(async (req) => {
     if (!tokenRes.ok) throw new Error(tokenData.error_description || tokenData.error || "token exchange failed");
     if (!tokenData.refresh_token) throw new Error("Google didn't return a refresh token — try disconnecting any prior Align access in your Google Account's third-party access settings, then reconnect");
 
-    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, getBackendKey());
     const { error: dbError } = await admin.from("google_calendar_tokens").upsert({
       user_id: uid,
       access_token: tokenData.access_token,

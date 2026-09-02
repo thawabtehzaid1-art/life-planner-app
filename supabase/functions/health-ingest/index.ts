@@ -21,6 +21,7 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { getBackendKey } from "../_shared/serviceRoleKey.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -39,7 +40,7 @@ Deno.serve(async (req) => {
     const num = Number(value);
     if (!isFinite(num)) return new Response(JSON.stringify({ error: "value must be a number" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, getBackendKey());
     const { data: tokenRow } = await admin.from("health_tokens").select("user_id").eq("token", token).maybeSingle();
     if (!tokenRow) return new Response(JSON.stringify({ error: "Invalid token" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 

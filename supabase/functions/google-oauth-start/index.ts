@@ -10,17 +10,19 @@
 //
 // Secrets this function needs (set via `supabase secrets set`):
 //   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
-//   SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY (already
-//   present in every Supabase project's Edge Function environment)
+//   SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SECRET_KEYS (already present
+//   in every Supabase project's Edge Function environment; the "backend_key"
+//   entry within it is what actually signs state — see _shared/serviceRoleKey.ts)
 //
 // Deploy: supabase functions deploy google-oauth-start --no-verify-jwt
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { getBackendKey } from "../_shared/serviceRoleKey.ts";
 
 async function sign(payload: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!),
+    new TextEncoder().encode(getBackendKey()),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
