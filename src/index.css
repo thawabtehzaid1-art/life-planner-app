@@ -421,7 +421,7 @@ button { font-family: inherit; }
 .body-cell, .del-cell { border-bottom: 1px solid var(--color-neutral-900); }
 .body-row:hover .body-cell, .body-row:hover .del-cell { background: var(--color-neutral-900); }
 .body-cell { padding: 7px var(--space-6); min-width: 0; display: flex; align-items: center; }
-/* Toggle columns are deliberately narrow (34px) to hold just a 17px box —
+/* Toggle columns are deliberately narrow (34px) to hold just a 24px box —
    the standard text-cell padding above (16.8px a side) alone exceeds that,
    which was squeezing the actual checkbox down to a sub-1px sliver: still
    there for automated/element-targeted clicks, but functionally untappable
@@ -471,8 +471,13 @@ button { font-family: inherit; }
   border-radius: var(--radius-sm); padding: 2px 4px; min-height: 20px; width: 100%;
   white-space: nowrap; overflow: hidden; display: inline-block;
 }
+/* 24x24 CSS px matches .habit-box below — the WCAG 2.2 SC 2.5.8 (Target
+   Size, Minimum) floor for a pointer target. Was 17x17, which fits inside
+   every toggle column (checked against each table's grid definition; the
+   tightest, 34px, still clears it with 2px to spare after the 4px/4px
+   toggle-column padding below). */
 .cell-box {
-  width: 17px; height: 17px; border-radius: var(--radius-sm); background: var(--color-neutral-900);
+  width: 24px; height: 24px; border-radius: var(--radius-sm); background: var(--color-neutral-900);
   cursor: pointer; display: inline-block;
 }
 .cell-box:hover { box-shadow: inset 0 0 0 1.5px var(--color-accent); }
