@@ -234,7 +234,15 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay }) {
       { label: "Tasks complete", value: pctDone + "%", note: d.tasks.filter((t) => t.status === "Completed").length + " of " + liveTasks.length, hasBar: true, pct: pctDone, explain: "Completed one-off tasks (from Task Tracker) divided by all your non-cancelled tasks." },
       { label: "Habits", value: habitAvg + "%", note: bestHabit ? bestHabit.n + " · " + bestHabit.s + " days" : "", tint: "health", hasBar: true, pct: habitAvg, explain: "Average completion rate across all habits this month, from the Habit Tracker." },
       { label: "Goal progress", value: goalAvg + "%", note: d.goals.length + " goals", tint: "work", hasBar: true, pct: goalAvg, explain: "Average of every goal's current value divided by its target, from Overview." },
-      { label: "Left to spend", value: mon(left), note: mon(incomeIn) + " in", tint: left < 0 ? "home" : "money", explain: "This month's income minus paid bills and logged expenses." },
+      {
+        label: "Left to spend", value: mon(left), note: mon(incomeIn) + " in", tint: left < 0 ? "home" : "money",
+        explain: "This month's income minus paid bills and logged expenses.",
+        // A negative balance is exactly the moment someone's motivated to
+        // look closer — this puts the actual next step (not just a red
+        // number) right where that motivation already is, instead of
+        // leaving it to a separate tab switch.
+        link: left < 0 ? { label: "Review spending →", tab: "spending" } : null,
+      },
     ],
     // De-emphasized on purpose: motivational/trend stats, not today's
     // status — shown smaller and later so they don't compete with the
@@ -253,6 +261,7 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay }) {
         rows: overdueTasks.concat(dueTodayTasks).map((t) => {
           const i = d.tasks.indexOf(t);
           const late = parseISO(t.due) < today;
+          const daysLate = late ? Math.round((today - parseISO(t.due)) / DAY) : 0;
           return {
             cells: [
               tog(false, () => patch((n) => { n.tasks[i].status = "Completed"; }), "health"),
@@ -260,19 +269,23 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay }) {
               chip(t.cat, CAT_TINT[t.cat]),
               chip(t.prio, PRIO_TINT[t.prio]),
               plain("Task Tracker", { muted: true }),
-              plain(late ? Math.round((today - parseISO(t.due)) / DAY) + " days late" : "today", { muted: !late, tint: late ? "home" : "" }),
+              plain(late ? daysLate + (daysLate === 1 ? " day late" : " days late") : "today", { muted: !late, tint: late ? "home" : "" }),
             ],
           };
-        }).concat(occOverdue.concat(occToday).map((o) => ({
-          cells: [
-            tog(false, () => catchUp(o.ri, o.oi), "health"),
-            plain(o.task.name, { tint: o.at < today ? "home" : "", tinted: o.at < today }),
-            chip(o.task.cat, CAT_TINT[o.task.cat]),
-            chip(o.task.prio, PRIO_TINT[o.task.prio]),
-            plain("Recurring", { muted: true }),
-            plain(o.at < today ? Math.round((today - o.at) / DAY) + " days late" : "today", { muted: o.at >= today, tint: o.at < today ? "home" : "" }),
-          ],
-        }))),
+        }).concat(occOverdue.concat(occToday).map((o) => {
+          const overdue = o.at < today;
+          const daysLate = overdue ? Math.round((today - o.at) / DAY) : 0;
+          return {
+            cells: [
+              tog(false, () => catchUp(o.ri, o.oi), "health"),
+              plain(o.task.name, { tint: overdue ? "home" : "", tinted: overdue }),
+              chip(o.task.cat, CAT_TINT[o.task.cat]),
+              chip(o.task.prio, PRIO_TINT[o.task.prio]),
+              plain("Recurring", { muted: true }),
+              plain(overdue ? daysLate + (daysLate === 1 ? " day late" : " days late") : "today", { muted: !overdue, tint: overdue ? "home" : "" }),
+            ],
+          };
+        })),
       }),
       donut("Money this month", "in the shown month", mon(out), "out", [
         { label: "Bills", n: billsIn, value: mon(billsIn), tint: "money" },

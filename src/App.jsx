@@ -698,6 +698,15 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
                         <div className="kpi-bar-fill" data-c={k.tint} style={{ width: Math.max(0, Math.min(100, Math.round(k.pct))) + "%" }} />
                       </div>
                     )}
+                    {k.link && (
+                      <button
+                        type="button"
+                        className="header-link-btn kpi-link"
+                        onClick={(e) => { e.stopPropagation(); setTab(k.link.tab); }}
+                      >
+                        {k.link.label}
+                      </button>
+                    )}
                     {revealed === key && k.explain && <div className="kpi-explain">{k.explain}</div>}
                   </div>
                 );
