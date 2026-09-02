@@ -741,9 +741,11 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             <div className="progress-row">
               {page.progress.map((p, i) => (
                 <div key={i} className="progress-item">
-                  <span className="progress-label">{p.label}</span>
-                  <span className="progress-value">{p.value}</span>
-                  <span className="progress-note">{p.note}</span>
+                  <div className="progress-label">{p.label}</div>
+                  <div className="progress-value-row">
+                    <span className="progress-value">{p.value}</span>
+                    {p.note && <span className="progress-note">{p.note}</span>}
+                  </div>
                 </div>
               ))}
             </div>
