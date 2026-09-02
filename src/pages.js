@@ -6,7 +6,7 @@ import {
 import {
   plain, chip, edit, numc, datec, timec, sel, tog, barc, datelink, table, notes, badges, columns, line, donut,
   settingsBlock, calendarBlock, weekBlock, habitGridBlock,
-  todayTs, wkStart, monthAnchor, monthRange, inRange, weekBounds,
+  todayTs, wkStart, monthAnchorAt, monthRange, inRange, weekBounds,
   occurrences, nextDue, lateOccurrences, simulateDebt, groceryRoll, habitStats, cycleStats, gamificationStats, money,
 } from "./engine.js";
 
@@ -54,11 +54,15 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   // whitespace cleanup when the field actually loses focus instead.
   const txt = (e) => e.target.textContent;
   const mon = (n) => money(d, n);
+  // The month Monthly Calendar and Habit Tracker are both browsing —
+  // hoisted here (rather than computed locally in each section) because
+  // habitStats() below needs it before Monthly Calendar's own section runs.
+  const anchor = monthAnchorAt(state.month || 0);
 
   // ===== Overview
   P.overview = {
     title: "Overview", role: "Edit the setup cells", roleTint: "money",
-    sub: "Set these once. Every other tab reads from them — change the month and the whole calendar re-dates itself.",
+    sub: "Set these once. Every other tab reads from them.",
     blocks: [
       settingsBlock("Setup", "the only settings in the whole planner", [
         { label: "Your name", isText: true, v: d.settings.name, set: setS("name"), group: "About you" },
@@ -78,7 +82,6 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
         { label: "Week starts on", isSelect: true, v: d.settings.weekStart, options: ["Monday", "Sunday"], set: setS("weekStart"), group: "Preferences" },
         { label: "Currency symbol", isText: true, v: d.settings.currency, set: setS("currency"), maxLength: 3, group: "Preferences" },
         { label: "Measurement units", isSelect: true, v: d.settings.units, options: ["Metric", "Imperial"], set: setS("units"), group: "Preferences" },
-        { label: "Calendar month shown", isMonth: true, v: d.settings.month, set: setS("month"), group: "Preferences" },
         {
           label: "Timezone", isText: true, v: d.settings.timezone || "UTC",
           hint: "Detected from this device automatically — only change it if that's wrong",
@@ -183,7 +186,7 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   const owed = d.debts.reduce((s, x) => s + num(x.balance), 0);
   const started = d.debts.reduce((s, x) => s + num(x.start), 0);
 
-  const hs = habitStats(d);
+  const hs = habitStats(d, anchor);
   const habitAvg = hs.length ? Math.round(hs.reduce((s, x) => s + x.pct, 0) / hs.length) : 0;
   const bestHabit = hs.map((x, i) => ({ n: d.habits[i].name, s: x.streak })).sort((a, b) => b.s - a.s)[0];
 
@@ -323,7 +326,7 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   const allBillsView = d.bills.filter((b) => parseISO(b.due) === viewTs);
   const billsView = allBillsView.filter((b) => !b.paid);
   const paidBillsView = allBillsView.filter((b) => b.paid);
-  const viewAnchor = new Date(monthAnchor(d));
+  const viewAnchor = new Date(anchor);
   const viewDateObj = new Date(viewTs);
   const monthMatchesView = viewAnchor.getMonth() === viewDateObj.getMonth() && viewAnchor.getFullYear() === viewDateObj.getFullYear();
   const domView = viewDateObj.getDate();
@@ -599,7 +602,6 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   };
 
   // ===== Monthly Calendar
-  const anchor = monthAnchor(d);
   const ad = new Date(anchor);
   const lead = (ad.getDay() - wkStart(d) + 7) % 7;
   const gridStart = anchor - lead * DAY;
@@ -628,7 +630,7 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   }
   const dayNames = DAYNAMES.slice(wkStart(d) === 0 ? 6 : 0).concat(wkStart(d) === 0 ? DAYNAMES.slice(0, 6) : []);
   P.calendar = {
-    title: fmtMon(anchor), role: "Set the month on Overview", roleTint: "money",
+    title: fmtMon(anchor), role: "Browse any month with the buttons below", roleTint: "money",
     sub: "Tasks, recurring occurrences, unpaid bills and target dates, all drawn from the tabs that own them. Nothing on this page is typed.",
     blocks: [
       calendarBlock("Month", "up to two per day, then a count", dayNames, days),
@@ -1184,7 +1186,7 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   const hlen = hs.length ? hs[0].len : 31;
   P.habits = {
     title: "Habit Tracker", role: "Click the squares", roleTint: "health",
-    sub: "The month follows the calendar month on Overview. Streak counts back from today; the percentage is days done out of days elapsed.",
+    sub: "The month follows Monthly Calendar's own month — browse there to see a different one. Streak counts back from today; the percentage is days done out of days elapsed.",
     kpis: [
       { label: "Habits", value: String(d.habits.length), note: "" },
       { label: "Days counted", value: String(hs.length ? hs[0].counted : 0), note: "of " + hlen },

@@ -142,6 +142,11 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
   const [tab, setTab] = useState("today");
   const [query, setQuery] = useState("");
   const [week, setWeek] = useState(0);
+  // Which month Monthly Calendar/Habit Tracker are browsing, as an offset
+  // from the real current month — same shape as `week` above (session-only,
+  // resets to "this month" on reload), shared between those two tabs the
+  // same way `anchor` is shared once inside buildPages().
+  const [month, setMonth] = useState(0);
   const [dayView, setDayView] = useState(null); // ISO date string, or null for "today" — set by clicking a Monthly Calendar day
   const [data, setData] = useState(null); // null = still loading this user's data
   const [syncError, setSyncError] = useState(false);
@@ -371,8 +376,8 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
   const goToDay = useCallback((dateISO) => { setDayView(dateISO); setTab("today"); }, []);
 
   const pages = useMemo(
-    () => (data ? buildPages(data, { week, dayView }, { patch, catchUp, setWeek, goToDay, triggerHighlight }) : null),
-    [data, week, dayView, patch, catchUp, goToDay, triggerHighlight],
+    () => (data ? buildPages(data, { week, dayView, month }, { patch, catchUp, setWeek, goToDay, triggerHighlight }) : null),
+    [data, week, dayView, month, patch, catchUp, goToDay, triggerHighlight],
   );
 
   // Badge-earned celebration: watches the count rather than which badge,
@@ -771,6 +776,14 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
               <button className="btn-outline" onClick={() => setWeek((w) => w - 1)}>← Previous week</button>
               <button className="btn-outline" onClick={() => setWeek(0)}>This week</button>
               <button className="btn-outline" onClick={() => setWeek((w) => w + 1)}>Next week →</button>
+            </div>
+          )}
+
+          {tab === "calendar" && (
+            <div className="week-nav">
+              <button className="btn-outline" onClick={() => setMonth((m) => m - 1)}>← Previous month</button>
+              <button className="btn-outline" disabled={month === 0} onClick={() => setMonth(0)}>This month</button>
+              <button className="btn-outline" onClick={() => setMonth((m) => m + 1)}>Next month →</button>
             </div>
           )}
         </div>

@@ -167,17 +167,19 @@ export function fastingStatus(settings, now) {
   return { fasting, remainingMin, windowLen, startLabel: start, endLabel: end };
 }
 export function wkStart(data) { return data.settings.weekStart === "Sunday" ? 0 : 1; }
-export function monthAnchor(data) {
-  const m = String(data.settings.month || "");
-  const p = m.split("-");
-  if (p.length < 2) { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1).getTime(); }
-  return new Date(+p[0], +p[1] - 1, 1).getTime();
+// Same shape as weekBounds below: a plain offset from the real current
+// month, not persisted anywhere — Monthly Calendar and Habit Tracker both
+// browse via this (see buildPages' shared `anchor`), and it resets to the
+// current month on reload, same as Weekly Planner's `week` offset already
+// does. Replaces the old settings.month field, which required a trip to
+// Overview to change and silently went stale once nothing wrote to it.
+export function monthAnchorAt(month) {
+  const n = new Date(todayTs());
+  return new Date(n.getFullYear(), n.getMonth() + (month || 0), 1).getTime();
 }
-// Deliberately independent of monthAnchor/settings.month — that setting is
-// just which month the Monthly Calendar happens to be browsing, and Spending
-// totals ("This month", "Left to spend", etc.) need to track the real
-// current month regardless, or they silently stop counting anything logged
-// after whatever month the calendar was last left on.
+// Deliberately independent of settings — Spending totals ("This month",
+// "Left to spend", etc.) need to track the real current month regardless
+// of whatever month Monthly Calendar/Habit Tracker happen to be browsing.
 export function monthRange() {
   const n = new Date(); n.setHours(0, 0, 0, 0);
   const from = new Date(n.getFullYear(), n.getMonth(), 1).getTime();
@@ -277,12 +279,15 @@ export function groceryRoll(data) {
 }
 
 // ---------- habit stats ----------
-export function habitStats(data) {
+// `anchor` is the same shared browsing-month timestamp buildPages computes
+// once via monthAnchorAt(state.month) — Habit Tracker's grid and Dashboard's
+// habit rollup both report stats for whatever month that currently is.
+export function habitStats(data, anchor) {
   const dom = new Date().getDate();
-  const anchor = new Date(monthAnchor(data));
+  const anchorDate = new Date(anchor);
   const now = new Date();
-  const isNow = anchor.getMonth() === now.getMonth() && anchor.getFullYear() === now.getFullYear();
-  const len = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0).getDate();
+  const isNow = anchorDate.getMonth() === now.getMonth() && anchorDate.getFullYear() === now.getFullYear();
+  const len = new Date(anchorDate.getFullYear(), anchorDate.getMonth() + 1, 0).getDate();
   const counted = isNow ? dom : len;
   return data.habits.map((h) => {
     let hits = 0, streak = 0, best = 0, run = 0;
