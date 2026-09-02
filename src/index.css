@@ -538,7 +538,13 @@ button { font-family: inherit; }
 .cal-daynames { display: grid; grid-template-columns: repeat(7, 1fr); }
 .cal-dayname { padding: var(--space-3) var(--space-4); font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--color-neutral-600); }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--color-neutral-800); border-radius: var(--radius-md); overflow: hidden; }
-.cal-cell { background: var(--color-surface); min-height: 112px; padding: var(--space-3) var(--space-4); display: flex; flex-direction: column; gap: 3px; cursor: pointer; }
+/* min-width:0 — a grid item's default min-width is auto, which refuses to
+   shrink below its content's intrinsic size. A day with a long event name
+   (white-space:nowrap on .cal-event) was pushing its whole 1fr column
+   wider than the other six instead of respecting the equal-column grid,
+   spilling text visibly into the next day over. This makes the column
+   actually honor 1fr, so .cal-event's own overflow/ellipsis can do its job. */
+.cal-cell { background: var(--color-surface); min-height: 112px; min-width: 0; padding: var(--space-3) var(--space-4); display: flex; flex-direction: column; gap: 3px; cursor: pointer; }
 .cal-cell:hover { background: var(--color-neutral-900); }
 .cal-cell-top { display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; }
 .cal-more { font-size: 10px; color: var(--color-neutral-700); }

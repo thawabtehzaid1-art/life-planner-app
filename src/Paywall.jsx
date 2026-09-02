@@ -62,7 +62,7 @@ export default function Paywall({ subscription, onSignOut }) {
 
         {error && <div className="auth-notice" data-c="home">{error}</div>}
 
-        <button className="btn-outline auth-submit" onClick={handleSubscribe} disabled={busy}>
+        <button className="btn-solid auth-submit" onClick={handleSubscribe} disabled={busy}>
           {busy ? "Redirecting…" : "Subscribe"}
         </button>
 
