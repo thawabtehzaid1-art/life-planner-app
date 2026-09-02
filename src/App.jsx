@@ -142,11 +142,14 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
   const [tab, setTab] = useState("today");
   const [query, setQuery] = useState("");
   const [week, setWeek] = useState(0);
-  // Which month Monthly Calendar/Habit Tracker are browsing, as an offset
-  // from the real current month — same shape as `week` above (session-only,
-  // resets to "this month" on reload), shared between those two tabs the
-  // same way `anchor` is shared once inside buildPages().
+  // Which month Monthly Calendar is browsing, as an offset from the real
+  // current month — same shape as `week` above (session-only, resets to
+  // "this month" on reload).
   const [month, setMonth] = useState(0);
+  // Habit Tracker's own browsable month — deliberately separate from
+  // `month` above (it used to silently follow Monthly Calendar's browse
+  // state) so browsing one screen never changes what the other shows.
+  const [habitMonth, setHabitMonth] = useState(0);
   const [dayView, setDayView] = useState(null); // ISO date string, or null for "today" — set by clicking a Monthly Calendar day
   const [data, setData] = useState(null); // null = still loading this user's data
   const [syncError, setSyncError] = useState(false);
@@ -376,8 +379,8 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
   const goToDay = useCallback((dateISO) => { setDayView(dateISO); setTab("today"); }, []);
 
   const pages = useMemo(
-    () => (data ? buildPages(data, { week, dayView, month }, { patch, catchUp, setWeek, goToDay, triggerHighlight }) : null),
-    [data, week, dayView, month, patch, catchUp, goToDay, triggerHighlight],
+    () => (data ? buildPages(data, { week, dayView, month, habitMonth }, { patch, catchUp, setWeek, goToDay, triggerHighlight }) : null),
+    [data, week, dayView, month, habitMonth, patch, catchUp, goToDay, triggerHighlight],
   );
 
   // Badge-earned celebration: watches the count rather than which badge,
@@ -643,29 +646,6 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
               onFinish={() => { patch((n) => { n.onboarded = true; }); setTab("dashboard"); }}
             />
           )}
-          {/* Escape hatch for whoever dismissed the guide early (or wants
-              to see it again) — the guide itself has no way back to
-              itself once gone, so this is the only door. `!== false`, not
-              `=== true`: accounts that predate this field entirely have
-              `onboarded: undefined`, which matched neither branch and hid
-              both the guide AND this link — nothing on the page could
-              ever bring it up for them. */}
-          {tab === "overview" && data.onboarded !== false && (
-            <button type="button" className="welcome-link" onClick={() => patch((n) => { n.onboarded = false; })}>
-              Restart the setup guide
-            </button>
-          )}
-
-          {/* Health Sync setup itself now lives in Account > Connected
-              apps (built the same session this pointer replaced the old
-              inline card) — this is just wayfinding, not a second place
-              to actually set it up. */}
-          {tab === "overview" && (
-            <button type="button" className="welcome-link" onClick={() => setTab("account")}>
-              <span aria-hidden="true">🩺</span> Health Sync now lives in Account → Connected apps
-            </button>
-          )}
-
           {/* The one thing on this page styled to stand out (Von Restorff) —
               a single plain-language headline instead of the old separate
               "Due today" / "Overdue" cards you had to read and add up
@@ -728,6 +708,8 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
               health={health}
               onSignOut={onSignOut}
               onNavigate={(t) => setTab(t)}
+              onboarded={data.onboarded}
+              patch={patch}
             />
           )}
 
@@ -786,6 +768,14 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
               <button className="btn-outline" onClick={() => setMonth((m) => m - 1)}>← Previous month</button>
               <button className="btn-outline" disabled={month === 0} onClick={() => setMonth(0)}>This month</button>
               <button className="btn-outline" onClick={() => setMonth((m) => m + 1)}>Next month →</button>
+            </div>
+          )}
+
+          {tab === "habits" && (
+            <div className="week-nav">
+              <button className="btn-outline" onClick={() => setHabitMonth((m) => m - 1)}>← Previous month</button>
+              <button className="btn-outline" disabled={habitMonth === 0} onClick={() => setHabitMonth(0)}>This month</button>
+              <button className="btn-outline" onClick={() => setHabitMonth((m) => m + 1)}>Next month →</button>
             </div>
           )}
         </div>

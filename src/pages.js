@@ -186,7 +186,11 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   const owed = d.debts.reduce((s, x) => s + num(x.balance), 0);
   const started = d.debts.reduce((s, x) => s + num(x.start), 0);
 
-  const hs = habitStats(d, anchor);
+  // Dashboard's own habit rollup always reflects the real current month —
+  // deliberately independent of whatever month Monthly Calendar/Habit
+  // Tracker happen to be browsing, same principle monthRange() below
+  // already follows for Spending's totals.
+  const hs = habitStats(d, monthAnchorAt(0));
   const habitAvg = hs.length ? Math.round(hs.reduce((s, x) => s + x.pct, 0) / hs.length) : 0;
   const bestHabit = hs.map((x, i) => ({ n: d.habits[i].name, s: x.streak })).sort((a, b) => b.s - a.s)[0];
 
@@ -682,8 +686,8 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     title: "Weekly Planner", role: "Type in the grid", roleTint: "money",
     sub: "The due row is calculated from your tasks. The time grid below is yours to type in — it saves per week.",
     kpis: [
-      { label: "Blocked slots", value: String(blocked), note: "of 70" },
-      { label: "Free slots", value: String(70 - blocked), note: "", tint: "health" },
+      { label: "Blocked slots", value: String(blocked), note: "of " + (HOURS.length * 7) },
+      { label: "Free slots", value: String(HOURS.length * 7 - blocked), note: "", tint: "health" },
       { label: "Due this week", value: String(openTasks.filter((t) => { const x = parseISO(t.due); return x !== null && x >= wkFrom && x < wkFrom + 7 * DAY; }).length + wkOcc.filter((o) => !o.done).length), note: "" },
       { label: "Workouts", value: String(workoutsWk.length), note: "logged this week", tint: "health" },
     ],
@@ -1201,22 +1205,32 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   };
 
   // ===== Habits
-  const hlen = hs.length ? hs[0].len : 31;
+  // Its own browsable month, independent of Monthly Calendar's — the old
+  // design silently followed whatever month Monthly Calendar happened to
+  // be on (a hidden settings field, then later its own nav), which meant
+  // browsing one screen could quietly change what a completely different
+  // screen showed. habitMonth is the same offset-from-real-today shape as
+  // Monthly Calendar's own `month` and Weekly Planner's `week`.
+  const habitAnchor = monthAnchorAt(state.habitMonth || 0);
+  const hsHabit = habitStats(d, habitAnchor);
+  const hlen = hsHabit.length ? hsHabit[0].len : 31;
+  const habitAvgTab = hsHabit.length ? Math.round(hsHabit.reduce((s, x) => s + x.pct, 0) / hsHabit.length) : 0;
+  const bestHabitTab = hsHabit.map((x, i) => ({ n: d.habits[i].name, s: x.streak })).sort((a, b) => b.s - a.s)[0];
   P.habits = {
     title: "Habit Tracker", role: "Click the squares", roleTint: "health",
-    sub: "The month follows Monthly Calendar's own month — browse there to see a different one. Streak counts back from today; the percentage is days done out of days elapsed.",
+    sub: "Streak counts back from today; the percentage is days done out of days elapsed.",
     kpis: [
       { label: "Habits", value: String(d.habits.length), note: "", explain: "Total habits tracked below." },
-      { label: "Days counted", value: String(hs.length ? hs[0].counted : 0), note: "of " + hlen, explain: "Days elapsed so far this month — or the whole month, if you're browsing a past one via Monthly Calendar." },
-      { label: "Best streak", value: String(Math.max(...hs.map((x) => x.best), 0)), note: bestHabit ? bestHabit.n : "", tint: "health", explain: "Longest run of consecutive done days, across every habit this month." },
-      { label: "Month average", value: habitAvg + "%", note: "", hasBar: true, pct: habitAvg, tint: "health", explain: "Average completion rate across all habits this month." },
+      { label: "Days counted", value: String(hsHabit.length ? hsHabit[0].counted : 0), note: "of " + hlen, explain: "Days elapsed so far in the month shown below, or the whole month if it's a past one." },
+      { label: "Best streak", value: String(Math.max(...hsHabit.map((x) => x.best), 0)), note: bestHabitTab ? bestHabitTab.n : "", tint: "health", explain: "Longest run of consecutive done days this month, across every habit." },
+      { label: "Month average", value: habitAvgTab + "%", note: "", hasBar: true, pct: habitAvgTab, tint: "health", explain: "Average completion rate across all habits this month." },
     ],
     blocks: [
       habitGridBlock(
-        fmtMon(anchor), "one square a day",
+        fmtMon(habitAnchor), "one square a day",
         Array.from({ length: hlen }, (_, i) => (i + 1) % 5 === 0 ? String(i + 1) : "·"),
         d.habits.map((h, hi) => ({
-          name: h.name, streak: String(hs[hi].streak), pct: hs[hi].pct + "%",
+          name: h.name, streak: String(hsHabit[hi].streak), pct: hsHabit[hi].pct + "%",
           setName: (e) => patch((n) => { n.habits[hi].name = e.target.textContent; }),
           remove: () => patch((n) => n.habits.splice(hi, 1)),
           reminderTime: h.reminderTime || "",

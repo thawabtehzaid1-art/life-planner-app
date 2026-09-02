@@ -31,7 +31,7 @@ function SettingsSection({ title, note, children, danger }) {
   );
 }
 
-export default function AccountSettings({ userEmail, subscription, theme, setTheme, THEMES, push, gcal, health, onSignOut, onNavigate }) {
+export default function AccountSettings({ userEmail, subscription, theme, setTheme, THEMES, push, gcal, health, onSignOut, onNavigate, onboarded, patch }) {
   const [resetState, setResetState] = useState("idle"); // idle | busy | sent | error
   const [resetError, setResetError] = useState("");
 
@@ -123,6 +123,19 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
         <button type="button" className="welcome-link account-jump-link" onClick={() => onNavigate("overview")}>
           Your name, timezone, and other planner setup live on Overview →
         </button>
+        {/* Moved here from a permanent, un-dismissible link on Overview
+            (same complaint as the old Health Sync pointer above it used to
+            be) — restarting sets the flag, then jumps to Overview since
+            that's the only place the guide itself actually renders. */}
+        {onboarded !== false && (
+          <button
+            type="button"
+            className="welcome-link account-jump-link"
+            onClick={() => { patch((n) => { n.onboarded = false; }); onNavigate("overview"); }}
+          >
+            Restart the setup guide →
+          </button>
+        )}
       </SettingsSection>
 
       <SettingsSection title="Plan" note="Billed and managed through Stripe">

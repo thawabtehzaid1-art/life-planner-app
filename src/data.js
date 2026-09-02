@@ -30,7 +30,11 @@ export const FOCUS_TINT = { Push: "work", Pull: "work", Legs: "work", "Upper Bod
 export const INCOME_TYPES = ["Paycheck", "Side Income", "Bonus", "Refund", "Gift", "Other"];
 export const INVEST_TYPES = ["Stocks", "Crypto", "Retirement", "Real Estate", "Bonds", "Other"];
 export const DIETS = ["No restrictions", "Vegetarian", "Vegan", "Pescatarian", "Keto", "Paleo", "Mediterranean", "Halal", "Kosher", "Gluten-free", "Other"];
-export const HOURS = ["07:00", "08:00", "09:00", "10:00", "12:00", "13:00", "15:00", "17:00", "19:00", "21:00"];
+// Regular hourly slots, 7am-9pm — was irregular (10:00 -> 12:00 -> 13:00 ->
+// 15:00 -> ...), skipping some hours and not others with no visible reason,
+// which read as a bug rather than a deliberate coarser-later-in-the-day
+// design (a real one would have stayed evenly spaced after 10:00).
+export const HOURS = ["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
 export const DAYNAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 function pad(n) { return String(n).padStart(2, "0"); }
