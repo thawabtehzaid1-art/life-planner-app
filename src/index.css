@@ -747,8 +747,14 @@ button { font-family: inherit; }
 
   /* The base rule already wraps at any width (see .kpi-row above) — this
      just forces a clean 2-up grid on a phone specifically, rather than
-     leaving it to however many 150px cards happen to fit. */
-  .kpi-card { flex: 1 1 calc(50% - var(--space-4) / 2); min-width: 140px; }
+     leaving it to however many 150px cards happen to fit. flex-grow is 0,
+     not 1: an odd card count (Today's 3/5, Income's fixed 3, ...) used to
+     leave a lone last card alone on its own line, and flex-grow:1 stretched
+     that one card to fill the whole row — roughly double its siblings'
+     width, which read as broken on a real phone rather than "the last
+     tile." flex-grow:0 keeps every card the same half-width size; a lone
+     trailing card just leaves empty space next to it instead. */
+  .kpi-card { flex: 0 1 calc(50% - var(--space-4) / 2); min-width: 140px; }
 
   /* Below 900px the 2-column settings grid squeezes each input into a
      sliver next to its 180px label — stack label above field instead so
