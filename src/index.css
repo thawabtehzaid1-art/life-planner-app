@@ -378,7 +378,7 @@ button { font-family: inherit; }
   border-left: 3px solid var(--c, var(--color-accent));
   padding: var(--space-6) var(--space-8);
 }
-.hero-title { font-family: var(--font-heading); font-weight: 500; font-size: 19px; letter-spacing: -0.01em; }
+.hero-title { font-family: var(--font-heading); font-weight: 500; font-size: 20px; letter-spacing: -0.01em; }
 .hero-sub { color: var(--color-neutral-500); font-size: 13px; margin-top: 4px; }
 
 /* ---- dashboard progress row: trend/motivational stats, deliberately
