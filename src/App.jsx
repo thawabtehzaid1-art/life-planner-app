@@ -731,7 +731,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             />
           )}
 
-          {page.blocks.map((b, i) => <Block key={i} b={b} highlightIds={highlightIds} />)}
+          {page.blocks.map((b, i) => <Block key={i} b={b} highlightIds={highlightIds} revealed={revealed} toggleReveal={toggleReveal} />)}
 
           {/* Trend/motivational stats, deliberately quiet and placed last
               (Progressive Disclosure + Serial Position Effect) — they

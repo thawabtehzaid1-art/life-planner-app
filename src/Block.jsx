@@ -132,24 +132,35 @@ function CalendarBlock({ b }) {
   );
 }
 
-function WeekBlock({ b }) {
+function WeekBlock({ b, revealed, toggleReveal }) {
   return (
     <div className="week-grid">
-      {b.cells.map((c, i) => (
-        <div
-          key={i}
-          className="week-cell"
-          data-c={c.tint}
-          data-tint={c.tinted ? "1" : ""}
-          data-today={c.today ? "1" : ""}
-        >
-          {c.kind === "edit" ? (
-            <EditableSpan className="cell-edit" value={c.v} onInput={c.set} />
-          ) : (
-            <span className={c.muted ? "text-muted" : ""}>{c.v}</span>
-          )}
-        </div>
-      ))}
+      {b.cells.map((c, i) => {
+        const key = "week-" + i;
+        const clickable = !!(c.names && c.names.length);
+        return (
+          <div
+            key={i}
+            className="week-cell"
+            data-c={c.tint}
+            data-tint={c.tinted ? "1" : ""}
+            data-today={c.today ? "1" : ""}
+            data-tappable={clickable ? "1" : ""}
+            onClick={clickable ? () => toggleReveal(key) : undefined}
+          >
+            {c.kind === "edit" ? (
+              <EditableSpan className="cell-edit" value={c.v} onInput={c.set} />
+            ) : (
+              <span className={c.muted ? "text-muted" : ""}>{c.v}</span>
+            )}
+            {clickable && revealed === key && (
+              <div className="week-due-list">
+                {c.names.map((n, ni) => <div key={ni}>{n}</div>)}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -388,7 +399,7 @@ const RENDERERS = {
   badges: BadgesBlock,
 };
 
-export default function Block({ b, highlightIds }) {
+export default function Block({ b, highlightIds, revealed, toggleReveal }) {
   const Renderer = RENDERERS[b.type];
   if (!Renderer) return null;
   return (
@@ -398,7 +409,7 @@ export default function Block({ b, highlightIds }) {
         <div className="block-note">{b.note}</div>
       </div>
       <div className="block-body">
-        <Renderer b={b} highlightIds={highlightIds} />
+        <Renderer b={b} highlightIds={highlightIds} revealed={revealed} toggleReveal={toggleReveal} />
       </div>
     </div>
   );

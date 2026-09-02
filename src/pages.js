@@ -655,16 +655,25 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   wkCells.push({ kind: "plain", v: "due", muted: true });
   for (let i = 0; i < 7; i++) {
     const at = wkFrom + i * DAY;
-    const c = openTasks.filter((t) => parseISO(t.due) === at).length + wkOcc.filter((o) => o.at === at && !o.done).length;
-    wkCells.push({ kind: "plain", v: c ? c + " due" : "", tint: c ? "accent" : "", tinted: !!c });
+    // Names, not just the count, so the due cell can show what's actually
+    // due on tap instead of leaving you to go check Task Tracker to know
+    // what to type into the grid below.
+    const dueNames = openTasks.filter((t) => parseISO(t.due) === at).map((t) => t.name)
+      .concat(wkOcc.filter((o) => o.at === at && !o.done).map((o) => o.task.name));
+    wkCells.push({
+      kind: "plain", v: dueNames.length ? dueNames.length + " due" : "", tint: dueNames.length ? "accent" : "", tinted: !!dueNames.length,
+      today: at === today, names: dueNames.length ? dueNames : null,
+    });
   }
   HOURS.forEach((h) => {
     wkCells.push({ kind: "plain", v: h, muted: true });
     for (let i = 0; i < 7; i++) {
+      const at = wkFrom + i * DAY;
       const key = state.week + "|" + i + "|" + h;
       wkCells.push({
         kind: "edit", v: d.blocks[key] || "",
         set: ((k) => (e) => patch((n) => { n.blocks[k] = e.target.textContent; }))(key),
+        today: at === today,
       });
     }
   });
