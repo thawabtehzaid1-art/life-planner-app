@@ -546,7 +546,12 @@ button { font-family: inherit; }
   white-space: nowrap;
 }
 .week-due-list div + div { margin-top: 2px; }
-.week-nav { display: flex; gap: var(--space-4); }
+/* flex-wrap:wrap — three buttons ("Previous month"/"This month"/"Next
+   month") don't fit one line at phone width and this row has no
+   overflow-x scroll wrapper, so without wrap the last button ran past
+   the card edge instead of dropping to a second line. Same fix as
+   .kpi-row already uses for the same reason. */
+.week-nav { display: flex; flex-wrap: wrap; gap: var(--space-4); }
 
 /* ---- habit grid ---- */
 .habit-grid-head, .habit-row {
