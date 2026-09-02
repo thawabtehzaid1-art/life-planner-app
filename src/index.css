@@ -529,7 +529,12 @@ button { font-family: inherit; }
 /* ---- calendar ---- */
 .cal-wrap { padding: 0 var(--space-6) var(--space-6); }
 .cal-daynames { display: grid; grid-template-columns: repeat(7, 1fr); }
-.cal-dayname { padding: var(--space-3) var(--space-4); font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--color-neutral-600); }
+/* min-width:0 for the same reason .cal-cell below needs it — without it,
+   SAT's default min-width:auto can force this row a hair wider than its
+   container. .block-body (the card wrapping this) scrolls rather than
+   clips overflow, so that excess doesn't get cropped away — it renders
+   fully readable just past the visible card, scrolled out of view on load. */
+.cal-dayname { padding: var(--space-3) var(--space-4); font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--color-neutral-600); min-width: 0; white-space: nowrap; overflow: hidden; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--color-neutral-800); border-radius: var(--radius-md); overflow: hidden; }
 /* min-width:0 — a grid item's default min-width is auto, which refuses to
    shrink below its content's intrinsic size. A day with a long event name
