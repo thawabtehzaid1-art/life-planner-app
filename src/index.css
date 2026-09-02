@@ -425,7 +425,13 @@ button { font-family: inherit; }
 }
 .body-cell, .del-cell { border-bottom: 1px solid var(--color-neutral-900); }
 .body-row:hover .body-cell, .body-row:hover .del-cell { background: var(--color-neutral-900); }
-.body-cell { padding: 7px var(--space-6); min-width: 0; display: flex; align-items: center; }
+.body-cell { padding: 7px var(--space-6); min-width: 0; display: flex; align-items: center; transition: background-color 0.3s ease; }
+/* Jump-to-rows: a KPI (Overdue/Due today) or a datelink cell (Repeating
+   tasks -> its own rows in Generated schedule) scrolls a block into view
+   and flashes the matching rows for 2s — see triggerHighlight in App.jsx.
+   Reuses the same accent tint .kpi-explain/.donut-centre etc. already use
+   for "this is worth noticing" rather than inventing a new color. */
+.body-row[data-highlight="1"] .body-cell, .body-row[data-highlight="1"] .del-cell { background: var(--color-accent-900); }
 /* Toggle columns are deliberately narrow (34px) to hold just a 24px box —
    the standard text-cell padding above (16.8px a side) alone exceeds that,
    which was squeezing the actual checkbox down to a sub-1px sliver: still
@@ -448,6 +454,7 @@ button { font-family: inherit; }
   position: sticky; left: 0; z-index: 1; background: var(--color-surface);
 }
 .body-row:hover .body-cell:first-child { background: var(--color-neutral-900); }
+.body-row[data-highlight="1"] .body-cell:first-child { background: var(--color-accent-900); }
 /* Now a <button> (was a plain onClick div — not keyboard-operable or
    exposed as a control to assistive tech), so its native button chrome
    needs resetting back to how the div used to look: no border/background,
@@ -472,6 +479,15 @@ button { font-family: inherit; }
 .back-today-btn { margin-left: auto; }
 
 .cell-plain { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell-datelink { display: inline-flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+/* Plain <button>, not a hover reveal — works identically on tap (touch) and
+   click, no hover-only state to miss on mobile. Same hit-area-expansion
+   trick as .header-link-btn/.welcome-link elsewhere in this file. */
+.link-badge {
+  background: none; border: none; font: inherit; font-size: 11px; color: var(--color-accent);
+  cursor: pointer; padding: 6px 4px; margin: -6px -4px; white-space: nowrap;
+}
+.link-badge:hover { color: var(--color-accent-400); }
 .cell-edit {
   border-radius: var(--radius-sm); padding: 2px 4px; min-height: 20px; width: 100%;
   white-space: nowrap; overflow: hidden; display: inline-block;

@@ -178,6 +178,20 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
     });
   }, []);
 
+  // Jump-to-rows: a KPI (e.g. "Overdue") or a datelink cell (a recurring
+  // task's "next due" -> its generated occurrences) can point at a set of
+  // row ids elsewhere on the same page. Scrolls that block into view and
+  // flashes the matching rows for 2s, same self-clearing-timer shape as
+  // toggleReveal above.
+  const [highlightIds, setHighlightIds] = useState(null);
+  const highlightTimerRef = useRef(null);
+  const triggerHighlight = useCallback((ids, blockId) => {
+    clearTimeout(highlightTimerRef.current);
+    setHighlightIds(new Set(ids));
+    document.getElementById(blockId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    highlightTimerRef.current = setTimeout(() => setHighlightIds(null), 2000);
+  }, []);
+
   useEffect(() => {
     const found = buildNavGroups(data).find(([, items]) => items.some(([id]) => id === tab));
     if (found) setOpenGroup(found[0]);
@@ -357,8 +371,8 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
   const goToDay = useCallback((dateISO) => { setDayView(dateISO); setTab("today"); }, []);
 
   const pages = useMemo(
-    () => (data ? buildPages(data, { week, dayView }, { patch, catchUp, setWeek, goToDay }) : null),
-    [data, week, dayView, patch, catchUp, goToDay],
+    () => (data ? buildPages(data, { week, dayView }, { patch, catchUp, setWeek, goToDay, triggerHighlight }) : null),
+    [data, week, dayView, patch, catchUp, goToDay, triggerHighlight],
   );
 
   // Badge-earned celebration: watches the count rather than which badge,
@@ -667,8 +681,11 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
                   <div
                     key={i}
                     className="kpi-card"
-                    data-tappable={k.explain ? "1" : ""}
-                    onClick={() => k.explain && toggleReveal(key)}
+                    data-tappable={(k.explain || k.jump) ? "1" : ""}
+                    onClick={() => {
+                      if (k.explain) toggleReveal(key);
+                      if (k.jump) triggerHighlight(k.jump.ids, k.jump.blockId);
+                    }}
                   >
                     <div className="kpi-label">{k.label}</div>
                     <div className="kpi-value" data-c={k.tint}>{k.value}</div>
@@ -709,7 +726,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             />
           )}
 
-          {page.blocks.map((b, i) => <Block key={i} b={b} />)}
+          {page.blocks.map((b, i) => <Block key={i} b={b} highlightIds={highlightIds} />)}
 
           {/* Trend/motivational stats, deliberately quiet and placed last
               (Progressive Disclosure + Serial Position Effect) — they

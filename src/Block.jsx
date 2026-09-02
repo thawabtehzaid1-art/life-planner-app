@@ -19,7 +19,14 @@ function DeleteIcon() {
   );
 }
 
-function TableBlock({ b }) {
+// "All tasks" -> "all-tasks", matching the ids buildPages() bakes into a
+// KPI's jump.blockId / a datelink cell's target so scrollIntoView can find
+// the right block by its title without a separate id passed around too.
+function slug(title) {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function TableBlock({ b, highlightIds }) {
   // One shared CSS grid for the whole table, not one independent grid per
   // row: each `.grid-row` is `display:contents` (see index.css) so its
   // cells become direct children of this single grid instead of starting
@@ -53,7 +60,7 @@ function TableBlock({ b }) {
         const rowLabelCell = r.cells.find((cell) => cell.kind === "edit" || cell.kind === "plain");
         const rowLabel = (rowLabelCell && rowLabelCell.v) || `row ${ri + 1}`;
         return (
-          <div key={ri} className="grid-row body-row">
+          <div key={ri} className="grid-row body-row" data-highlight={highlightIds?.has(r.id) ? "1" : ""}>
             {r.cells.map((c, ci) => (
               <div
                 key={ci}
@@ -381,17 +388,17 @@ const RENDERERS = {
   badges: BadgesBlock,
 };
 
-export default function Block({ b }) {
+export default function Block({ b, highlightIds }) {
   const Renderer = RENDERERS[b.type];
   if (!Renderer) return null;
   return (
-    <div className="block-card">
+    <div className="block-card" id={slug(b.title)}>
       <div className="block-header">
         <h2 className="block-title">{b.title}</h2>
         <div className="block-note">{b.note}</div>
       </div>
       <div className="block-body">
-        <Renderer b={b} />
+        <Renderer b={b} highlightIds={highlightIds} />
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import {
   iso, parseISO, edate, fmtDate, fmtMon, num,
 } from "./data.js";
 import {
-  plain, chip, edit, numc, datec, timec, sel, tog, barc, table, notes, badges, columns, line, donut,
+  plain, chip, edit, numc, datec, timec, sel, tog, barc, datelink, table, notes, badges, columns, line, donut,
   settingsBlock, calendarBlock, weekBlock, habitGridBlock,
   todayTs, wkStart, monthAnchor, monthRange, inRange, weekBounds,
   occurrences, nextDue, lateOccurrences, simulateDebt, groceryRoll, habitStats, cycleStats, gamificationStats, money,
@@ -43,7 +43,7 @@ function greetingFor(name, todayTsValue, birthday) {
 // deep clone of `data` and persists it; `catchUp`/setState-style callbacks
 // are threaded straight from App.jsx so this file stays a pure function of
 // (data, state) => pages, same shape the design canvas used.
-export function buildPages(data, state, { patch, catchUp, setWeek, goToDay }) {
+export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, triggerHighlight }) {
   const d = data;
   const today = todayTs();
   const P = {};
@@ -492,16 +492,29 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay }) {
   // Recurring never had its own KPI row, so putting both tables on one
   // page loses nothing and removes a destination that mostly just made
   // "where do I add a task" a two-way guess.
+  // Generated schedule's source rows, computed once here so both that
+  // table and Repeating tasks' datelink cells (which need "how many
+  // occurrences does this template have upcoming") read the same list.
+  const scheduleOccs = lateOccurrences(d).concat(occurrences(d, today, today + 120 * DAY).filter((o) => !o.done)).slice(0, 12);
+
   P.tasks = {
     title: "Task Tracker", role: "Type freely", roleTint: "health",
     sub: "One-off tasks above, anything that repeats on a schedule below. Days left and next-due dates calculate themselves.",
     kpis: [
-      { label: "Total tasks", value: String(liveTasks.length), note: "" },
-      { label: "% complete", value: pctDone + "%", note: "", hasBar: true, pct: pctDone },
-      { label: "Overdue", value: String(overdueTasks.length), note: "", tint: overdueTasks.length ? "home" : "health" },
-      { label: "Due today", value: String(dueTodayTasks.length), note: "" },
-      { label: "Next 7 days", value: String(next7.length), note: "" },
-      { label: "Recurring", value: String(d.recurring.length), note: "" },
+      { label: "Total tasks", value: String(liveTasks.length), note: "", explain: "One-off tasks that aren't cancelled — open and completed combined." },
+      { label: "% complete", value: pctDone + "%", note: "", hasBar: true, pct: pctDone, explain: "Completed one-off tasks divided by all non-cancelled tasks." },
+      {
+        label: "Overdue", value: String(overdueTasks.length), note: "", tint: overdueTasks.length ? "home" : "health",
+        explain: overdueTasks.length ? "Tap to jump to these rows in All tasks." : "Nothing open is past its due date.",
+        jump: overdueTasks.length ? { blockId: "all-tasks", ids: overdueTasks.map((t) => "task-" + d.tasks.indexOf(t)) } : null,
+      },
+      {
+        label: "Due today", value: String(dueTodayTasks.length), note: "",
+        explain: dueTodayTasks.length ? "Tap to jump to these rows in All tasks." : "Nothing open is due today.",
+        jump: dueTodayTasks.length ? { blockId: "all-tasks", ids: dueTodayTasks.map((t) => "task-" + d.tasks.indexOf(t)) } : null,
+      },
+      { label: "Next 7 days", value: String(next7.length), note: "", explain: "Open tasks due within the next week, not counting today." },
+      { label: "Recurring", value: String(d.recurring.length), note: "", explain: "Templates in Repeating tasks below — each generates its own occurrences in Generated schedule." },
     ],
     blocks: [
       table({
@@ -515,6 +528,7 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay }) {
           const days = (due === null || closed) ? "—" : Math.round((due - today) / DAY);
           const late = !closed && due !== null && due < today;
           return {
+            id: "task-" + i,
             remove: () => patch((n) => n.tasks.splice(i, 1)),
             cells: [
               edit(t.name, (e) => patch((n) => { n.tasks[i].name = txt(e); })),
@@ -541,7 +555,9 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay }) {
         rows: d.recurring.map((r, i) => {
           const nd = nextDue(d, i);
           const every = RECUR_MONTHS[r.freq] ? RECUR_MONTHS[r.freq] + " mo" : (RECUR_DAYS[r.freq] || 0) + (RECUR_DAYS[r.freq] === 1 ? " day" : " days");
+          const matches = scheduleOccs.filter((o) => o.ri === i);
           return {
+            id: "recur-" + i,
             remove: () => patch((n) => n.recurring.splice(i, 1)),
             cells: [
               edit(r.name, (e) => patch((n) => { n.recurring[i].name = txt(e); })),
@@ -551,7 +567,10 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay }) {
               datec(r.first, (e) => patch((n) => { n.recurring[i].first = e.target.value; })),
               sel(r.freq, (e) => patch((n) => { n.recurring[i].freq = e.target.value; }), RECUR, "work"),
               plain(every, { align: "right", muted: true }),
-              plain(fmtDate(nd), { tint: nd === today ? "money" : "", tinted: nd === today }),
+              datelink(
+                fmtDate(nd), { tint: nd === today ? "money" : "", tinted: nd === today }, matches.length,
+                () => triggerHighlight(matches.map((o) => "occ-" + o.ri + "-" + o.oi), "generated-schedule"),
+              ),
               timec(r.reminderTime || "", (e) => patch((n) => { n.recurring[i].reminderTime = e.target.value; })),
             ],
           };
@@ -563,7 +582,8 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay }) {
         title: "Generated schedule", note: "next twelve occurrences · tick one and it disappears",
         grid: "34px 1.8fr 130px 150px 90px 130px 1fr",
         head: ["", "Task", "Category", "Due date", { t: "#", align: "right" }, "Owner", "Status"],
-        rows: lateOccurrences(d).concat(occurrences(d, today, today + 120 * DAY).filter((o) => !o.done)).slice(0, 12).map((o) => ({
+        rows: scheduleOccs.map((o) => ({
+          id: "occ-" + o.ri + "-" + o.oi,
           cells: [
             tog(false, () => catchUp(o.ri, o.oi), "health"),
             plain(o.task.name),

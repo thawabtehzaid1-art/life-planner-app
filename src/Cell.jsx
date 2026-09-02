@@ -79,6 +79,17 @@ export default function Cell({ c, ariaLabel }) {
       );
     case "edit":
       return <EditableSpan className="cell-edit" value={c.v} onInput={c.set} />;
+    case "datelink":
+      return (
+        <span className="cell-datelink">
+          <span>{c.v}</span>
+          {c.count > 0 && (
+            <button type="button" className="link-badge" onClick={c.onClick}>
+              → {c.count} upcoming
+            </button>
+          )}
+        </span>
+      );
     case "num":
       return (
         <SyncedInput

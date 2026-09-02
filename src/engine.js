@@ -31,6 +31,13 @@ export function tog(on, set, tint) {
 export function barc(pct, label, tint) {
   return { kind: "bar", v: label, pct: Math.max(0, Math.min(100, Math.round(pct))), align: "left", justify: "flex-start", tint: tint || "", tinted: false };
 }
+// A plain date cell with an optional trailing "→ N upcoming" button — links
+// a recurring task's "Next due" cell to its matching rows in the Generated
+// schedule table below, without making the whole row (which already has
+// editable cells) clickable.
+export function datelink(v, o, count, onClick) {
+  return { kind: "datelink", v, align: o.align || "left", justify: o.align === "right" ? "flex-end" : "flex-start", tint: o.tint || "", tinted: !!o.tinted, count: count || 0, onClick };
+}
 
 export function table(o) {
   // The delete "×" column isn't part of the caller's head/cells arrays —
