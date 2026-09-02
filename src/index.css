@@ -819,6 +819,11 @@ button { font-family: inherit; }
     width: 7px; height: 7px; padding: 0; border-radius: 50%; flex: 0 0 auto;
     font-size: 0; line-height: 0;
   }
+  /* 112px was sized for desktop's two lines of full-text chips -- a dot
+     row takes a fraction of that height, so cells this narrow (7 columns
+     on a phone) were rendering as tall, mostly-empty rectangles instead
+     of the roughly-square cells a real calendar reads as. */
+  .cal-cell { min-height: 60px; }
 }
 
 /* ---- update-available banner ----
