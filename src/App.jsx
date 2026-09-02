@@ -155,7 +155,6 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
   const [data, setData] = useState(null); // null = still loading this user's data
   const [syncError, setSyncError] = useState(false);
   const [theme, setTheme] = useState(loadInitialTheme);
-  const headerThemeBtnRefs = useRef({});
   // Which group's chevron is rotated open and shows its one-line
   // description — exactly one at a time, not independent toggles. No
   // longer gates whether a group's nav items are visible/clickable (every
@@ -573,48 +572,6 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             )}
           </div>
           <div className="page-header-right">
-            {tab === "today" && (
-              <div className="header-actions">
-                <div
-                  className="theme-switch-compact"
-                  role="radiogroup"
-                  aria-label="Color theme"
-                  onKeyDown={(e) => {
-                    // Same fix as Account Settings' theme picker (identical
-                    // widget, copy-pasted here): role="radio" implies arrow
-                    // keys move the roving tab-stop, which plain Tab-only
-                    // support didn't provide.
-                    if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key)) return;
-                    e.preventDefault();
-                    const idx = THEMES.findIndex((t) => t.id === theme);
-                    const dir = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
-                    const next = THEMES[(idx + dir + THEMES.length) % THEMES.length];
-                    setTheme(next.id);
-                    headerThemeBtnRefs.current[next.id]?.focus();
-                  }}
-                >
-                  {THEMES.map((t) => (
-                    <button
-                      key={t.id}
-                      ref={(el) => { headerThemeBtnRefs.current[t.id] = el; }}
-                      type="button"
-                      role="radio"
-                      aria-checked={theme === t.id}
-                      tabIndex={theme === t.id ? 0 : -1}
-                      data-on={theme === t.id ? "1" : ""}
-                      className="theme-swatch-btn"
-                      onClick={() => setTheme(t.id)}
-                      title={t.label}
-                      aria-label={t.label}
-                    >
-                      <span className={"theme-swatch theme-swatch-" + t.id} />
-                    </button>
-                  ))}
-                </div>
-                <button className="header-link-btn" onClick={reset}>Reset to sample</button>
-                <button className="header-link-btn" onClick={onSignOut}>Sign out</button>
-              </div>
-            )}
             <div>{today}</div>
           </div>
         </div>
@@ -714,6 +671,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
               onNavigate={(t) => setTab(t)}
               onboarded={data.onboarded}
               patch={patch}
+              reset={reset}
             />
           )}
 

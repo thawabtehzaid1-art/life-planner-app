@@ -31,7 +31,7 @@ function SettingsSection({ title, note, children, danger }) {
   );
 }
 
-export default function AccountSettings({ userEmail, subscription, theme, setTheme, THEMES, push, gcal, health, onSignOut, onNavigate, onboarded, patch }) {
+export default function AccountSettings({ userEmail, subscription, theme, setTheme, THEMES, push, gcal, health, onSignOut, onNavigate, onboarded, patch, reset }) {
   const [resetState, setResetState] = useState("idle"); // idle | busy | sent | error
   const [resetError, setResetError] = useState("");
 
@@ -290,6 +290,25 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
             <div className="settings-hint">End your session on this device</div>
           </div>
           <button type="button" className="btn-outline" onClick={onSignOut}>Sign out</button>
+        </div>
+
+        {/* Used to be a plain, unguarded link in Today's header (one
+            misclick wiped everything, no confirmation at all) — same
+            confirm() guard every other destructive row-delete in this app
+            already uses, since this wipes just as much as one of those,
+            just all at once. */}
+        <div className="account-row">
+          <div className="account-row-label">
+            <div>Reset to sample data</div>
+            <div className="settings-hint">Replaces everything with the example planner — can't be undone</div>
+          </div>
+          <button
+            type="button"
+            className="btn-outline"
+            onClick={() => { if (window.confirm("Reset to sample data? Everything you've entered will be replaced. This can't be undone.")) reset(); }}
+          >
+            Reset
+          </button>
         </div>
 
         <div className="account-row">
