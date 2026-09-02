@@ -370,6 +370,33 @@ function NotesBlock({ b }) {
   );
 }
 
+// Vertical stack, not a grid like NotesBlock — each phase needs real room
+// for two full sentences (what's happening + a self-care note), which a
+// side-by-side N-column layout doesn't leave space for. The current phase
+// gets the same accent-ring treatment [data-today="1"] already uses
+// elsewhere, plus an explicit "You are here" label rather than relying on
+// the ring alone to communicate it.
+function PhasesBlock({ b }) {
+  return (
+    <div className="phase-list">
+      {b.phases.map((p) => (
+        <div key={p.id} className="phase-item" data-current={p.current ? "1" : ""}>
+          <div className="phase-header">
+            <span className="phase-name">{p.label}</span>
+            {p.current ? (
+              <span className="phase-current-tag">You are here · Days {p.from}–{p.to}</span>
+            ) : (
+              <span className="phase-range">Days {p.from}–{p.to}</span>
+            )}
+          </div>
+          <div className="phase-what">{p.whatHappens}</div>
+          <div className="phase-care"><b>May help:</b> {p.selfCare}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function BadgesBlock({ b }) {
   return (
     <div className="badges-grid">
@@ -396,6 +423,7 @@ const RENDERERS = {
   donut: DonutBlock,
   settings: SettingsBlock,
   notes: NotesBlock,
+  phases: PhasesBlock,
   badges: BadgesBlock,
 };
 

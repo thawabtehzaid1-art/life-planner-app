@@ -61,6 +61,9 @@ export function table(o) {
 export function notes(title, note, list) {
   return { type: "notes", title, note: note || "", notes: list };
 }
+export function phasesBlock(title, note, phases) {
+  return { type: "phases", title, note: note || "", phases };
+}
 export function badges(title, note, list) {
   return { type: "badges", title, note: note || "", badges: list };
 }
@@ -321,6 +324,25 @@ export function cycleStats(data, today) {
     avgLength, duration, last, cycleDay, nextStart, nextStartISO: nextStart ? iso(nextStart) : null,
     daysUntilNext, onPeriod, hasData: starts.length > 0,
   };
+}
+
+// A simplified, non-overlapping 4-phase model (menstrual, then follicular,
+// then a short ovulatory window, then luteal) rather than real physiology's
+// overlapping follicular/menstrual phases — accurate enough for general
+// self-care guidance, not framed as a cycle-charting/fertility tool.
+// Ovulation is pinned 14 days before the next predicted start (the luteal
+// phase stays fairly fixed at ~14 days regardless of overall cycle length),
+// clamped to land after the period ends even on a short or irregular cycle.
+export function cyclePhases(cycleDay, avgLength, duration) {
+  const ov = Math.max(duration + 2, avgLength - 14);
+  return [
+    { id: "menstrual", label: "Menstrual", from: 1, to: duration },
+    { id: "follicular", label: "Follicular", from: duration + 1, to: ov - 1 },
+    { id: "ovulatory", label: "Ovulatory", from: ov, to: ov + 1 },
+    { id: "luteal", label: "Luteal", from: ov + 2, to: avgLength },
+  ]
+    .filter((p) => p.to >= p.from)
+    .map((p) => ({ ...p, current: cycleDay != null && cycleDay >= p.from && cycleDay <= p.to }));
 }
 
 // ---------- engagement (login streak) ----------

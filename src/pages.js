@@ -4,10 +4,10 @@ import {
   iso, parseISO, edate, fmtDate, fmtMon, num,
 } from "./data.js";
 import {
-  plain, chip, edit, numc, datec, timec, sel, tog, barc, datelink, table, notes, badges, columns, line, donut,
+  plain, chip, edit, numc, datec, timec, sel, tog, barc, datelink, table, notes, phasesBlock, badges, columns, line, donut,
   settingsBlock, calendarBlock, weekBlock, habitGridBlock,
   todayTs, wkStart, monthAnchorAt, monthRange, inRange, weekBounds,
-  occurrences, nextDue, lateOccurrences, simulateDebt, groceryRoll, habitStats, cycleStats, gamificationStats, money,
+  occurrences, nextDue, lateOccurrences, simulateDebt, groceryRoll, habitStats, cycleStats, cyclePhases, gamificationStats, money,
 } from "./engine.js";
 
 // One per day, not per render — Math.random() here would flicker on every
@@ -124,20 +124,55 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     const cycleData = d.cycle || { periods: [], avgLength: 28, avgDuration: 5 };
     const cyc = cycleStats({ cycle: cycleData }, today);
     const withCycle = (fn) => patch((n) => { if (!n.cycle) n.cycle = { periods: [], avgLength: 28, avgDuration: 5 }; fn(n); });
+    // Copy for each phase cyclePhases() can return — kept separate from the
+    // day-range math so the two can be reasoned about (and edited) on their
+    // own. "May help" notes are phrased as suggestions, never instructions,
+    // matching this screen's existing "estimate, not a medical prediction"
+    // framing.
+    const PHASE_COPY = {
+      menstrual: {
+        whatHappens: "The uterine lining sheds — this is the bleeding itself. Estrogen and progesterone are at their lowest, which is often why energy dips too.",
+        selfCare: "rest when you need it, warmth for cramps, iron-rich food, and light movement like walking — often eases cramping more than staying still.",
+      },
+      follicular: {
+        whatHappens: "Estrogen climbs as the body prepares to release an egg. Energy and mood commonly lift through this stretch.",
+        selfCare: "a good window for more demanding workouts or focus-heavy tasks, if that matches how you're feeling.",
+      },
+      ovulatory: {
+        whatHappens: "An egg is released as estrogen peaks. Some people notice a short burst of energy around this time.",
+        selfCare: "nothing specific — worth noting if you're tracking symptoms alongside the calendar.",
+      },
+      luteal: {
+        whatHappens: "Progesterone rises then falls — the drop late in this phase is usually behind PMS symptoms like mood changes, bloating, or fatigue.",
+        selfCare: "prioritizing sleep, gentle movement, and going easy on yourself tends to help more than pushing through — cravings here are normal, not a lack of willpower.",
+      },
+    };
+    const phases = cyclePhases(cyc.cycleDay, cyc.avgLength, cyc.duration).map((p) => ({ ...p, ...PHASE_COPY[p.id] }));
+    const currentPhase = phases.find((p) => p.current);
     P.cycle = {
       title: "Cycle Tracker", role: "Log period start dates", roleTint: "home",
       sub: "An estimate, not a medical prediction — averages are calculated from the dates you log below.",
       kpis: [
-        { label: "Cycle day", value: cyc.cycleDay ? String(cyc.cycleDay) : "—", note: cyc.onPeriod ? "on period" : "", tint: cyc.onPeriod ? "home" : "", explain: "Days since your most recently logged period start." },
+        // No tint on purpose, even while on a period — a reused "home" (the
+        // same red as an overdue bill or task) would color-code a normal
+        // biological state as a problem. The note text already says "on
+        // period" in words, same principle Weight & BMI already applies to
+        // its own "Change" stat.
+        { label: "Cycle day", value: cyc.cycleDay ? String(cyc.cycleDay) : "—", note: cyc.onPeriod ? "on period" : "", explain: "Days since your most recently logged period start." },
         { label: "Next period", value: cyc.nextStartISO ? fmtDate(cyc.nextStart) : "—", note: cyc.daysUntilNext !== null ? (cyc.daysUntilNext >= 0 ? "in " + cyc.daysUntilNext + " days" : Math.abs(cyc.daysUntilNext) + " days late") : "log a start date", explain: "Projected from your average cycle length and last logged start date." },
         { label: "Avg cycle length", value: cyc.avgLength + " days", note: "", explain: "Averaged from the gaps between your logged period starts, or your typical-cycle setting below until there are at least two." },
         { label: "Avg period length", value: cyc.duration + " days", note: "", explain: "Your typical period length setting below." },
+        {
+          label: "Phase", value: currentPhase ? currentPhase.label : "—", note: currentPhase ? "Days " + currentPhase.from + "–" + currentPhase.to : "log a start date",
+          explain: currentPhase ? currentPhase.whatHappens : "Shows once you've logged a period start — see Your cycle stages below.",
+        },
       ],
       blocks: [
         settingsBlock("Typical cycle", "used until at least two periods are logged below", [
           { label: "Typical cycle length (days)", isNum: true, v: String(cycleData.avgLength), set: (e) => withCycle((n) => { n.cycle.avgLength = num(e.target.value); }) },
           { label: "Typical period length (days)", isNum: true, v: String(cycleData.avgDuration), set: (e) => withCycle((n) => { n.cycle.avgDuration = num(e.target.value); }) },
         ]),
+        phasesBlock("Your cycle stages", "general patterns, not a diagnosis — every body is different", phases),
         table({
           title: "Period history", note: "one row per period start date",
           emptyLabel: "No periods logged yet", emptyNote: "Log a start date below to get your first estimate.",
@@ -156,6 +191,9 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
           add: () => withCycle((n) => { n.cycle.periods.push(iso(today)); }),
           addLabel: "+ Log a period start",
         }),
+        notes("Privacy", "", [
+          { t: "🔒 Your data", s: "Stored the same way as the rest of your planner data — private to your account, never shared or sold." },
+        ]),
       ],
     };
   }
