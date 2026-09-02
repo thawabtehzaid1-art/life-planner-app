@@ -12,7 +12,11 @@ export default function OnboardingGuide({ steps, onNavigate, onFinish }) {
   return (
     <div className="welcome-card onboarding-card">
       <div className="onboarding-header">
-        <div className="welcome-title">Let's get you set up</div>
+        {/* This card only ever renders for a brand-new account
+            (onboarded === false) -- every time it's visible, it genuinely
+            is the moment right after signing up, so the copy can just say
+            so rather than opening straight into task mode. */}
+        <div className="welcome-title">Welcome to Align — let's get you set up</div>
         <div className="onboarding-progress-label">{doneCount} of {steps.length} done</div>
       </div>
       <div className="onboarding-track">

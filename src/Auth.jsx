@@ -169,6 +169,14 @@ export default function Auth() {
               mode === MODES.SIGN_IN ? "Sign in" : mode === MODES.SIGN_UP ? "Create account" : "Send reset link"
             )}
           </button>
+          {/* Sets expectations before committing (Fogg Behavior Model —
+              ability): a new signup has no idea a guided setup follows, or
+              how long it takes, until they're already past the point of
+              having handed over a password. Sign-up only, not sign-in — a
+              returning user isn't about to see the checklist. */}
+          {mode === MODES.SIGN_UP && (
+            <p className="auth-hint">Takes about 2 minutes once you're in — a short guided setup, skip anytime.</p>
+          )}
         </form>
 
         <div className="auth-links">

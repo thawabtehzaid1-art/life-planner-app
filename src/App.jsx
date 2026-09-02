@@ -632,7 +632,17 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             <OnboardingGuide
               steps={obSteps}
               onNavigate={setTab}
-              onFinish={() => { patch((n) => { n.onboarded = true; }); setTab("dashboard"); }}
+              onFinish={() => {
+                patch((n) => { n.onboarded = true; });
+                setTab("dashboard");
+                // Same celebrate-burst already used for earning a badge —
+                // finishing setup is arguably a bigger first win than any
+                // one badge, so it gets the same acknowledgment instead of
+                // silently landing on Dashboard with nothing marking the
+                // moment the setup journey just ended.
+                setCelebrate(true);
+                setTimeout(() => setCelebrate(false), 1300);
+              }}
             />
           )}
           {/* The one thing on this page styled to stand out (Von Restorff) —
