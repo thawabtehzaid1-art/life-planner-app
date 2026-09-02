@@ -902,6 +902,39 @@ button { font-family: inherit; }
 .ai-assistant-input-row { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-neutral-800); }
 .ai-assistant-input-row input { flex: 1; min-width: 0; }
 
+/* ---- quick capture (see QuickCapture.jsx) ----
+   Same bottom-left slot as .ai-assistant-btn: safe today since AI_ENABLED
+   is off in every build so far (that button renders nothing). If the AI
+   assistant ever ships for real, these two need separate slots. */
+.quick-capture-btn {
+  position: fixed; left: var(--space-6); bottom: var(--space-6); z-index: 20;
+  background: var(--color-accent); color: var(--color-bg); border: none;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  padding: 11px 18px; border-radius: 999px; box-shadow: var(--shadow-md, 0 6px 18px rgba(0, 0, 0, 0.35));
+  cursor: pointer;
+}
+.quick-capture-btn:hover { background: var(--color-accent-400); }
+.quick-capture-panel {
+  position: fixed; left: var(--space-6); bottom: 76px; z-index: 20;
+  width: min(320px, calc(100vw - var(--space-6) * 2));
+  display: flex; flex-direction: column;
+  background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md, 0 6px 18px rgba(0, 0, 0, 0.35));
+  overflow: hidden;
+}
+.quick-capture-header {
+  padding: var(--space-3) var(--space-4); font-weight: 600; font-size: 13px;
+  border-bottom: 1px solid var(--color-neutral-800);
+}
+.quick-capture-body { padding: var(--space-3) var(--space-4); min-height: 20px; }
+.quick-capture-hint { color: var(--color-neutral-500); font-size: 12.5px; line-height: 1.4; }
+.quick-capture-status { font-size: 13px; line-height: 1.4; }
+.quick-capture-status-ok { color: var(--color-accent-400); }
+.quick-capture-status-hint { color: var(--color-neutral-500); }
+.quick-capture-choices { display: flex; flex-direction: column; gap: var(--space-2); }
+.quick-capture-choice-row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.quick-capture-input-row { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-neutral-800); }
+.quick-capture-input-row input { flex: 1; min-width: 0; }
+
 /* ---- auth / paywall screens ---- */
 .auth-shell {
   min-height: 100vh; display: flex; align-items: center; justify-content: center;

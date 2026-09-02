@@ -13,6 +13,7 @@ import OnboardingGuide from "./OnboardingGuide.jsx";
 import { useAutoHide } from "./useAutoHide.js";
 import { useVersionCheck } from "./useVersionCheck.js";
 import AIAssistant from "./AIAssistant.jsx";
+import QuickCapture from "./QuickCapture.jsx";
 import { usePushSubscription } from "./usePushSubscription.js";
 import { useGoogleCalendar } from "./useGoogleCalendar.js";
 import { useHealthToken } from "./useHealthToken.js";
@@ -809,6 +810,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
       </button>
 
       <AIAssistant data={data} patch={patch} />
+      <QuickCapture data={data} patch={patch} />
 
       {celebrate && (
         <div className="celebrate-burst" aria-hidden="true">
