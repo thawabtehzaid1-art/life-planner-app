@@ -97,6 +97,13 @@
 
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
+/* Without this, iOS Safari auto-boosts font sizes on text blocks it judges
+   "the main readable content" in a narrow column -- headings and long
+   links in particular can render noticeably larger than their declared
+   CSS size, breaking the deliberate type scale the rest of this file sets
+   up. 100% disables that heuristic entirely so every size below renders
+   exactly as declared, on every device. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   margin: 0;
   background: var(--color-bg);
