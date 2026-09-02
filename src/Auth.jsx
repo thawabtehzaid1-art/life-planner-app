@@ -35,9 +35,19 @@ const PATH_BY_MODE = { [MODES.SIGN_IN]: "/", [MODES.SIGN_UP]: "/signup", [MODES.
 const MODE_BY_PATH = { "/": MODES.SIGN_IN, "/signup": MODES.SIGN_UP, "/forgot-password": MODES.RESET };
 const TITLE_BY_MODE = { [MODES.SIGN_IN]: "Sign in", [MODES.SIGN_UP]: "Create account", [MODES.RESET]: "Reset password" };
 
+// Confirming a fresh sign-up happens by clicking a link in an email client,
+// not a same-tab transition -- that link click reloads the whole app,
+// which wipes every bit of in-memory React state including whatever was
+// just typed into this form. goTo() alone can't fix this (it only swaps
+// `mode`, same component instance, state already survives that); the
+// email needs to outlive an actual page reload, so localStorage instead.
+const PENDING_EMAIL_KEY = "align_pending_signup_email";
+
 export default function Auth() {
   const [mode, setMode] = useState(() => MODE_BY_PATH[window.location.pathname] ?? MODES.SIGN_IN);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => {
+    try { return localStorage.getItem(PENDING_EMAIL_KEY) || ""; } catch { return ""; }
+  });
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -75,9 +85,11 @@ export default function Auth() {
       if (mode === MODES.SIGN_IN) {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
+        try { localStorage.removeItem(PENDING_EMAIL_KEY); } catch { /* private mode */ }
       } else if (mode === MODES.SIGN_UP) {
         const { error: err } = await supabase.auth.signUp({ email, password });
         if (err) throw err;
+        try { localStorage.setItem(PENDING_EMAIL_KEY, email); } catch { /* private mode */ }
         setNotice("Check your email to confirm your account, then sign in.");
         goTo(MODES.SIGN_IN, true);
       } else if (mode === MODES.RESET) {

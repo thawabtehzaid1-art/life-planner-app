@@ -315,15 +315,15 @@ function SettingsField({ f }) {
       </div>
       <div>
         {f.isSelect && (
-          <select defaultValue={f.v} onChange={f.set}>
+          <select id={f.id} defaultValue={f.v} onChange={f.set}>
             {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
           </select>
         )}
-        {f.isMonth && <input type="month" defaultValue={f.v} onChange={f.set} />}
-        {f.isDate && <input type="date" defaultValue={f.v} onChange={f.set} />}
-        {f.isTime && <input type="time" defaultValue={f.v} onChange={f.set} />}
-        {f.isNum && <input type="number" defaultValue={f.v} onChange={f.set} />}
-        {f.isText && <input defaultValue={f.v} onChange={f.set} maxLength={f.maxLength} />}
+        {f.isMonth && <input id={f.id} type="month" defaultValue={f.v} onChange={f.set} />}
+        {f.isDate && <input id={f.id} type="date" defaultValue={f.v} onChange={f.set} />}
+        {f.isTime && <input id={f.id} type="time" defaultValue={f.v} onChange={f.set} />}
+        {f.isNum && <input id={f.id} type="number" defaultValue={f.v} onChange={f.set} />}
+        {f.isText && <input id={f.id} defaultValue={f.v} onChange={f.set} maxLength={f.maxLength} />}
       </div>
     </div>
   );

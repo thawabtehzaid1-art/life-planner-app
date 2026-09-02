@@ -31,6 +31,7 @@ const THEMES = [
 // throughout the app (see data.js's TINTS) rather than introducing a
 // separate icon set.
 const GROUP_TINT = { Start: "accent", Tasks: "work", Money: "money", Wellness: "health" };
+const NAV_BADGE_TITLES = { setup: "Type in your info here — every other tab reads from it", auto: "Fills in automatically from what you enter elsewhere — nothing to type here" };
 // Shown only while a group is expanded — a one-line reminder of what's
 // inside it (Recognition over Recall: don't make someone open "Wellness"
 // just to find out it means meals/fitness/habits) doubling as the app's
@@ -427,6 +428,11 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
 
   const today = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const kpis = page.kpis || [];
+  // Computed once here (not inline where OnboardingGuide used to call it)
+  // so the persistent reminder strip below and the full checklist on
+  // Overview both read the same list without deriving it twice.
+  const obSteps = data.onboarded === false ? onboardingSteps(data, patch) : null;
+  const obDone = obSteps ? obSteps.filter((s) => s.done).length : 0;
 
   return (
     <div className="app-shell">
@@ -491,7 +497,14 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
                     >
                       <span className="nav-icon" data-c={GROUP_TINT[g.name]}>{NavIcon && <NavIcon />}</span>
                       <span>{t.label}</span>
-                      <span className="nav-badge">{t.badge}</span>
+                      {/* The word alone ("setup"/"auto") doesn't explain
+                          itself to someone seeing it for the first time,
+                          especially mid-onboarding -- a native title
+                          tooltip is the lowest-risk fix (no new
+                          dismissal-tracking state, just an attribute). */}
+                      {t.badge && (
+                        <span className="nav-badge" title={NAV_BADGE_TITLES[t.badge] || ""}>{t.badge}</span>
+                      )}
                     </div>
                   );
                 })}
@@ -577,6 +590,21 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
         </div>
 
         <div className="page-body" key={tab + (dayView || "")}>
+          {/* The full checklist only ever rendered on tab === "overview" —
+              every step's "Go" button sends you somewhere else (Meal Plan,
+              Task Tracker, ...), so the moment you followed it, the
+              tracker vanished with no trace it existed, breaking the
+              Zeigarnik-effect pull a visible open loop relies on. This
+              keeps a trace on every other tab while onboarding is
+              incomplete, without duplicating the full card Overview
+              already shows. */}
+          {data.onboarded === false && tab !== "overview" && (
+            <div className="onboarding-strip">
+              <span>Setting up your account — {obDone} of {obSteps.length} done</span>
+              <button type="button" className="header-link-btn" onClick={() => setTab("overview")}>Back to checklist</button>
+            </div>
+          )}
+
           {tab === "today" && !dayView && (
             <FocusTimer
               sessionsToday={(data.focusSessions && data.focusSessions[todayISO]) || 0}
@@ -602,7 +630,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
               Dashboard) before Today becomes home. */}
           {tab === "overview" && data.onboarded === false && (
             <OnboardingGuide
-              steps={onboardingSteps(data, patch)}
+              steps={obSteps}
               onNavigate={setTab}
               onFinish={() => { patch((n) => { n.onboarded = true; }); setTab("dashboard"); }}
             />

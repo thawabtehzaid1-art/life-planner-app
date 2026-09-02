@@ -65,7 +65,7 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     sub: "Set these once. Every other tab reads from them.",
     blocks: [
       settingsBlock("Setup", "the only settings in the whole planner", [
-        { label: "Your name", isText: true, v: d.settings.name, set: setS("name"), group: "About you" },
+        { label: "Your name", isText: true, v: d.settings.name, set: setS("name"), group: "About you", id: "setup-name-field" },
         {
           label: "Birthday", isDate: true, v: d.settings.birthday || "",
           hint: "optional — just for a nice surprise on the day",

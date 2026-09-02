@@ -35,8 +35,27 @@ export default function OnboardingGuide({ steps, onNavigate, onFinish }) {
               <div className="onboarding-step-label" style={{ textDecoration: s.done ? "line-through" : "none" }}>{s.label}</div>
               <div className="onboarding-step-note">{s.note}</div>
             </div>
+            {/* "Add your name"'s target tab is "overview" -- the page
+                this card already lives on, so onNavigate(s.tab) was a
+                no-op with no visible difference from the four Go buttons
+                that actually take you somewhere. Scrolling to and
+                focusing the real field gives it an action that matches
+                what the button promises instead of silently doing
+                nothing. */}
             {!s.done && (
-              <button type="button" className="btn-outline onboarding-go" onClick={() => onNavigate(s.tab)}>Go</button>
+              <button
+                type="button"
+                className="btn-outline onboarding-go"
+                onClick={() => {
+                  if (s.tab === "overview") {
+                    document.getElementById("setup-name-field")?.focus({ preventScroll: false });
+                  } else {
+                    onNavigate(s.tab);
+                  }
+                }}
+              >
+                Go
+              </button>
             )}
           </li>
         ))}
