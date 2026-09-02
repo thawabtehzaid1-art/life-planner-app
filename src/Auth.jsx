@@ -1,6 +1,35 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient.js";
 
+// Supabase's raw auth errors are written for developers, not the person
+// typing into this form ("Invalid login credentials" doesn't say whether
+// the email or the password is wrong, or if the account doesn't exist at
+// all). Matched by substring, not error code -- if nothing matches, the
+// original message still shows, so this only ever adds clarity, never
+// hides a real error.
+function friendlyAuthError(message, mode) {
+  const m = (message || "").toLowerCase();
+  if (m.includes("invalid login credentials")) {
+    return "That email and password don't match — double-check them, or use \"Forgot password?\" below.";
+  }
+  if (m.includes("already registered") || m.includes("already exists")) {
+    return "An account with that email already exists — try signing in instead.";
+  }
+  if (m.includes("email not confirmed")) {
+    return "Confirm your email first — check your inbox for the link we sent when you signed up.";
+  }
+  if (m.includes("password should be at least") || m.includes("password is too short")) {
+    return "That password is too short — use at least 6 characters.";
+  }
+  if (m.includes("rate limit") || m.includes("only request this after")) {
+    return "Too many attempts in a row — wait a minute and try again.";
+  }
+  if (m.includes("failed to fetch") || m.includes("network")) {
+    return "Couldn't reach the server — check your connection and try again.";
+  }
+  return message || (mode === MODES.SIGN_UP ? "Couldn't create your account. Try again." : "Something went wrong. Try again.");
+}
+
 const MODES = { SIGN_IN: "sign_in", SIGN_UP: "sign_up", RESET: "reset" };
 const PATH_BY_MODE = { [MODES.SIGN_IN]: "/", [MODES.SIGN_UP]: "/signup", [MODES.RESET]: "/forgot-password" };
 const MODE_BY_PATH = { "/": MODES.SIGN_IN, "/signup": MODES.SIGN_UP, "/forgot-password": MODES.RESET };
@@ -58,7 +87,7 @@ export default function Auth() {
         goTo(MODES.SIGN_IN, true);
       }
     } catch (err) {
-      setError(err.message || "Something went wrong. Try again.");
+      setError(friendlyAuthError(err.message, mode));
     } finally {
       setBusy(false);
     }
