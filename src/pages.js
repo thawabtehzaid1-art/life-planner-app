@@ -724,10 +724,10 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     title: "Weekly Planner", role: "Type in the grid", roleTint: "money",
     sub: "The due row is calculated from your tasks. The time grid below is yours to type in — it saves per week.",
     kpis: [
-      { label: "Blocked slots", value: String(blocked), note: "of " + (HOURS.length * 7) },
-      { label: "Free slots", value: String(HOURS.length * 7 - blocked), note: "", tint: "health" },
-      { label: "Due this week", value: String(openTasks.filter((t) => { const x = parseISO(t.due); return x !== null && x >= wkFrom && x < wkFrom + 7 * DAY; }).length + wkOcc.filter((o) => !o.done).length), note: "" },
-      { label: "Workouts", value: String(workoutsWk.length), note: "logged this week", tint: "health" },
+      { label: "Blocked slots", value: String(blocked), note: "of " + (HOURS.length * 7), explain: "Time-grid cells below with something typed in them." },
+      { label: "Free slots", value: String(HOURS.length * 7 - blocked), note: "", tint: "health", explain: "Time-grid cells below still empty." },
+      { label: "Due this week", value: String(openTasks.filter((t) => { const x = parseISO(t.due); return x !== null && x >= wkFrom && x < wkFrom + 7 * DAY; }).length + wkOcc.filter((o) => !o.done).length), note: "", explain: "Open tasks and recurring occurrences due within the shown week." },
+      { label: "Workouts", value: String(workoutsWk.length), note: "logged this week", tint: "health", explain: "Workout log entries dated within the shown week." },
     ],
     blocks: [
       weekBlock(fmtDate(wkFrom) + " – " + fmtDate(wkFrom + 6 * DAY), "click any cell and type", wkCells),
