@@ -436,7 +436,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
           {!query && <span className="find-shortcut">/</span>}
         </div>
 
-        <nav className="nav-groups">
+        <nav className="nav-groups" aria-label="Sections">
           {groups.map((g) => {
             // Collapsed state is ignored while searching — a match hiding
             // inside a collapsed group would make the search box feel
@@ -487,7 +487,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             area (Tasks, Money, Wellness…), so it's pinned to the sidebar
             footer instead — the same separation Linear/Notion/Stripe make
             between workspace content nav and account settings. */}
-        <div className="sidebar-footer">
+        <nav className="sidebar-footer" aria-label="Account">
           <div
             data-nav="1"
             data-on={tab === "account" ? "1" : ""}
@@ -499,13 +499,13 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             <span className="nav-dot" data-c="accent" />
             <span>Account</span>
           </div>
-        </div>
+        </nav>
 
       </div>
 
       {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
 
-      <div className="main-col" ref={mainColRef}>
+      <main className="main-col" ref={mainColRef}>
         <div className="page-header">
           <div className="page-header-left">
             {/* Every tab uses the same header shape now: a title, an ⓘ
@@ -768,7 +768,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             </div>
           )}
         </div>
-      </div>
+      </main>
 
       {/* Mobile only (see index.css) — the sidebar is hidden by default now
           (an off-canvas drawer, not stacked above the content), so this is
