@@ -279,31 +279,61 @@ function DonutBlock({ b }) {
   );
 }
 
-function SettingsBlock({ b }) {
+function SettingsField({ f }) {
   return (
-    <div className="settings-grid">
-      {b.fields.map((f, i) => (
-        <div key={i} className="settings-field">
-          <div className="settings-label">
-            {f.label}
-            {/* Recognition over Recall: a one-line reason for the field
-                right where it's asked, not left for the user to wonder
-                about or discover only after the fact. */}
-            {f.hint && <div className="settings-hint">{f.hint}</div>}
+    <div className="settings-field">
+      <div className="settings-label">
+        {f.label}
+        {/* Recognition over Recall: a one-line reason for the field
+            right where it's asked, not left for the user to wonder
+            about or discover only after the fact. */}
+        {f.hint && <div className="settings-hint">{f.hint}</div>}
+      </div>
+      <div>
+        {f.isSelect && (
+          <select defaultValue={f.v} onChange={f.set}>
+            {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
+          </select>
+        )}
+        {f.isMonth && <input type="month" defaultValue={f.v} onChange={f.set} />}
+        {f.isDate && <input type="date" defaultValue={f.v} onChange={f.set} />}
+        {f.isTime && <input type="time" defaultValue={f.v} onChange={f.set} />}
+        {f.isNum && <input type="number" defaultValue={f.v} onChange={f.set} />}
+        {f.isText && <input defaultValue={f.v} onChange={f.set} maxLength={f.maxLength} />}
+      </div>
+    </div>
+  );
+}
+
+function SettingsBlock({ b }) {
+  // Fields optionally carry a `group` label (currently just Overview's
+  // Setup, e.g. "About you" / "Preferences") — real <fieldset>/<legend>
+  // grouping when present, not just a visual rule between rows, so
+  // screen-reader users get the same "these fields relate" signal sighted
+  // users get from the sub-heading. Every other settingsBlock() call site
+  // (Cycle Tracker, debt strategy, meal habits, weight goal) has no
+  // `group` on any field and renders exactly as before.
+  const hasGroups = b.fields.some((f) => f.group);
+  if (!hasGroups) {
+    return (
+      <div className="settings-grid">
+        {b.fields.map((f, i) => <SettingsField key={i} f={f} />)}
+      </div>
+    );
+  }
+  const groups = [];
+  for (const f of b.fields) {
+    if (!groups.includes(f.group)) groups.push(f.group);
+  }
+  return (
+    <div className="settings-groups">
+      {groups.map((g) => (
+        <fieldset key={g} className="settings-fieldset">
+          <legend className="settings-group-label">{g}</legend>
+          <div className="settings-grid">
+            {b.fields.filter((f) => f.group === g).map((f, i) => <SettingsField key={i} f={f} />)}
           </div>
-          <div>
-            {f.isSelect && (
-              <select defaultValue={f.v} onChange={f.set}>
-                {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
-            )}
-            {f.isMonth && <input type="month" defaultValue={f.v} onChange={f.set} />}
-            {f.isDate && <input type="date" defaultValue={f.v} onChange={f.set} />}
-            {f.isTime && <input type="time" defaultValue={f.v} onChange={f.set} />}
-            {f.isNum && <input type="number" defaultValue={f.v} onChange={f.set} />}
-            {f.isText && <input defaultValue={f.v} onChange={f.set} maxLength={f.maxLength} />}
-          </div>
-        </div>
+        </fieldset>
       ))}
     </div>
   );

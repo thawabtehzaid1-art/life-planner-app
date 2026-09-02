@@ -16,13 +16,9 @@ import AIAssistant from "./AIAssistant.jsx";
 import { usePushSubscription } from "./usePushSubscription.js";
 import { useGoogleCalendar } from "./useGoogleCalendar.js";
 import { useHealthToken } from "./useHealthToken.js";
-import HealthSync from "./HealthSync.jsx";
 import AccountSettings from "./AccountSettings.jsx";
 
 const THEME_KEY = "life-planner-theme-v1";
-// Per-device, not synced account data — "not now" on one phone shouldn't
-// hide it on another, and there's nothing to migrate/backfill this way.
-const HEALTH_SYNC_DISMISSED_KEY = "life-planner-health-sync-dismissed-v1";
 const THEMES = [
   { id: "dark", label: "Dark" },
   { id: "light", label: "Light" },
@@ -230,9 +226,6 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
   const push = usePushSubscription(userId);
   const gcal = useGoogleCalendar(userId);
   const health = useHealthToken(userId);
-  const [healthSyncDismissed, setHealthSyncDismissed] = useState(() => {
-    try { return window.localStorage.getItem(HEALTH_SYNC_DISMISSED_KEY) === "1"; } catch { return false; }
-  });
 
   // Load this user's row once on mount. A brand-new account's row is the
   // empty `{}` the signup trigger inserted — seed it with sample data the
@@ -644,27 +637,14 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             </button>
           )}
 
-          {/* Collapses either state — the pre-setup nudge, or the full
-              card once a token already exists and someone's just done
-              reading the one-time instructions and wants their Overview
-              page back. Either way it leaves a small link to reopen it. */}
-          {tab === "overview" && health.token !== null && (
-            healthSyncDismissed ? (
-              <button
-                type="button"
-                className="welcome-link"
-                onClick={() => { setHealthSyncDismissed(false); try { window.localStorage.removeItem(HEALTH_SYNC_DISMISSED_KEY); } catch { /* private mode */ } }}
-              >
-                🩺 {health.token ? "Health Sync" : "Set up Health Sync"}
-              </button>
-            ) : (
-              <HealthSync
-                token={health.token}
-                busy={health.busy}
-                onGenerate={health.generate}
-                onDismiss={() => { setHealthSyncDismissed(true); try { window.localStorage.setItem(HEALTH_SYNC_DISMISSED_KEY, "1"); } catch { /* private mode */ } }}
-              />
-            )
+          {/* Health Sync setup itself now lives in Account > Connected
+              apps (built the same session this pointer replaced the old
+              inline card) — this is just wayfinding, not a second place
+              to actually set it up. */}
+          {tab === "overview" && (
+            <button type="button" className="welcome-link" onClick={() => setTab("account")}>
+              <span aria-hidden="true">🩺</span> Health Sync now lives in Account → Connected apps
+            </button>
           )}
 
           {/* The one thing on this page styled to stand out (Von Restorff) —

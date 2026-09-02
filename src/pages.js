@@ -61,27 +61,28 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay }) {
     sub: "Set these once. Every other tab reads from them — change the month and the whole calendar re-dates itself.",
     blocks: [
       settingsBlock("Setup", "the only settings in the whole planner", [
-        { label: "Week starts on", isSelect: true, v: d.settings.weekStart, options: ["Monday", "Sunday"], set: setS("weekStart") },
-        { label: "Currency symbol", isText: true, v: d.settings.currency, set: setS("currency"), maxLength: 3 },
-        { label: "Measurement units", isSelect: true, v: d.settings.units, options: ["Metric", "Imperial"], set: setS("units") },
-        { label: "Calendar month shown", isMonth: true, v: d.settings.month, set: setS("month") },
-        { label: "Your name", isText: true, v: d.settings.name, set: setS("name") },
+        { label: "Your name", isText: true, v: d.settings.name, set: setS("name"), group: "About you" },
         {
           label: "Birthday", isDate: true, v: d.settings.birthday || "",
           hint: "optional — just for a nice surprise on the day",
-          set: setS("birthday"),
+          set: setS("birthday"), group: "About you",
         },
-        { label: "Height (cm)", isNum: true, v: String(d.settings.height), set: setS("height", num) },
+        { label: "Height (cm)", isNum: true, v: String(d.settings.height), set: setS("height", num), group: "About you" },
         {
           label: "Gender", isSelect: true, v: d.settings.gender || "Prefer not to say",
           hint: "Selecting Female adds a Cycle Tracker tab",
           options: ["Prefer not to say", "Male", "Female", "Other"],
           set: (e) => patch((n) => { n.settings.gender = e.target.value === "Prefer not to say" ? "" : e.target.value; }),
+          group: "About you",
         },
+        { label: "Week starts on", isSelect: true, v: d.settings.weekStart, options: ["Monday", "Sunday"], set: setS("weekStart"), group: "Preferences" },
+        { label: "Currency symbol", isText: true, v: d.settings.currency, set: setS("currency"), maxLength: 3, group: "Preferences" },
+        { label: "Measurement units", isSelect: true, v: d.settings.units, options: ["Metric", "Imperial"], set: setS("units"), group: "Preferences" },
+        { label: "Calendar month shown", isMonth: true, v: d.settings.month, set: setS("month"), group: "Preferences" },
         {
           label: "Timezone", isText: true, v: d.settings.timezone || "UTC",
           hint: "Detected from this device automatically — only change it if that's wrong",
-          set: setS("timezone"),
+          set: setS("timezone"), group: "Preferences",
         },
       ]),
       table({
