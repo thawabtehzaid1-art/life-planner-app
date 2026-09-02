@@ -17,6 +17,7 @@ import { usePushSubscription } from "./usePushSubscription.js";
 import { useGoogleCalendar } from "./useGoogleCalendar.js";
 import { useHealthToken } from "./useHealthToken.js";
 import AccountSettings from "./AccountSettings.jsx";
+import { NAV_ICONS, IconInfo } from "./icons.jsx";
 
 const THEME_KEY = "life-planner-theme-v1";
 const THEMES = [
@@ -477,21 +478,24 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
                     "which section am I in" cue (and the description
                     hint), not a gate you have to clear before a page in
                     a currently-collapsed group becomes clickable. */}
-                {g.items.map((t) => (
-                  <div
-                    key={t.id}
-                    data-nav="1"
-                    data-on={t.on ? "1" : ""}
-                    tabIndex={0}
-                    onClick={() => { setTab(t.id); setSidebarOpen(false); }}
-                    onKeyDown={(e) => { if (e.key === "Enter") setTab(t.id); }}
-                    className="nav-item"
-                  >
-                    <span className="nav-dot" data-c={GROUP_TINT[g.name]} />
-                    <span>{t.label}</span>
-                    <span className="nav-badge">{t.badge}</span>
-                  </div>
-                ))}
+                {g.items.map((t) => {
+                  const NavIcon = NAV_ICONS[t.id];
+                  return (
+                    <div
+                      key={t.id}
+                      data-nav="1"
+                      data-on={t.on ? "1" : ""}
+                      tabIndex={0}
+                      onClick={() => { setTab(t.id); setSidebarOpen(false); }}
+                      onKeyDown={(e) => { if (e.key === "Enter") setTab(t.id); }}
+                      className="nav-item"
+                    >
+                      <span className="nav-icon" data-c={GROUP_TINT[g.name]}>{NavIcon && <NavIcon />}</span>
+                      <span>{t.label}</span>
+                      <span className="nav-badge">{t.badge}</span>
+                    </div>
+                  );
+                })}
               </div>
             );
           })}
@@ -511,7 +515,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             onKeyDown={(e) => { if (e.key === "Enter") setTab("account"); }}
             className="nav-item"
           >
-            <span className="nav-dot" data-c="accent" />
+            <span className="nav-icon" data-c="accent"><NAV_ICONS.account /></span>
             <span>Account</span>
           </div>
         </nav>
@@ -531,7 +535,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
                 everywhere else. */}
             <div className="page-title-row">
               <h1 className="page-title">{page.greeting ? page.greeting.title : page.title}</h1>
-              <button type="button" className="info-toggle" onClick={() => toggleReveal("page-sub")} aria-label="What this page shows">ⓘ</button>
+              <button type="button" className="info-toggle" onClick={() => toggleReveal("page-sub")} aria-label="What this page shows"><IconInfo width="13" height="13" /></button>
               {tab === "today" && dayView && (
                 <button className="btn-outline back-today-btn" onClick={() => setDayView(null)}>← Back to today</button>
               )}
