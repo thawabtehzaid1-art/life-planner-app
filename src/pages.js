@@ -128,10 +128,10 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
       title: "Cycle Tracker", role: "Log period start dates", roleTint: "home",
       sub: "An estimate, not a medical prediction — averages are calculated from the dates you log below.",
       kpis: [
-        { label: "Cycle day", value: cyc.cycleDay ? String(cyc.cycleDay) : "—", note: cyc.onPeriod ? "on period" : "", tint: cyc.onPeriod ? "home" : "" },
-        { label: "Next period", value: cyc.nextStartISO ? fmtDate(cyc.nextStart) : "—", note: cyc.daysUntilNext !== null ? (cyc.daysUntilNext >= 0 ? "in " + cyc.daysUntilNext + " days" : Math.abs(cyc.daysUntilNext) + " days late") : "log a start date" },
-        { label: "Avg cycle length", value: cyc.avgLength + " days", note: "" },
-        { label: "Avg period length", value: cyc.duration + " days", note: "" },
+        { label: "Cycle day", value: cyc.cycleDay ? String(cyc.cycleDay) : "—", note: cyc.onPeriod ? "on period" : "", tint: cyc.onPeriod ? "home" : "", explain: "Days since your most recently logged period start." },
+        { label: "Next period", value: cyc.nextStartISO ? fmtDate(cyc.nextStart) : "—", note: cyc.daysUntilNext !== null ? (cyc.daysUntilNext >= 0 ? "in " + cyc.daysUntilNext + " days" : Math.abs(cyc.daysUntilNext) + " days late") : "log a start date", explain: "Projected from your average cycle length and last logged start date." },
+        { label: "Avg cycle length", value: cyc.avgLength + " days", note: "", explain: "Averaged from the gaps between your logged period starts, or your typical-cycle setting below until there are at least two." },
+        { label: "Avg period length", value: cyc.duration + " days", note: "", explain: "Your typical period length setting below." },
       ],
       blocks: [
         settingsBlock("Typical cycle", "used until at least two periods are logged below", [
@@ -699,9 +699,9 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     title: "Income", role: "Type freely", roleTint: "health",
     sub: "Everything coming in. The Spending tab totals whatever falls inside the shown month.",
     kpis: [
-      { label: "This month", value: mon(incomeIn), note: "" },
-      { label: "Entries", value: String(inRange(d.income, "date", mr.from, mr.to).length), note: "" },
-      { label: "All time", value: mon(d.income.reduce((s, x) => s + num(x.amount), 0)), note: d.income.length + " entries" },
+      { label: "This month", value: mon(incomeIn), note: "", explain: "Everything below with a date in the current calendar month." },
+      { label: "Entries", value: String(inRange(d.income, "date", mr.from, mr.to).length), note: "", explain: "How many rows below fall in the current calendar month." },
+      { label: "All time", value: mon(d.income.reduce((s, x) => s + num(x.amount), 0)), note: d.income.length + " entries", explain: "Every entry below, added up, regardless of date." },
     ],
     blocks: [
       table({
@@ -729,10 +729,17 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     title: "Bills", role: "Type freely", roleTint: "health",
     sub: "Fixed commitments. Tick Paid and the bill drops off the calendar; leave it and an overdue one turns red.",
     kpis: [
-      { label: "Budgeted", value: mon(d.bills.reduce((s, b) => s + num(b.budget), 0)), note: d.bills.length + " bills" },
-      { label: "Actual", value: mon(d.bills.reduce((s, b) => s + num(b.actual), 0)), note: "" },
-      { label: "Unpaid", value: mon(unpaidBills.reduce((s, b) => s + num(b.budget), 0)), note: unpaidBills.length + " bills", tint: unpaidBills.length ? "money" : "health" },
-      { label: "Overdue", value: String(d.bills.filter((b) => !b.paid && parseISO(b.due) < today).length), note: "", tint: "home" },
+      { label: "Budgeted", value: mon(d.bills.reduce((s, b) => s + num(b.budget), 0)), note: d.bills.length + " bills", explain: "Sum of every bill's budgeted amount below." },
+      { label: "Actual", value: mon(d.bills.reduce((s, b) => s + num(b.actual), 0)), note: "", explain: "Sum of every bill's actual amount, once you've filled it in." },
+      { label: "Unpaid", value: mon(unpaidBills.reduce((s, b) => s + num(b.budget), 0)), note: unpaidBills.length + " bills", tint: unpaidBills.length ? "money" : "health", explain: "Budgeted total for bills not yet marked Paid." },
+      (() => {
+        const overdueBills = unpaidBills.filter((b) => parseISO(b.due) !== null && parseISO(b.due) < today);
+        return {
+          label: "Overdue", value: String(overdueBills.length), note: "", tint: "home",
+          explain: overdueBills.length ? "Tap to jump to these rows in Commitments." : "Nothing unpaid is past its due date.",
+          jump: overdueBills.length ? { blockId: "commitments", ids: overdueBills.map((b) => "bill-" + d.bills.indexOf(b)) } : null,
+        };
+      })(),
     ],
     blocks: [
       table({
@@ -742,6 +749,7 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
         rows: d.bills.map((b, i) => {
           const late = !b.paid && parseISO(b.due) !== null && parseISO(b.due) < today;
           return {
+            id: "bill-" + i,
             remove: () => patch((n) => n.bills.splice(i, 1)),
             cells: [
               edit(b.name, (e) => patch((n) => { n.bills[i].name = txt(e); })),
@@ -771,10 +779,10 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     title: "Spending", role: "Type freely", roleTint: "money",
     sub: "Everything variable, plus how it stacks up against what you planned. Bills are tracked separately since they're fixed commitments, not day-to-day spending.",
     kpis: [
-      { label: "This month", value: mon(expIn), note: inRange(d.expenses, "date", mr.from, mr.to).length + " entries" },
-      { label: "Left to spend", value: mon(left), note: "income minus bills & expenses", tint: left < 0 ? "home" : "health" },
-      { label: "Savings rate", value: (incomeIn ? Math.round(100 * left / incomeIn) : 0) + "%", note: "", hasBar: true, pct: incomeIn ? 100 * left / incomeIn : 0, tint: "health" },
-      { label: "Biggest category", value: catRows.length ? catRows[0] : "—", note: catRows.length ? mon(expByCat[catRows[0]]) : "" },
+      { label: "This month", value: mon(expIn), note: inRange(d.expenses, "date", mr.from, mr.to).length + " entries", explain: "Everyday expenses below with a date in the current calendar month — bills aren't counted here." },
+      { label: "Left to spend", value: mon(left), note: "income minus bills & expenses", tint: left < 0 ? "home" : "health", explain: "This month's income minus paid bills and logged expenses." },
+      { label: "Savings rate", value: (incomeIn ? Math.round(100 * left / incomeIn) : 0) + "%", note: "", hasBar: true, pct: incomeIn ? 100 * left / incomeIn : 0, tint: "health", explain: "Left to spend as a percentage of this month's income." },
+      { label: "Biggest category", value: catRows.length ? catRows[0] : "—", note: catRows.length ? mon(expByCat[catRows[0]]) : "", explain: "The expense category with the highest total this month." },
     ],
     blocks: [
       donut("Where it goes", fmtMon(anchor), mon(incomeIn), "in", [
@@ -843,11 +851,11 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     title: "Net Worth", role: "Debts, savings, investments", roleTint: "money",
     sub: "Everything you owe against everything you've put aside or invested — three sections, one page, since they're all one picture.",
     kpis: [
-      { label: "Net position", value: mon(netPosition), note: "saved + invested − owed", tint: netPosition >= 0 ? "health" : "home" },
-      { label: "Total owed", value: mon(owed), note: d.debts.length + " debts", tint: owed ? "money" : "" },
-      { label: "Debt paid off", value: mon(started - owed), note: "", hasBar: true, pct: started ? 100 * (started - owed) / started : 0, tint: "money" },
-      { label: "Total saved", value: mon(savedTotal), note: d.savings.length + " pots" },
-      { label: "Invested", value: mon(investCurrentTotal), note: (investGain >= 0 ? "+" : "") + Math.round(investGainPct) + "% gain/loss", tint: investGain < 0 ? "home" : "health" },
+      { label: "Net position", value: mon(netPosition), note: "saved + invested − owed", tint: netPosition >= 0 ? "health" : "home", explain: "Total saved plus invested, minus everything you owe, across all three sections below." },
+      { label: "Total owed", value: mon(owed), note: d.debts.length + " debts", tint: owed ? "money" : "", explain: "Sum of every debt's current balance, from Your debts below." },
+      { label: "Debt paid off", value: mon(started - owed), note: "", hasBar: true, pct: started ? 100 * (started - owed) / started : 0, tint: "money", explain: "How much of your starting debt total you've paid down so far." },
+      { label: "Total saved", value: mon(savedTotal), note: d.savings.length + " pots", explain: "Sum of every savings pot's current amount, from Savings pots below." },
+      { label: "Invested", value: mon(investCurrentTotal), note: (investGain >= 0 ? "+" : "") + Math.round(investGainPct) + "% gain/loss", tint: investGain < 0 ? "home" : "health", explain: "Current value of every holding, from Investment holdings below." },
     ],
     blocks: [
       settingsBlock("Debt payoff strategy", "changes the order and every date below", [
@@ -949,8 +957,8 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     title: "Meal Plan", role: "Type freely", roleTint: "health",
     sub: "Fill the week, list the ingredients, and the shop at the bottom rolls the quantities up for you — repeat an ingredient and it adds together automatically.",
     kpis: [
-      { label: "Still to buy", value: String(groceryTotal - gotCount), note: "", tint: "money" },
-      { label: "In the trolley", value: String(gotCount), note: "", hasBar: true, pct: groceryTotal ? 100 * gotCount / groceryTotal : 0, tint: "health" },
+      { label: "Still to buy", value: String(groceryTotal - gotCount), note: "", tint: "money", explain: "Items on The shop below not yet ticked Got." },
+      { label: "In the trolley", value: String(gotCount), note: "", hasBar: true, pct: groceryTotal ? 100 * gotCount / groceryTotal : 0, tint: "health", explain: "Items on The shop below already ticked Got." },
     ],
     blocks: [
       settingsBlock("Your eating habits", "used to tailor this tab and, if you fast, to run the timer on Today", [
@@ -1042,10 +1050,10 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     title: "Fitness", role: "Type freely", roleTint: "health",
     sub: "A weekly split per person, then a set-by-set log. Volume is sets × reps × weight, calculated for you.",
     kpis: [
-      { label: "Sessions", value: String(d.workouts.length), note: "all time" },
-      { label: "This week", value: String(workoutsWk.length), note: "" },
-      { label: "Total volume", value: Math.round(volume).toLocaleString(), note: "kg lifted" },
-      { label: "Rest days planned", value: String(Object.keys(d.split).filter((k) => d.split[k] === "Rest").length), note: "" },
+      { label: "Sessions", value: String(d.workouts.length), note: "all time", explain: "Every row logged in Workout log below, ever." },
+      { label: "This week", value: String(workoutsWk.length), note: "", explain: "Workout log entries dated within the current week." },
+      { label: "Total volume", value: Math.round(volume).toLocaleString(), note: "kg lifted", explain: "Sets × reps × weight, summed across every logged workout." },
+      { label: "Rest days planned", value: String(Object.keys(d.split).filter((k) => d.split[k] === "Rest").length), note: "", explain: "Rest days across This week's split below, for everyone in the household." },
     ],
     blocks: [
       columns("Training volume", "kg lifted per week", volByWeek),
@@ -1127,8 +1135,8 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     // made the row visibly jump every time the goal field passed through
     // an empty/zero value mid-keystroke while typing a new number.
     kpis: [
-      { label: "Latest", value: lastWeight ? num(lastWeight.kg) + (d.settings.units === "Metric" ? " kg" : " lb") : "—", note: lastWeight ? fmtDate(parseISO(lastWeight.date)) : "" },
-      { label: "BMI", value: bmi ? (Math.round(bmi * 10) / 10).toFixed(1) : "—", note: "at " + d.settings.height + (d.settings.units === "Metric" ? " cm" : " in") },
+      { label: "Latest", value: lastWeight ? num(lastWeight.kg) + (d.settings.units === "Metric" ? " kg" : " lb") : "—", note: lastWeight ? fmtDate(parseISO(lastWeight.date)) : "", explain: "Your most recent entry from the Log below." },
+      { label: "BMI", value: bmi ? (Math.round(bmi * 10) / 10).toFixed(1) : "—", note: "at " + d.settings.height + (d.settings.units === "Metric" ? " cm" : " in"), explain: "Calculated from your latest weight and the height set on Overview." },
       {
         label: "Change", note: "since your first entry",
         // No color-coding here on purpose — tinting a drop green (and by
@@ -1136,15 +1144,16 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
         // goal, which isn't true for someone building muscle or working
         // toward a higher target. Same neutral color either direction.
         value: wSorted.length > 1 ? (num(wSorted[wSorted.length - 1].kg) - num(wSorted[0].kg)).toFixed(1) + " " + weightUnit : "—",
+        explain: "Latest entry minus your very first logged entry.",
       },
       // Distance is framed the same way whichever direction it runs — no
       // "to lose"/"to gain" — and reaching it gets an actual celebratory
       // note instead of just going quiet.
       toGoal === null
-        ? { label: "Toward your goal", value: "—", note: "set one below, if you'd like" }
+        ? { label: "Toward your goal", value: "—", note: "set one below, if you'd like", explain: "Set a goal weight below to track progress toward it." }
         : (toGoal === 0
-          ? { label: "Toward your goal", value: "You're there", note: "nice work", tint: "health" }
-          : { label: "Toward your goal", value: Math.abs(toGoal).toFixed(1) + " " + weightUnit, note: "away, at your own pace", tint: "health" }),
+          ? { label: "Toward your goal", value: "You're there", note: "nice work", tint: "health", explain: "You've reached the goal weight set below." }
+          : { label: "Toward your goal", value: Math.abs(toGoal).toFixed(1) + " " + weightUnit, note: "away, at your own pace", tint: "health", explain: "Difference between your latest entry and the goal weight set below." }),
     ],
     blocks: [
       settingsBlock("Your goal", "entirely optional — only set this if a target feels motivating to you", [
@@ -1197,10 +1206,10 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     title: "Habit Tracker", role: "Click the squares", roleTint: "health",
     sub: "The month follows Monthly Calendar's own month — browse there to see a different one. Streak counts back from today; the percentage is days done out of days elapsed.",
     kpis: [
-      { label: "Habits", value: String(d.habits.length), note: "" },
-      { label: "Days counted", value: String(hs.length ? hs[0].counted : 0), note: "of " + hlen },
-      { label: "Best streak", value: String(Math.max(...hs.map((x) => x.best), 0)), note: bestHabit ? bestHabit.n : "", tint: "health" },
-      { label: "Month average", value: habitAvg + "%", note: "", hasBar: true, pct: habitAvg, tint: "health" },
+      { label: "Habits", value: String(d.habits.length), note: "", explain: "Total habits tracked below." },
+      { label: "Days counted", value: String(hs.length ? hs[0].counted : 0), note: "of " + hlen, explain: "Days elapsed so far this month — or the whole month, if you're browsing a past one via Monthly Calendar." },
+      { label: "Best streak", value: String(Math.max(...hs.map((x) => x.best), 0)), note: bestHabit ? bestHabit.n : "", tint: "health", explain: "Longest run of consecutive done days, across every habit this month." },
+      { label: "Month average", value: habitAvg + "%", note: "", hasBar: true, pct: habitAvg, tint: "health", explain: "Average completion rate across all habits this month." },
     ],
     blocks: [
       habitGridBlock(
