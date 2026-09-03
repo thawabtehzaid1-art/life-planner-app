@@ -76,22 +76,6 @@
       "deleteFailed": "Couldn't delete your account — try again."
     }
   },
-  "ai": {
-    "assistantLabel": "Assistant",
-    "ask": "✦ Ask",
-    "hint": "Try \"add a task to renew my passport\" or \"how much did I spend on groceries this month?\"",
-    "error": "Sorry, something went wrong: {{message}}",
-    "done": "Done.",
-    "inputPlaceholder": "Ask or tell me to do something…",
-    "send": "Send",
-    "confirm": {
-      "addTaskDue": "Add task \"{{name}}\" due {{due}}?",
-      "addTask": "Add task \"{{name}}\"?",
-      "addExpense": "Log expense \"{{desc}}\" for {{amount}}?",
-      "addHabit": "Add habit \"{{name}}\"?",
-      "applyChange": "Apply this change?"
-    }
-  },
   "badges": {
     "streak7": "7-day habit streak",
     "streak30": "30-day habit streak",

@@ -3,14 +3,11 @@ import { parseCommand, applyWeight, applyHabit, logVoiceCommand } from "./quickC
 import { supabase } from "./supabaseClient.js";
 import MicButton from "./MicButton.jsx";
 
-// A one-line, no-confirmation-screen capture box for exactly two command
-// shapes: logging a weight entry and marking a habit done today. Typed
-// input is parsed entirely client-side (see quickCapture.js) -- no network
-// round trip, no LLM -- because the whole point of typing one line and
-// hitting Enter is that it's instant. AIAssistant.jsx's chat-with-
-// confirmation pattern is a deliberately different, heavier tool for
-// open-ended requests; this is the fast path for the two shapes that don't
-// need a model's judgment.
+// A one-line capture box for exactly two command shapes: logging a weight
+// entry and marking a habit done today. Typed input is parsed entirely
+// client-side (see quickCapture.js) -- no network round trip, no LLM --
+// because the whole point of typing one line and hitting Enter is that
+// it's instant.
 //
 // Voice input is the one path that DOES leave the client: a transcript
 // (from the browser's own free speech recognition, see useSpeechToText.js

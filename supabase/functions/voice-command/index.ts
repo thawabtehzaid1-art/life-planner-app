@@ -10,9 +10,7 @@
 //
 // No dependency on any pay-per-use AI provider: the only outbound call
 // this function makes is to VOICE_VPS_URL, a flat-fee VPS you run
-// yourself. Contrast supabase/functions/ai-assistant/index.ts, a
-// different, still-disabled feature that does call Anthropic's API --
-// this function has nothing to do with that one.
+// yourself.
 //
 // Secrets this function needs (set via `supabase secrets set`):
 //   VOICE_VPS_URL     - e.g. https://voice.yourdomain.com (the reverse
@@ -68,8 +66,8 @@ Deno.serve(async (req) => {
     const vpsUrl = Deno.env.get("VOICE_VPS_URL");
     const vpsSecret = Deno.env.get("VOICE_VPS_SECRET");
     if (!vpsUrl) {
-      // Deployed but not pointed at a real VPS yet -- fail soft, same
-      // pattern ai-assistant/index.ts uses for its own not-yet-on state.
+      // Deployed but not pointed at a real VPS yet -- fail soft instead
+      // of a 500.
       return new Response(JSON.stringify({ normalized: null, error: "Voice assistant isn't configured yet." }), {
         headers: { "Content-Type": "application/json" },
       });

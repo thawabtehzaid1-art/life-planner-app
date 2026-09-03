@@ -928,42 +928,9 @@ button { font-family: inherit; }
   100% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 0; }
 }
 
-/* ---- AI assistant (feature-flagged, see AIAssistant.jsx) ----
+/* ---- quick capture (see QuickCapture.jsx) ----
    Bottom-left, mirroring the bottom-right .mobile-tabs-btn, so the two
    floating controls never overlap on mobile. */
-.ai-assistant-btn {
-  position: fixed; inset-inline-start: var(--space-6); bottom: var(--space-6); z-index: 20;
-  background: var(--color-accent); color: var(--color-bg); border: none;
-  font-family: inherit; font-size: 13px; font-weight: 500;
-  padding: 11px 18px; border-radius: 999px; box-shadow: var(--shadow-md, 0 6px 18px rgba(0, 0, 0, 0.35));
-  cursor: pointer;
-}
-.ai-assistant-btn:hover { background: var(--color-accent-400); }
-.ai-assistant-panel {
-  position: fixed; inset-inline-start: var(--space-6); bottom: 76px; z-index: 20;
-  width: min(340px, calc(100vw - var(--space-6) * 2)); max-height: min(480px, 70vh);
-  display: flex; flex-direction: column;
-  background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md, 0 6px 18px rgba(0, 0, 0, 0.35));
-  overflow: hidden;
-}
-.ai-assistant-header {
-  padding: var(--space-3) var(--space-4); font-weight: 600; font-size: 13px;
-  border-bottom: 1px solid var(--color-neutral-800);
-}
-.ai-assistant-messages { flex: 1; overflow-y: auto; padding: var(--space-3) var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
-.ai-assistant-hint { color: var(--color-neutral-500); font-size: 12.5px; }
-.ai-assistant-msg { font-size: 13px; line-height: 1.4; padding: 8px 10px; border-radius: var(--radius-md); max-width: 90%; }
-.ai-assistant-msg-user { align-self: flex-end; background: var(--color-accent-900); }
-.ai-assistant-msg-assistant { align-self: flex-start; background: var(--color-neutral-900); }
-.ai-assistant-confirm { background: var(--color-neutral-900); border-radius: var(--radius-md); padding: var(--space-3); font-size: 13px; }
-.ai-assistant-confirm-actions { display: flex; gap: var(--space-3); margin-top: var(--space-2); }
-.ai-assistant-input-row { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-neutral-800); }
-.ai-assistant-input-row input { flex: 1; min-width: 0; }
-
-/* ---- quick capture (see QuickCapture.jsx) ----
-   Same bottom-left slot as .ai-assistant-btn: safe today since AI_ENABLED
-   is off in every build so far (that button renders nothing). If the AI
-   assistant ever ships for real, these two need separate slots. */
 .quick-capture-btn {
   position: fixed; inset-inline-start: var(--space-6); bottom: var(--space-6); z-index: 20;
   background: var(--color-accent); color: var(--color-bg); border: none;

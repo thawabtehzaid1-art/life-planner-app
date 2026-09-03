@@ -1,12 +1,11 @@
-// Pure parsing/matching/execution logic for QuickCapture.jsx (typed input)
-// and VoiceCapture's normalized-transcript path (see quickCapture.js's
-// applyWeight/applyHabit below) -- kept separate from either component so
-// it's cheap to reason about (and test) without React, and so both callers
-// share one implementation instead of two copies that could drift. No
+// Pure parsing/matching/execution logic for QuickCapture.jsx -- both its
+// typed-input path and its voice/normalized-transcript path (see
+// applyWeight/applyHabit below) call the same functions here, kept
+// separate from the component so it's cheap to reason about (and test)
+// without React, and so neither path duplicates the other's logic. No
 // network calls, no LLM in this file itself -- these two command shapes
 // are simple enough to resolve locally once the text is in hand, which
-// also keeps typed capture instant (no round-trip) and free of any
-// dependency on the still-dark AI_ENABLED flag.
+// also keeps typed capture instant (no round-trip).
 
 import { iso } from "./data.js";
 import { supabase } from "./supabaseClient.js";

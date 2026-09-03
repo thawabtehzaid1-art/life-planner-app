@@ -13,7 +13,6 @@ import FastingTimer from "./FastingTimer.jsx";
 import OnboardingGuide from "./OnboardingGuide.jsx";
 import { useAutoHide } from "./useAutoHide.js";
 import { useVersionCheck } from "./useVersionCheck.js";
-import AIAssistant from "./AIAssistant.jsx";
 import { usePushSubscription } from "./usePushSubscription.js";
 import { useGoogleCalendar } from "./useGoogleCalendar.js";
 import { useHealthToken } from "./useHealthToken.js";
@@ -870,7 +869,6 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
         ☰ {translate("app.menu")}
       </button>
 
-      <AIAssistant data={data} patch={patch} />
       {/* Quick Capture (QuickCapture.jsx / quickCapture.js) is intentionally
           not rendered right now -- the parsing/matching logic and UI are
           intact and tested, just not wired up. It shipped globally-visible
