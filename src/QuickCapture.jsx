@@ -16,13 +16,25 @@ import MicButton from "./MicButton.jsx";
 // bilingual phrasing into the same command shapes runCommand() already
 // parses -- the actual matching/mutation logic below is identical either
 // way, never duplicated between the typed and voice paths.
+//
+// One exception: a weight command the Edge Function flags needsConfirm
+// (Arabic input, or a reply that didn't match either expected shape --
+// see voice-command/index.ts) shows the parsed number back for a one-tap
+// confirm/correct instead of applying immediately. Real testing found
+// this model transposes or mangles Arabic compound numbers ("ثمانية
+// وسبعين", 78, ones-before-tens) often enough to be worth a beat of
+// friction specifically there -- English commands and habit-matching
+// (which already has its own "which habit did you mean?" quick-pick for
+// real ambiguity) stay instant, since those tested reliable.
 export default function QuickCapture({ data, patch }) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   // status is one of: null | {kind:"ok", text} | {kind:"hint", text} |
-  // {kind:"choices", candidate, options:[{h,index}]}
+  // {kind:"choices", candidate, options:[{h,index}]} |
+  // {kind:"confirmWeight", value, unit, transcript, normalized}
   const [status, setStatus] = useState(null);
   const [voiceBusy, setVoiceBusy] = useState(false);
+  const [confirmValue, setConfirmValue] = useState("");
   const inputRef = useRef(null);
 
   function toggle() {
@@ -36,8 +48,11 @@ export default function QuickCapture({ data, patch }) {
   // Returns {result, applied} (not just setting status) so the voice path
   // below can log the outcome without re-deriving it -- one source of
   // truth for the branching, shared by both the typed and voice callers.
-  function runCommand(text) {
-    const result = parseCommand(text, data.habits);
+  // Accepts an optional pre-parsed `result` so the voice path (which needs
+  // to inspect the parse before deciding whether to apply it, for the
+  // needsConfirm check) doesn't parse the same text twice.
+  function runCommand(text, preParsed) {
+    const result = preParsed || parseCommand(text, data.habits);
     let applied = false;
     if (result.kind === "weight") {
       setStatus(applyWeight(data, patch, result.value, result.unit));
@@ -69,10 +84,19 @@ export default function QuickCapture({ data, patch }) {
     setStatus(applyHabit(data, patch, opt.index, opt.h.name));
   }
 
+  function confirmWeight() {
+    const value = parseFloat(confirmValue);
+    if (!isFinite(value) || value <= 0) return;
+    const applied = applyWeight(data, patch, value, status.unit);
+    logVoiceCommand(status.transcript, status.normalized, { kind: "weight", value, unit: status.unit }, true);
+    setStatus(applied);
+  }
+
   async function handleVoiceTranscript(transcript) {
     setVoiceBusy(true);
     setStatus(null);
     let normalized = null;
+    let needsConfirm = false;
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
@@ -82,12 +106,21 @@ export default function QuickCapture({ data, patch }) {
       });
       if (error) throw error;
       normalized = res?.normalized || null;
+      needsConfirm = !!res?.needsConfirm;
     } catch {
       setStatus({ kind: "hint", text: "Voice command failed — try typing it instead." });
       setVoiceBusy(false);
       return;
     }
-    const { result, applied } = runCommand(normalized || transcript);
+    const textToRun = normalized || transcript;
+    const parsed = parseCommand(textToRun, data.habits);
+    if (parsed.kind === "weight" && needsConfirm) {
+      setConfirmValue(String(parsed.value));
+      setStatus({ kind: "confirmWeight", value: parsed.value, unit: parsed.unit, transcript, normalized });
+      setVoiceBusy(false);
+      return;
+    }
+    const { result, applied } = runCommand(textToRun, parsed);
     logVoiceCommand(transcript, normalized, result, applied);
     setVoiceBusy(false);
   }
@@ -124,6 +157,23 @@ export default function QuickCapture({ data, patch }) {
                     </button>
                   ))}
                   <button type="button" className="header-link-btn" onClick={() => setStatus(null)}>None of these</button>
+                </div>
+              </div>
+            )}
+            {status?.kind === "confirmWeight" && (
+              <div className="quick-capture-choices">
+                <div className="quick-capture-status quick-capture-status-hint">Confirm the weight before logging it:</div>
+                <div className="quick-capture-choice-row">
+                  <input
+                    type="number" step="0.1" value={confirmValue}
+                    onChange={(e) => setConfirmValue(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") confirmWeight(); }}
+                    style={{ width: "80px" }}
+                    autoFocus
+                  />
+                  <span>{status.unit || ""}</span>
+                  <button type="button" className="btn-outline" onClick={confirmWeight}>Confirm</button>
+                  <button type="button" className="header-link-btn" onClick={() => setStatus(null)}>Cancel</button>
                 </div>
               </div>
             )}
