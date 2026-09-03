@@ -101,7 +101,7 @@ export default function AppGate() {
       .select("*")
       .eq("user_id", session.user.id)
       .single()
-      .then(({ data }) => { if (!cancelled) { setSubscription(data); setSubLoading(false); } });
+      .then(({ data }) => { if (!cancelled) { performance.mark("perfdiag-subscription-resolved"); setSubscription(data); setSubLoading(false); } });
     return () => { cancelled = true; };
   }, [session?.user?.id]);
 
@@ -138,6 +138,7 @@ export default function AppGate() {
 }
 
 function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
+  performance.mark("perfdiag-plannerapp-render");
   // Today, not Dashboard — the daily landing page once you're past the
   // one-time Overview-then-Dashboard intro a brand-new account gets (see
   // the data-loading effect below, which overrides this to "overview" for
@@ -280,6 +281,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
           try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { /* keep UTC */ }
           withTimezone = { ...withEngagement, settings: { ...withEngagement.settings, timezone: tz } };
         }
+        performance.mark("perfdiag-setData-call");
         setData(withTimezone);
         // Brand-new accounts land on Overview first (set your name/basics
         // before anything else); the `tab` state's own default ("today")
@@ -380,10 +382,14 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
 
   const goToDay = useCallback((dateISO) => { setDayView(dateISO); setTab("today"); }, []);
 
-  const pages = useMemo(
-    () => (data ? buildPages(data, { week, dayView, month, habitMonth }, { patch, catchUp, setWeek, goToDay, triggerHighlight }) : null),
-    [data, week, dayView, month, habitMonth, patch, catchUp, goToDay, triggerHighlight],
-  );
+  const pages = useMemo(() => {
+    if (!data) return null;
+    performance.mark("perfdiag-buildPages-start");
+    const result = buildPages(data, { week, dayView, month, habitMonth }, { patch, catchUp, setWeek, goToDay, triggerHighlight });
+    performance.mark("perfdiag-buildPages-end");
+    performance.measure("perfdiag-buildPages", "perfdiag-buildPages-start", "perfdiag-buildPages-end");
+    return result;
+  }, [data, week, dayView, month, habitMonth, patch, catchUp, goToDay, triggerHighlight]);
 
   // Badge-earned celebration: watches the count rather than which badge,
   // so it doesn't need to know the badge list shape — just that it grew
@@ -414,6 +420,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
   }, [pages, tab]);
 
   if (!pages) return null; // loading this user's data
+  performance.mark("perfdiag-real-tree-render");
 
   const page = pages[tab] || pages.dashboard;
   const todayISO = iso(Date.now());
