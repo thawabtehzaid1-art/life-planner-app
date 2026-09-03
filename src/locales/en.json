@@ -202,6 +202,46 @@
       "targets": "Target dates", "targetsNote": "Goal and savings deadlines, so nothing sneaks up."
     }
   },
+  "weekly": {
+    "title": "Weekly Planner", "role": "Type in the grid",
+    "sub": "The due row is calculated from your tasks. The time grid below is yours to type in — it saves per week.",
+    "due": "due", "dueCount": "{{count}} due", "clickAndType": "click any cell and type",
+    "kpi": {
+      "blocked": "Blocked slots", "of": "of {{count}}", "blockedExplain": "Time-grid cells below with something typed in them.",
+      "free": "Free slots", "freeExplain": "Time-grid cells below still empty.",
+      "dueThisWeek": "Due this week", "dueThisWeekExplain": "Open tasks and recurring occurrences due within the shown week.",
+      "workouts": "Workouts", "loggedThisWeek": "logged this week", "workoutsExplain": "Workout log entries dated within the shown week."
+    }
+  },
+  "income": {
+    "title": "Income", "role": "Type freely",
+    "sub": "Everything coming in. The Spending tab totals whatever falls inside the shown month.",
+    "kpi": {
+      "thisMonth": "This month", "thisMonthExplain": "Everything below with a date in the current calendar month.",
+      "entries": "Entries", "entriesExplain": "How many rows below fall in the current calendar month.", "entriesCount": "{{count}} entries",
+      "allTime": "All time", "allTimeExplain": "Every entry below, added up, regardless of date."
+    },
+    "entries": {
+      "title": "Entries",
+      "head": { "date": "Date", "source": "Source", "type": "Type", "amount": "Amount", "notes": "Notes" },
+      "newIncome": "New income", "addLabel": "+ New entry"
+    }
+  },
+  "bills": {
+    "title": "Bills", "role": "Type freely",
+    "sub": "Fixed commitments. Tick Paid and the bill drops off the calendar; leave it and an overdue one turns red.",
+    "kpi": {
+      "budgeted": "Budgeted", "budgetedExplain": "Sum of every bill's budgeted amount below.", "billsCount": "{{count}} bills",
+      "actual": "Actual", "actualExplain": "Sum of every bill's actual amount, once you've filled it in.",
+      "unpaid": "Unpaid", "unpaidExplain": "Budgeted total for bills not yet marked Paid.",
+      "overdue": "Overdue", "tapToJump": "Tap to jump to these rows in Commitments.", "overdueNone": "Nothing unpaid is past its due date."
+    },
+    "commitments": {
+      "title": "Commitments",
+      "head": { "bill": "Bill", "category": "Category", "frequency": "Frequency", "dueDate": "Due date", "budgeted": "Budgeted", "actual": "Actual", "remindAt": "Remind at", "paid": "Paid" },
+      "newBill": "New bill", "addLabel": "+ New bill"
+    }
+  },
   "auth": {
     "title": { "signIn": "Sign in", "signUpShort": "Sign up", "signUp": "Create your account", "reset": "Reset your password" },
     "email": "Email",

@@ -700,16 +700,16 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     wkCells.push({ kind: "plain", v: DAYNAMES_T[(wkStart(d) + i) % 7] + " " + dd.getDate(), today: at === today });
   }
   const wkOcc = occurrences(d, wkFrom, wkFrom + 6 * DAY);
-  wkCells.push({ kind: "plain", v: "due", muted: true });
+  wkCells.push({ kind: "plain", v: t("weekly.due"), muted: true });
   for (let i = 0; i < 7; i++) {
     const at = wkFrom + i * DAY;
     // Names, not just the count, so the due cell can show what's actually
     // due on tap instead of leaving you to go check Task Tracker to know
     // what to type into the grid below.
-    const dueNames = openTasks.filter((t) => parseISO(t.due) === at).map((t) => t.name)
+    const dueNames = openTasks.filter((task) => parseISO(task.due) === at).map((task) => task.name)
       .concat(wkOcc.filter((o) => o.at === at && !o.done).map((o) => o.task.name));
     wkCells.push({
-      kind: "plain", v: dueNames.length ? dueNames.length + " due" : "", tint: dueNames.length ? "accent" : "", tinted: !!dueNames.length,
+      kind: "plain", v: dueNames.length ? t("weekly.dueCount", { count: dueNames.length }) : "", tint: dueNames.length ? "accent" : "", tinted: !!dueNames.length,
       today: at === today, names: dueNames.length ? dueNames : null,
     });
   }
@@ -727,16 +727,16 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   });
   const blocked = Object.keys(d.blocks).filter((k) => k.indexOf(state.week + "|") === 0 && d.blocks[k]).length;
   P.weekly = {
-    title: "Weekly Planner", role: "Type in the grid", roleTint: "money",
-    sub: "The due row is calculated from your tasks. The time grid below is yours to type in — it saves per week.",
+    title: t("weekly.title"), role: t("weekly.role"), roleTint: "money",
+    sub: t("weekly.sub"),
     kpis: [
-      { label: "Blocked slots", value: String(blocked), note: "of " + (HOURS.length * 7), explain: "Time-grid cells below with something typed in them." },
-      { label: "Free slots", value: String(HOURS.length * 7 - blocked), note: "", tint: "health", explain: "Time-grid cells below still empty." },
-      { label: "Due this week", value: String(openTasks.filter((t) => { const x = parseISO(t.due); return x !== null && x >= wkFrom && x < wkFrom + 7 * DAY; }).length + wkOcc.filter((o) => !o.done).length), note: "", explain: "Open tasks and recurring occurrences due within the shown week." },
-      { label: "Workouts", value: String(workoutsWk.length), note: "logged this week", tint: "health", explain: "Workout log entries dated within the shown week." },
+      { label: t("weekly.kpi.blocked"), value: String(blocked), note: t("weekly.kpi.of", { count: HOURS.length * 7 }), explain: t("weekly.kpi.blockedExplain") },
+      { label: t("weekly.kpi.free"), value: String(HOURS.length * 7 - blocked), note: "", tint: "health", explain: t("weekly.kpi.freeExplain") },
+      { label: t("weekly.kpi.dueThisWeek"), value: String(openTasks.filter((task) => { const x = parseISO(task.due); return x !== null && x >= wkFrom && x < wkFrom + 7 * DAY; }).length + wkOcc.filter((o) => !o.done).length), note: "", explain: t("weekly.kpi.dueThisWeekExplain") },
+      { label: t("weekly.kpi.workouts"), value: String(workoutsWk.length), note: t("weekly.kpi.loggedThisWeek"), tint: "health", explain: t("weekly.kpi.workoutsExplain") },
     ],
     blocks: [
-      weekBlock(fmtDate(wkFrom) + " – " + fmtDate(wkFrom + 6 * DAY), "click any cell and type", wkCells),
+      weekBlock(fmtDate(wkFrom) + " – " + fmtDate(wkFrom + 6 * DAY), t("weekly.clickAndType"), wkCells),
     ],
     weekOffset: state.week,
     setWeek,
@@ -744,18 +744,18 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
 
   // ===== Income
   P.income = {
-    title: "Income", role: "Type freely", roleTint: "health",
-    sub: "Everything coming in. The Spending tab totals whatever falls inside the shown month.",
+    title: t("income.title"), role: t("income.role"), roleTint: "health",
+    sub: t("income.sub"),
     kpis: [
-      { label: "This month", value: mon(incomeIn), note: "", explain: "Everything below with a date in the current calendar month." },
-      { label: "Entries", value: String(inRange(d.income, "date", mr.from, mr.to).length), note: "", explain: "How many rows below fall in the current calendar month." },
-      { label: "All time", value: mon(d.income.reduce((s, x) => s + num(x.amount), 0)), note: d.income.length + " entries", explain: "Every entry below, added up, regardless of date." },
+      { label: t("income.kpi.thisMonth"), value: mon(incomeIn), note: "", explain: t("income.kpi.thisMonthExplain") },
+      { label: t("income.kpi.entries"), value: String(inRange(d.income, "date", mr.from, mr.to).length), note: "", explain: t("income.kpi.entriesExplain") },
+      { label: t("income.kpi.allTime"), value: mon(d.income.reduce((s, x) => s + num(x.amount), 0)), note: t("income.kpi.entriesCount", { count: d.income.length }), explain: t("income.kpi.allTimeExplain") },
     ],
     blocks: [
       table({
-        title: "Entries", note: "",
+        title: t("income.entries.title"), note: "",
         grid: "150px 1.8fr 150px 140px 1.4fr",
-        head: ["Date", "Source", "Type", { t: "Amount", align: "right" }, "Notes"],
+        head: [t("income.entries.head.date"), t("income.entries.head.source"), t("income.entries.head.type"), { t: t("income.entries.head.amount"), align: "right" }, t("income.entries.head.notes")],
         rows: d.income.map((x, i) => ({
           remove: () => patch((n) => n.income.splice(i, 1)),
           cells: [
@@ -766,34 +766,34 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
             edit(x.note, (e) => patch((n) => { n.income[i].note = txt(e); })),
           ],
         })),
-        add: () => patch((n) => n.income.push({ date: iso(today), source: "New income", type: "Paycheck", amount: 0, note: "" })),
-        addLabel: "+ New entry",
+        add: () => patch((n) => n.income.push({ date: iso(today), source: t("income.entries.newIncome"), type: "Paycheck", amount: 0, note: "" })),
+        addLabel: t("income.entries.addLabel"),
       }),
     ],
   };
 
   // ===== Bills
   P.bills = {
-    title: "Bills", role: "Type freely", roleTint: "health",
-    sub: "Fixed commitments. Tick Paid and the bill drops off the calendar; leave it and an overdue one turns red.",
+    title: t("bills.title"), role: t("bills.role"), roleTint: "health",
+    sub: t("bills.sub"),
     kpis: [
-      { label: "Budgeted", value: mon(d.bills.reduce((s, b) => s + num(b.budget), 0)), note: d.bills.length + " bills", explain: "Sum of every bill's budgeted amount below." },
-      { label: "Actual", value: mon(d.bills.reduce((s, b) => s + num(b.actual), 0)), note: "", explain: "Sum of every bill's actual amount, once you've filled it in." },
-      { label: "Unpaid", value: mon(unpaidBills.reduce((s, b) => s + num(b.budget), 0)), note: unpaidBills.length + " bills", tint: unpaidBills.length ? "money" : "health", explain: "Budgeted total for bills not yet marked Paid." },
+      { label: t("bills.kpi.budgeted"), value: mon(d.bills.reduce((s, b) => s + num(b.budget), 0)), note: t("bills.kpi.billsCount", { count: d.bills.length }), explain: t("bills.kpi.budgetedExplain") },
+      { label: t("bills.kpi.actual"), value: mon(d.bills.reduce((s, b) => s + num(b.actual), 0)), note: "", explain: t("bills.kpi.actualExplain") },
+      { label: t("bills.kpi.unpaid"), value: mon(unpaidBills.reduce((s, b) => s + num(b.budget), 0)), note: t("bills.kpi.billsCount", { count: unpaidBills.length }), tint: unpaidBills.length ? "money" : "health", explain: t("bills.kpi.unpaidExplain") },
       (() => {
         const overdueBills = unpaidBills.filter((b) => parseISO(b.due) !== null && parseISO(b.due) < today);
         return {
-          label: "Overdue", value: String(overdueBills.length), note: "", tint: "home",
-          explain: overdueBills.length ? "Tap to jump to these rows in Commitments." : "Nothing unpaid is past its due date.",
+          label: t("bills.kpi.overdue"), value: String(overdueBills.length), note: "", tint: "home",
+          explain: overdueBills.length ? t("bills.kpi.tapToJump") : t("bills.kpi.overdueNone"),
           jump: overdueBills.length ? { blockId: "commitments", ids: overdueBills.map((b) => "bill-" + d.bills.indexOf(b)) } : null,
         };
       })(),
     ],
     blocks: [
       table({
-        title: "Commitments", note: "",
+        title: t("bills.commitments.title"), note: "",
         grid: "1.5fr 120px 110px 130px 110px 110px 100px 70px",
-        head: ["Bill", "Category", "Frequency", "Due date", { t: "Budgeted", align: "right" }, { t: "Actual", align: "right" }, "Remind at", "Paid"],
+        head: [t("bills.commitments.head.bill"), t("bills.commitments.head.category"), t("bills.commitments.head.frequency"), t("bills.commitments.head.dueDate"), { t: t("bills.commitments.head.budgeted"), align: "right" }, { t: t("bills.commitments.head.actual"), align: "right" }, t("bills.commitments.head.remindAt"), t("bills.commitments.head.paid")],
         rows: d.bills.map((b, i) => {
           const late = !b.paid && parseISO(b.due) !== null && parseISO(b.due) < today;
           return {
@@ -811,8 +811,8 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
             ],
           };
         }),
-        add: () => patch((n) => n.bills.push({ id: crypto.randomUUID(), name: "New bill", cat: "Utilities", freq: "Monthly", due: iso(today), budget: 0, actual: 0, paid: false, reminderTime: "" })),
-        addLabel: "+ New bill",
+        add: () => patch((n) => n.bills.push({ id: crypto.randomUUID(), name: t("bills.commitments.newBill"), cat: "Utilities", freq: "Monthly", due: iso(today), budget: 0, actual: 0, paid: false, reminderTime: "" })),
+        addLabel: t("bills.commitments.addLabel"),
       }),
     ],
   };
