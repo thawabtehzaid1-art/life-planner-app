@@ -163,7 +163,16 @@ button { font-family: inherit; }
    keeps equal visual weight against whichever ground is active — a light
    or warm ground needs a darker, slightly more saturated mark than a dark
    one to hold the same contrast. */
-[data-c="work"] { --c: oklch(var(--cat-l) var(--cat-c) 289); --t: oklch(var(--cat-l) var(--cat-c) 289 / 0.16); }
+/* "work" moved from hue 289 (violet, close to blue) to 335 (rose) as part
+   of the same circadian/eye-strain reasoning as the theme accent change --
+   it's a separate system (the 5-hue category rainbow, independent of
+   --color-accent) but 289 sat right next to blue on the wheel and was the
+   most-visible remaining "cold" color in the app (Tasks-group nav icons,
+   every "work"-tagged chip, Account's Trial badge). 335 was picked as the
+   hue that maximizes distance from all four *other* categories (25/95/
+   165/225) as well as from 289, not an arbitrary pick -- re-verified via
+   script against --status-l's solid-fill contrast requirement too. */
+[data-c="work"] { --c: oklch(var(--cat-l) var(--cat-c) 335); --t: oklch(var(--cat-l) var(--cat-c) 335 / 0.16); }
 [data-c="home"] { --c: oklch(var(--cat-l) var(--cat-c) 25); --t: oklch(var(--cat-l) var(--cat-c) 25 / 0.16); }
 [data-c="health"] { --c: oklch(var(--cat-l) var(--cat-c) 165); --t: oklch(var(--cat-l) var(--cat-c) 165 / 0.16); }
 [data-c="money"] { --c: oklch(var(--cat-money-l) var(--cat-c) 95); --t: oklch(var(--cat-money-l) var(--cat-c) 95 / 0.16); }
@@ -183,7 +192,7 @@ button { font-family: inherit; }
    tints everywhere else) plus on-accent text clears 4.5:1 with room in
    dark/light/warm alike. */
 .status-chip { color: var(--color-on-accent); }
-.status-chip[data-c="work"] { background: oklch(var(--status-l) var(--cat-c) 289); }
+.status-chip[data-c="work"] { background: oklch(var(--status-l) var(--cat-c) 335); }
 .status-chip[data-c="home"] { background: oklch(var(--status-l) var(--cat-c) 25); }
 .status-chip[data-c="health"] { background: oklch(var(--status-l) var(--cat-c) 165); }
 [data-tint="1"] { background: var(--t, var(--color-neutral-900)); }

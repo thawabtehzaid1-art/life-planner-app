@@ -38,7 +38,7 @@ const GROUP_TINT = { start: "accent", tasks: "work", money: "money", wellness: "
 // Colors reuse the app's existing category hues (see data.js's TINTS) for
 // a burst that matches the rest of the palette instead of introducing new
 // colors just for this.
-const CONFETTI_HUES = [289, 25, 165, 95, 225];
+const CONFETTI_HUES = [335, 25, 165, 95, 225]; // matches the category-tint hues in index.css (335 = "work", moved off violet)
 const CONFETTI_DOTS = Array.from({ length: 18 }, (_, i) => {
   const angle = (i / 18) * Math.PI * 2;
   const dist = 60 + (i % 3) * 24;

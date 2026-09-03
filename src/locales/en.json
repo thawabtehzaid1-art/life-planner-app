@@ -153,6 +153,55 @@
       "notPlanned": "Not planned"
     }
   },
+  "tasks": {
+    "title": "Task Tracker", "role": "Type freely",
+    "sub": "One-off tasks above, anything that repeats on a schedule below. Days left and next-due dates calculate themselves.",
+    "kpi": {
+      "total": "Total tasks", "totalExplain": "One-off tasks that aren't cancelled — open and completed combined.",
+      "pctComplete": "% complete", "pctCompleteExplain": "Completed one-off tasks divided by all non-cancelled tasks.",
+      "overdue": "Overdue", "tapToJump": "Tap to jump to these rows in All tasks.", "overdueNone": "Nothing open is past its due date.",
+      "dueToday": "Due today", "dueTodayNone": "Nothing open is due today.",
+      "next7": "Next 7 days", "next7Explain": "Open tasks due within the next week, not counting today.",
+      "recurring": "Recurring", "recurringExplain": "Templates in Repeating tasks below — each generates its own occurrences in Generated schedule."
+    },
+    "all": {
+      "title": "All tasks", "note": "everything here is editable",
+      "emptyLabel": "No tasks yet", "emptyNote": "Add one below — every field updates the Dashboard automatically.",
+      "head": { "task": "Task", "description": "Description", "category": "Category", "priority": "Priority", "status": "Status", "owner": "Owner", "dueDate": "Due date", "remindAt": "Remind at", "daysLeft": "Days left" },
+      "newTask": "New task", "addLabel": "+ New task"
+    },
+    "repeating": {
+      "title": "Repeating tasks", "note": "next due skips anything already ticked off",
+      "emptyLabel": "No recurring tasks yet", "emptyNote": "Add a chore or routine that repeats on a schedule.",
+      "head": { "task": "Task", "category": "Category", "priority": "Priority", "owner": "Owner", "firstDue": "First due", "frequency": "Frequency", "every": "Every", "nextDue": "Next due", "remindAt": "Remind at" },
+      "everyMonths": "{{count}} mo", "everyDays": "{{count}} days",
+      "newTask": "New recurring task", "addLabel": "+ New recurring task"
+    },
+    "schedule": {
+      "title": "Generated schedule", "note": "next twelve occurrences · tick one and it disappears",
+      "head": { "task": "Task", "category": "Category", "dueDate": "Due date", "num": "#", "owner": "Owner", "status": "Status" },
+      "missed": "Missed", "dueToday": "Due today", "upcoming": "Upcoming"
+    }
+  },
+  "month": {
+    "jan": "Jan", "feb": "Feb", "mar": "Mar", "apr": "Apr", "may": "May", "jun": "Jun",
+    "jul": "Jul", "aug": "Aug", "sep": "Sep", "oct": "Oct", "nov": "Nov", "dec": "Dec"
+  },
+  "day": {
+    "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun"
+  },
+  "calendar": {
+    "role": "Browse any month with the buttons below",
+    "sub": "Tasks, recurring occurrences, unpaid bills and target dates, all drawn from the tabs that own them. Nothing on this page is typed.",
+    "month": { "title": "Month", "note": "up to two per day, then a count" },
+    "whatLands": {
+      "title": "What lands here",
+      "tasks": "Open tasks", "tasksNote": "From Task Tracker, unless the status is Completed or Cancelled.",
+      "recurring": "Recurring occurrences", "recurringNote": "Projected from each frequency, hidden once ticked off.",
+      "bills": "Unpaid bills", "billsNote": "They vanish the moment you mark one paid.",
+      "targets": "Target dates", "targetsNote": "Goal and savings deadlines, so nothing sneaks up."
+    }
+  },
   "auth": {
     "title": { "signIn": "Sign in", "signUpShort": "Sign up", "signUp": "Create your account", "reset": "Reset your password" },
     "email": "Email",

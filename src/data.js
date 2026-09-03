@@ -1,3 +1,5 @@
+import i18n from "./i18n.js";
+
 export const KEY = "life-planner-web-live-v1";
 export const DAY = 86400000;
 
@@ -41,8 +43,10 @@ function pad(n) { return String(n).padStart(2, "0"); }
 export function iso(t) { const d = new Date(t); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
 export function parseISO(s) { if (!s) return null; const p = String(s).split("-"); if (p.length < 3) return null; const t = new Date(+p[0], +p[1] - 1, +p[2]); t.setHours(0, 0, 0, 0); return t.getTime(); }
 export function edate(t, months) { const d = new Date(t); const day = d.getDate(); d.setDate(1); d.setMonth(d.getMonth() + months); const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); d.setDate(Math.min(day, last)); d.setHours(0, 0, 0, 0); return d.getTime(); }
-export function fmtDate(t) { if (!t) return "—"; const d = new Date(t); return d.getDate() + " " + ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getMonth()] + " " + d.getFullYear(); }
-export function fmtMon(t) { if (!t) return "—"; const d = new Date(t); return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getMonth()] + " " + d.getFullYear(); }
+const MONTH_KEYS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+function monthAbbrev(i) { return i18n.t("month." + MONTH_KEYS[i]); }
+export function fmtDate(t) { if (!t) return "—"; const d = new Date(t); return d.getDate() + " " + monthAbbrev(d.getMonth()) + " " + d.getFullYear(); }
+export function fmtMon(t) { if (!t) return "—"; const d = new Date(t); return monthAbbrev(d.getMonth()) + " " + d.getFullYear(); }
 export function num(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
 
 export function seed() {

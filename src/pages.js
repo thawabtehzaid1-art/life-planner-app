@@ -1,6 +1,6 @@
 import {
   DAY, CATS, CAT_TINT, PRIOS, PRIO_TINT, STATUSES, STATUS_TINT, RECUR, RECUR_MONTHS, RECUR_DAYS,
-  PEOPLE, EXP_CATS, EXP_TINT, AISLES, AISLE_TINT, FOCUS, FOCUS_TINT, INCOME_TYPES, INVEST_TYPES, DIETS, HOURS, DAYNAMES,
+  PEOPLE, EXP_CATS, EXP_TINT, AISLES, AISLE_TINT, FOCUS, FOCUS_TINT, INCOME_TYPES, INVEST_TYPES, DIETS, HOURS,
   iso, parseISO, edate, fmtDate, fmtMon, num,
 } from "./data.js";
 import {
@@ -64,6 +64,12 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   // whitespace cleanup when the field actually loses focus instead.
   const txt = (e) => e.target.textContent;
   const mon = (n) => money(d, n);
+  // Translated day-of-week abbreviations, same Mon-first order and index
+  // shape as data.js's DAYNAMES (which stays English -- other modules
+  // outside this file still import it directly, and it's also used purely
+  // as a 7-item iteration count in a couple of spots below where the text
+  // itself is discarded).
+  const DAYNAMES_T = [t("day.mon"), t("day.tue"), t("day.wed"), t("day.thu"), t("day.fri"), t("day.sat"), t("day.sun")];
   // The month Monthly Calendar and Habit Tracker are both browsing —
   // hoisted here (rather than computed locally in each section) because
   // habitStats() below needs it before Monthly Calendar's own section runs.
@@ -521,7 +527,7 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
         addLabel: t("today.spending.addLabel"),
         voiceAdd: (text) => patch((n) => n.expenses.push({ date: viewISO, desc: text, cat: "Groceries", how: "Debit card", amount: 0 })),
       }),
-      notes(isViewingToday ? t("today.meals.titleToday") : t("today.meals.titleDay"), DAYNAMES[(viewDateObj.getDay() + 6) % 7], [t("today.meals.breakfast"), t("today.meals.lunch"), t("today.meals.dinner"), t("today.meals.snacks")].map((label, mi) => {
+      notes(isViewingToday ? t("today.meals.titleToday") : t("today.meals.titleDay"), DAYNAMES_T[(viewDateObj.getDay() + 6) % 7], [t("today.meals.breakfast"), t("today.meals.lunch"), t("today.meals.dinner"), t("today.meals.snacks")].map((label, mi) => {
         const di = (viewDateObj.getDay() + 6) % 7;
         return { t: label, s: d.meals[di + "-" + mi] || t("today.meals.notPlanned") };
       })),
@@ -543,63 +549,63 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   const scheduleOccs = lateOccurrences(d).concat(occurrences(d, today, today + 120 * DAY).filter((o) => !o.done)).slice(0, 12);
 
   P.tasks = {
-    title: "Task Tracker", role: "Type freely", roleTint: "health",
-    sub: "One-off tasks above, anything that repeats on a schedule below. Days left and next-due dates calculate themselves.",
+    title: t("tasks.title"), role: t("tasks.role"), roleTint: "health",
+    sub: t("tasks.sub"),
     kpis: [
-      { label: "Total tasks", value: String(liveTasks.length), note: "", explain: "One-off tasks that aren't cancelled — open and completed combined." },
-      { label: "% complete", value: pctDone + "%", note: "", hasBar: true, pct: pctDone, explain: "Completed one-off tasks divided by all non-cancelled tasks." },
+      { label: t("tasks.kpi.total"), value: String(liveTasks.length), note: "", explain: t("tasks.kpi.totalExplain") },
+      { label: t("tasks.kpi.pctComplete"), value: pctDone + "%", note: "", hasBar: true, pct: pctDone, explain: t("tasks.kpi.pctCompleteExplain") },
       {
-        label: "Overdue", value: String(overdueTasks.length), note: "", tint: overdueTasks.length ? "home" : "health",
-        explain: overdueTasks.length ? "Tap to jump to these rows in All tasks." : "Nothing open is past its due date.",
-        jump: overdueTasks.length ? { blockId: "all-tasks", ids: overdueTasks.map((t) => "task-" + d.tasks.indexOf(t)) } : null,
+        label: t("tasks.kpi.overdue"), value: String(overdueTasks.length), note: "", tint: overdueTasks.length ? "home" : "health",
+        explain: overdueTasks.length ? t("tasks.kpi.tapToJump") : t("tasks.kpi.overdueNone"),
+        jump: overdueTasks.length ? { blockId: "all-tasks", ids: overdueTasks.map((task) => "task-" + d.tasks.indexOf(task)) } : null,
       },
       {
-        label: "Due today", value: String(dueTodayTasks.length), note: "",
-        explain: dueTodayTasks.length ? "Tap to jump to these rows in All tasks." : "Nothing open is due today.",
-        jump: dueTodayTasks.length ? { blockId: "all-tasks", ids: dueTodayTasks.map((t) => "task-" + d.tasks.indexOf(t)) } : null,
+        label: t("tasks.kpi.dueToday"), value: String(dueTodayTasks.length), note: "",
+        explain: dueTodayTasks.length ? t("tasks.kpi.tapToJump") : t("tasks.kpi.dueTodayNone"),
+        jump: dueTodayTasks.length ? { blockId: "all-tasks", ids: dueTodayTasks.map((task) => "task-" + d.tasks.indexOf(task)) } : null,
       },
-      { label: "Next 7 days", value: String(next7.length), note: "", explain: "Open tasks due within the next week, not counting today." },
-      { label: "Recurring", value: String(d.recurring.length), note: "", explain: "Templates in Repeating tasks below — each generates its own occurrences in Generated schedule." },
+      { label: t("tasks.kpi.next7"), value: String(next7.length), note: "", explain: t("tasks.kpi.next7Explain") },
+      { label: t("tasks.kpi.recurring"), value: String(d.recurring.length), note: "", explain: t("tasks.kpi.recurringExplain") },
     ],
     blocks: [
       table({
-        title: "All tasks", note: "everything here is editable",
-        emptyLabel: "No tasks yet", emptyNote: "Add one below — every field updates the Dashboard automatically.",
+        title: t("tasks.all.title"), note: t("tasks.all.note"),
+        emptyLabel: t("tasks.all.emptyLabel"), emptyNote: t("tasks.all.emptyNote"),
         grid: "1.5fr 1.4fr 110px 110px 130px 100px 130px 100px 90px",
-        head: ["Task", "Description", "Category", "Priority", "Status", "Owner", "Due date", "Remind at", { t: "Days left", align: "right" }],
-        rows: d.tasks.map((t, i) => {
-          const due = parseISO(t.due);
-          const closed = t.status === "Completed" || t.status === "Cancelled";
+        head: [t("tasks.all.head.task"), t("tasks.all.head.description"), t("tasks.all.head.category"), t("tasks.all.head.priority"), t("tasks.all.head.status"), t("tasks.all.head.owner"), t("tasks.all.head.dueDate"), t("tasks.all.head.remindAt"), { t: t("tasks.all.head.daysLeft"), align: "right" }],
+        rows: d.tasks.map((task, i) => {
+          const due = parseISO(task.due);
+          const closed = task.status === "Completed" || task.status === "Cancelled";
           const days = (due === null || closed) ? "—" : Math.round((due - today) / DAY);
           const late = !closed && due !== null && due < today;
           return {
             id: "task-" + i,
             remove: () => patch((n) => n.tasks.splice(i, 1)),
             cells: [
-              edit(t.name, (e) => patch((n) => { n.tasks[i].name = txt(e); })),
-              edit(t.desc, (e) => patch((n) => { n.tasks[i].desc = txt(e); })),
-              sel(t.cat, (e) => patch((n) => { n.tasks[i].cat = e.target.value; }), CATS, CAT_TINT[t.cat]),
-              sel(t.prio, (e) => patch((n) => { n.tasks[i].prio = e.target.value; }), PRIOS, PRIO_TINT[t.prio]),
-              sel(t.status, (e) => patch((n) => { n.tasks[i].status = e.target.value; }), STATUSES, STATUS_TINT[t.status]),
-              sel(t.who, (e) => patch((n) => { n.tasks[i].who = e.target.value; }), PEOPLE),
-              datec(t.due, (e) => patch((n) => { n.tasks[i].due = e.target.value; })),
-              timec(t.reminderTime || "", (e) => patch((n) => { n.tasks[i].reminderTime = e.target.value; })),
+              edit(task.name, (e) => patch((n) => { n.tasks[i].name = txt(e); })),
+              edit(task.desc, (e) => patch((n) => { n.tasks[i].desc = txt(e); })),
+              sel(task.cat, (e) => patch((n) => { n.tasks[i].cat = e.target.value; }), CATS, CAT_TINT[task.cat]),
+              sel(task.prio, (e) => patch((n) => { n.tasks[i].prio = e.target.value; }), PRIOS, PRIO_TINT[task.prio]),
+              sel(task.status, (e) => patch((n) => { n.tasks[i].status = e.target.value; }), STATUSES, STATUS_TINT[task.status]),
+              sel(task.who, (e) => patch((n) => { n.tasks[i].who = e.target.value; }), PEOPLE),
+              datec(task.due, (e) => patch((n) => { n.tasks[i].due = e.target.value; })),
+              timec(task.reminderTime || "", (e) => patch((n) => { n.tasks[i].reminderTime = e.target.value; })),
               plain(String(days), { align: "right", tint: late ? "home" : "", tinted: late, muted: closed }),
             ],
           };
         }),
-        add: () => patch((n) => n.tasks.push({ id: crypto.randomUUID(), name: "New task", desc: "", cat: "Personal", prio: "Medium", status: "Not Started", who: "Me", due: iso(today), est: "", reminderTime: "" })),
-        addLabel: "+ New task",
+        add: () => patch((n) => n.tasks.push({ id: crypto.randomUUID(), name: t("tasks.all.newTask"), desc: "", cat: "Personal", prio: "Medium", status: "Not Started", who: "Me", due: iso(today), est: "", reminderTime: "" })),
+        addLabel: t("tasks.all.addLabel"),
         voiceAdd: (text) => patch((n) => n.tasks.push({ id: crypto.randomUUID(), name: text, desc: "", cat: "Personal", prio: "Medium", status: "Not Started", who: "Me", due: iso(today), est: "", reminderTime: "" })),
       }),
       table({
-        title: "Repeating tasks", note: "next due skips anything already ticked off",
-        emptyLabel: "No recurring tasks yet", emptyNote: "Add a chore or routine that repeats on a schedule.",
+        title: t("tasks.repeating.title"), note: t("tasks.repeating.note"),
+        emptyLabel: t("tasks.repeating.emptyLabel"), emptyNote: t("tasks.repeating.emptyNote"),
         grid: "1.6fr 110px 110px 100px 130px 150px 110px 130px 100px",
-        head: ["Task", "Category", "Priority", "Owner", "First due", "Frequency", { t: "Every", align: "right" }, "Next due", "Remind at"],
+        head: [t("tasks.repeating.head.task"), t("tasks.repeating.head.category"), t("tasks.repeating.head.priority"), t("tasks.repeating.head.owner"), t("tasks.repeating.head.firstDue"), t("tasks.repeating.head.frequency"), { t: t("tasks.repeating.head.every"), align: "right" }, t("tasks.repeating.head.nextDue"), t("tasks.repeating.head.remindAt")],
         rows: d.recurring.map((r, i) => {
           const nd = nextDue(d, i);
-          const every = RECUR_MONTHS[r.freq] ? RECUR_MONTHS[r.freq] + " mo" : (RECUR_DAYS[r.freq] || 0) + (RECUR_DAYS[r.freq] === 1 ? " day" : " days");
+          const every = RECUR_MONTHS[r.freq] ? t("tasks.repeating.everyMonths", { count: RECUR_MONTHS[r.freq] }) : t("tasks.repeating.everyDays", { count: RECUR_DAYS[r.freq] || 0 });
           const matches = scheduleOccs.filter((o) => o.ri === i);
           return {
             id: "recur-" + i,
@@ -620,13 +626,13 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
             ],
           };
         }),
-        add: () => patch((n) => n.recurring.push({ name: "New recurring task", cat: "Home", prio: "Medium", who: "Me", first: iso(today), freq: "Weekly", reminderTime: "" })),
-        addLabel: "+ New recurring task",
+        add: () => patch((n) => n.recurring.push({ name: t("tasks.repeating.newTask"), cat: "Home", prio: "Medium", who: "Me", first: iso(today), freq: "Weekly", reminderTime: "" })),
+        addLabel: t("tasks.repeating.addLabel"),
       }),
       table({
-        title: "Generated schedule", note: "next twelve occurrences · tick one and it disappears",
+        title: t("tasks.schedule.title"), note: t("tasks.schedule.note"),
         grid: "34px 1.8fr 130px 150px 90px 130px 1fr",
-        head: ["", "Task", "Category", "Due date", { t: "#", align: "right" }, "Owner", "Status"],
+        head: ["", t("tasks.schedule.head.task"), t("tasks.schedule.head.category"), t("tasks.schedule.head.dueDate"), { t: t("tasks.schedule.head.num"), align: "right" }, t("tasks.schedule.head.owner"), t("tasks.schedule.head.status")],
         rows: scheduleOccs.map((o) => ({
           id: "occ-" + o.ri + "-" + o.oi,
           cells: [
@@ -636,7 +642,7 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
             plain(fmtDate(o.at), { muted: o.at > today }),
             plain(String(o.oi + 1), { align: "right", muted: true }),
             plain(o.task.who, { muted: true }),
-            chip(o.at < today ? "Missed" : (o.at === today ? "Due today" : "Upcoming"), o.at < today ? "home" : (o.at === today ? "money" : "")),
+            chip(o.at < today ? t("tasks.schedule.missed") : (o.at === today ? t("tasks.schedule.dueToday") : t("tasks.schedule.upcoming")), o.at < today ? "home" : (o.at === today ? "money" : "")),
           ],
         })),
       }),
@@ -670,17 +676,17 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
       onClick: () => goToDay(iso(at)),
     });
   }
-  const dayNames = DAYNAMES.slice(wkStart(d) === 0 ? 6 : 0).concat(wkStart(d) === 0 ? DAYNAMES.slice(0, 6) : []);
+  const dayNames = DAYNAMES_T.slice(wkStart(d) === 0 ? 6 : 0).concat(wkStart(d) === 0 ? DAYNAMES_T.slice(0, 6) : []);
   P.calendar = {
-    title: fmtMon(anchor), role: "Browse any month with the buttons below", roleTint: "money",
-    sub: "Tasks, recurring occurrences, unpaid bills and target dates, all drawn from the tabs that own them. Nothing on this page is typed.",
+    title: fmtMon(anchor), role: t("calendar.role"), roleTint: "money",
+    sub: t("calendar.sub"),
     blocks: [
-      calendarBlock("Month", "up to two per day, then a count", dayNames, days),
-      notes("What lands here", "", [
-        { t: "Open tasks", s: "From Task Tracker, unless the status is Completed or Cancelled." },
-        { t: "Recurring occurrences", s: "Projected from each frequency, hidden once ticked off." },
-        { t: "Unpaid bills", s: "They vanish the moment you mark one paid." },
-        { t: "Target dates", s: "Goal and savings deadlines, so nothing sneaks up." },
+      calendarBlock(t("calendar.month.title"), t("calendar.month.note"), dayNames, days),
+      notes(t("calendar.whatLands.title"), "", [
+        { t: t("calendar.whatLands.tasks"), s: t("calendar.whatLands.tasksNote") },
+        { t: t("calendar.whatLands.recurring"), s: t("calendar.whatLands.recurringNote") },
+        { t: t("calendar.whatLands.bills"), s: t("calendar.whatLands.billsNote") },
+        { t: t("calendar.whatLands.targets"), s: t("calendar.whatLands.targetsNote") },
       ]),
     ],
   };
@@ -691,7 +697,7 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   for (let i = 0; i < 7; i++) {
     const at = wkFrom + i * DAY;
     const dd = new Date(at);
-    wkCells.push({ kind: "plain", v: DAYNAMES[(wkStart(d) + i) % 7] + " " + dd.getDate(), today: at === today });
+    wkCells.push({ kind: "plain", v: DAYNAMES_T[(wkStart(d) + i) % 7] + " " + dd.getDate(), today: at === today });
   }
   const wkOcc = occurrences(d, wkFrom, wkFrom + 6 * DAY);
   wkCells.push({ kind: "plain", v: "due", muted: true });
@@ -1046,10 +1052,10 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
       table({
         title: "The week", note: "type anything — it saves as you go",
         grid: "120px repeat(7,1fr)",
-        head: [""].concat(DAYNAMES),
+        head: [""].concat(DAYNAMES_T),
         rows: mealRows.map((label, mi) => ({
           cells: [plain(label, { muted: true })].concat(
-            DAYNAMES.map((_, di) => edit(d.meals[di + "-" + mi] || "", (e) => patch((n) => { n.meals[di + "-" + mi] = e.target.textContent; }))),
+            DAYNAMES_T.map((_, di) => edit(d.meals[di + "-" + mi] || "", (e) => patch((n) => { n.meals[di + "-" + mi] = e.target.textContent; }))),
           ),
         })),
       }),
@@ -1129,10 +1135,10 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
       table({
         title: "This week's split", note: "",
         grid: "120px repeat(7,1fr)",
-        head: [""].concat(DAYNAMES),
+        head: [""].concat(DAYNAMES_T),
         rows: ["Me", "Partner"].map((who, pi) => ({
           cells: [plain(who, { muted: true })].concat(
-            DAYNAMES.map((_, di) => {
+            DAYNAMES_T.map((_, di) => {
               const k = di + "-" + pi;
               const v = d.split[k] || "Rest";
               return sel(v, (e) => patch((n) => { n.split[k] = e.target.value; }), FOCUS, FOCUS_TINT[v]);
