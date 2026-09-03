@@ -92,6 +92,15 @@
       "applyChange": "Apply this change?"
     }
   },
+  "badges": {
+    "streak7": "7-day habit streak",
+    "streak30": "30-day habit streak",
+    "tasks10": "10 tasks completed",
+    "tasks50": "50 tasks completed",
+    "focus1": "First focus session",
+    "focus10": "10 focus sessions",
+    "login7": "7-day login streak"
+  },
   "mic": {
     "dictate": "Dictate",
     "stopDictating": "Stop dictating",

@@ -1,4 +1,5 @@
 import { DAY, TINTS, RECUR_DAYS, RECUR_MONTHS, AISLES, parseISO, edate, iso, num } from "./data.js";
+import i18n from "./i18n.js";
 
 // ---------- cell builders ----------
 // Each builder returns a plain object describing one table/grid cell; the
@@ -387,13 +388,13 @@ export function gamificationStats(data) {
   const engagement = data.engagement || { currentStreak: 0, longestStreak: 0 };
   const points = tasksCompleted * 10 + focusSessionsTotal * 15 + habitHitsTotal * 5;
   const badges = [
-    { id: "streak7", label: "7-day habit streak", achieved: bestEverStreak >= 7, tint: "health" },
-    { id: "streak30", label: "30-day habit streak", achieved: bestEverStreak >= 30, tint: "health" },
-    { id: "tasks10", label: "10 tasks completed", achieved: tasksCompleted >= 10, tint: "work" },
-    { id: "tasks50", label: "50 tasks completed", achieved: tasksCompleted >= 50, tint: "work" },
-    { id: "focus1", label: "First focus session", achieved: focusSessionsTotal >= 1, tint: "money" },
-    { id: "focus10", label: "10 focus sessions", achieved: focusSessionsTotal >= 10, tint: "money" },
-    { id: "login7", label: "7-day login streak", achieved: (engagement.longestStreak || 0) >= 7, tint: "people" },
+    { id: "streak7", label: i18n.t("badges.streak7"), achieved: bestEverStreak >= 7, tint: "health" },
+    { id: "streak30", label: i18n.t("badges.streak30"), achieved: bestEverStreak >= 30, tint: "health" },
+    { id: "tasks10", label: i18n.t("badges.tasks10"), achieved: tasksCompleted >= 10, tint: "work" },
+    { id: "tasks50", label: i18n.t("badges.tasks50"), achieved: tasksCompleted >= 50, tint: "work" },
+    { id: "focus1", label: i18n.t("badges.focus1"), achieved: focusSessionsTotal >= 1, tint: "money" },
+    { id: "focus10", label: i18n.t("badges.focus10"), achieved: focusSessionsTotal >= 10, tint: "money" },
+    { id: "login7", label: i18n.t("badges.login7"), achieved: (engagement.longestStreak || 0) >= 7, tint: "people" },
   ];
   return {
     points, tasksCompleted, focusSessionsTotal, bestHabitStreak: bestEverStreak, currentHabitStreak,
