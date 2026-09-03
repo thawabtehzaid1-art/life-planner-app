@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import EditableSpan from "./EditableSpan.jsx";
 
 // Table rows are keyed by their position in the list (there's no stable id
@@ -30,17 +31,18 @@ export function SyncedInput({ type, value, onChange, onFocus, step, style }) {
 // cell's current value isn't one of the preset options, so a previously
 // saved custom value still shows as text (not blank) on reload.
 function SelectCell({ c, ariaLabel }) {
+  const { t } = useTranslation();
   const [customMode, setCustomMode] = useState(!c.options.includes(c.v));
 
   if (customMode) {
     return (
       <span className="cell-select-custom">
-        <input type="text" aria-label={ariaLabel} defaultValue={c.v} onChange={c.set} placeholder="Type a value" />
+        <input type="text" aria-label={ariaLabel} defaultValue={c.v} onChange={c.set} placeholder={t("cell.typeValue")} />
         <button
           type="button"
           className="cell-select-back"
-          title="Choose from the list instead"
-          aria-label="Choose from the list instead"
+          title={t("cell.chooseFromList")}
+          aria-label={t("cell.chooseFromList")}
           onClick={() => setCustomMode(false)}
         >
           ▾
@@ -58,8 +60,14 @@ function SelectCell({ c, ariaLabel }) {
         c.set(e);
       }}
     >
-      {c.options.map((o) => <option key={o} value={o}>{o}</option>)}
-      <option value="__custom__">Custom…</option>
+      {/* Option VALUES stay the canonical English strings stored in the
+          data model (task.cat, expense.cat, etc.) -- only the visible
+          label is translated, via t()'s built-in "return the key itself
+          if missing" fallback, since the full data.js constant-array
+          translation (CATS/PRIOS/STATUSES/...) is a separate, not-yet-done
+          pass (see the option-values gap noted when this shipped). */}
+      {c.options.map((o) => <option key={o} value={o}>{t("options." + o, { defaultValue: o })}</option>)}
+      <option value="__custom__">{t("cell.custom")}</option>
     </select>
   );
 }
@@ -98,7 +106,7 @@ export default function Cell({ c, ariaLabel }) {
           value={c.v}
           onChange={c.set}
           onFocus={(e) => e.target.select()}
-          style={{ textAlign: "right" }}
+          style={{ textAlign: "end" }}
         />
       );
     case "date":

@@ -2,6 +2,21 @@ import Cell, { SyncedInput } from "./Cell.jsx";
 import EditableSpan from "./EditableSpan.jsx";
 import MicButton from "./MicButton.jsx";
 
+// engine.js's cell/head builders speak "left"/"right" throughout (28+ call
+// sites in pages.js alone) -- rather than touch every one of them, the
+// physical-to-logical translation happens once, right here, at the only
+// two places those values actually become a CSS textAlign. "left"/"right"
+// are literal, physical values that would NOT flip under dir="rtl"; their
+// logical equivalents "start"/"end" do. (justifyContent, used alongside
+// this for body cells, doesn't need the same treatment -- flexbox's
+// flex-start/flex-end are already resolved relative to the container's
+// direction, not the physical viewport.)
+function logicalAlign(align) {
+  if (align === "left") return "start";
+  if (align === "right") return "end";
+  return align;
+}
+
 // Same geometry as src/icons/delete.svg, inlined (this project has no SVGR
 // plugin to import .svg files as components — every other icon here, e.g.
 // MicButton's mic glyph, is inline JSX for the same reason) and sized to
@@ -40,7 +55,7 @@ function TableBlock({ b, highlightIds }) {
     <div className="grid-table" style={{ gridTemplateColumns: b.grid }}>
       <div className="grid-row grid-head">
         {b.head.map((h, i) => (
-          <div key={i} className="head-cell" style={{ textAlign: h.align }}>{h.t}</div>
+          <div key={i} className="head-cell" style={{ textAlign: logicalAlign(h.align) }}>{h.t}</div>
         ))}
         {b.canDelete && <div className="head-cell" />}
       </div>
@@ -68,7 +83,7 @@ function TableBlock({ b, highlightIds }) {
                 data-c={c.tint}
                 data-tint={c.tinted ? "1" : ""}
                 data-kind={c.kind}
-                style={{ textAlign: c.align, justifyContent: c.justify }}
+                style={{ textAlign: logicalAlign(c.align), justifyContent: c.justify }}
               >
                 <Cell c={c} ariaLabel={c.kind === "select" ? `${b.head[ci]?.t} for ${rowLabel}` : undefined} />
               </div>

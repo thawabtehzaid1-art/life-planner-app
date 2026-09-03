@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "./supabaseClient.js";
 
 const FUNCTIONS_URL = import.meta.env.VITE_SUPABASE_URL + "/functions/v1";
@@ -32,6 +33,7 @@ function SettingsSection({ title, note, children, danger }) {
 }
 
 export default function AccountSettings({ userEmail, subscription, theme, setTheme, THEMES, push, gcal, health, onSignOut, onNavigate, onboarded, patch, reset }) {
+  const { t, i18n } = useTranslation();
   const [resetState, setResetState] = useState("idle"); // idle | busy | sent | error
   const [resetError, setResetError] = useState("");
 
@@ -191,6 +193,27 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
               >
                 <span className={"theme-swatch theme-swatch-" + t.id} />
                 <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection title={t("account.language.title")} note={t("account.language.note")}>
+        <div className="settings-field">
+          <div className="settings-label">{t("account.language.label")}</div>
+          <div className="theme-switch-full" role="radiogroup" aria-label={t("account.language.label")}>
+            {[{ id: "en", label: "English" }, { id: "ar", label: "العربية" }].map((l) => (
+              <button
+                key={l.id}
+                type="button"
+                role="radio"
+                aria-checked={i18n.language === l.id}
+                data-on={i18n.language === l.id ? "1" : ""}
+                className="theme-option-btn"
+                onClick={() => i18n.changeLanguage(l.id)}
+              >
+                <span>{l.label}</span>
               </button>
             ))}
           </div>

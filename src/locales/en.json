@@ -1,0 +1,81 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "done": "Done",
+    "close": "Close",
+    "language": "Language"
+  },
+  "account": {
+    "language": {
+      "title": "Language",
+      "note": "Applies on this device",
+      "label": "App language"
+    }
+  },
+  "cell": {
+    "typeValue": "Type a value",
+    "chooseFromList": "Choose from the list instead",
+    "custom": "Custom…"
+  },
+  "app": {
+    "syncedToAccount": "Synced to your account",
+    "syncErrorBanner": "Couldn't save your last change to the server. Check your connection — it'll retry on your next edit.",
+    "find": "Find",
+    "findPlaceholder": "a tab…",
+    "sections": "Sections",
+    "openTabs": "Open tabs",
+    "menu": "Menu"
+  },
+  "nav": {
+    "group": { "start": "Start", "tasks": "Tasks", "money": "Money", "wellness": "Wellness" },
+    "groupDesc": {
+      "start": "Your overview, today, and setup",
+      "tasks": "Track and schedule what you need to do",
+      "money": "Budget, bills, debt, and investments",
+      "wellness": "Meals, fitness, habits, and more"
+    },
+    "tab": {
+      "overview": "Overview", "dashboard": "Dashboard", "today": "Today",
+      "tasks": "Task Tracker", "calendar": "Monthly Calendar", "weekly": "Weekly Planner",
+      "spending": "Spending", "income": "Income", "bills": "Bills", "networth": "Net Worth",
+      "meals": "Meal Plan", "fitness": "Fitness", "weight": "Weight Tracker", "habits": "Habit Tracker", "cycle": "Cycle Tracker"
+    },
+    "badge": { "setup": "setup", "auto": "auto" },
+    "badgeTitle": {
+      "setup": "Type in your info here — every other tab reads from it",
+      "auto": "Fills in automatically from what you enter elsewhere — nothing to type here"
+    }
+  },
+  "auth": {
+    "title": { "signIn": "Sign in", "signUpShort": "Sign up", "signUp": "Create your account", "reset": "Reset your password" },
+    "email": "Email",
+    "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "pleaseWait": "Please wait…",
+    "submitSignIn": "Sign in",
+    "submitSignUp": "Create account",
+    "submitReset": "Send reset link",
+    "setupHint": "Takes about 2 minutes once you're in — a short guided setup, skip anytime.",
+    "needAccount": "Need an account? Sign up",
+    "forgotPassword": "Forgot password?",
+    "backToSignIn": "Back to sign in",
+    "notice": {
+      "signUpCheckEmail": "Check your email to confirm your account, then sign in.",
+      "resetCheckEmail": "Check your email for a password reset link."
+    },
+    "error": {
+      "invalidCredentials": "That email and password don't match — double-check them, or use \"Forgot password?\" below.",
+      "alreadyRegistered": "An account with that email already exists — try signing in instead.",
+      "emailNotConfirmed": "Confirm your email first — check your inbox for the link we sent when you signed up.",
+      "passwordTooShort": "That password is too short — use at least 6 characters.",
+      "rateLimit": "Too many attempts in a row — wait a minute and try again.",
+      "network": "Couldn't reach the server — check your connection and try again.",
+      "genericSignUp": "Couldn't create your account. Try again.",
+      "genericSignIn": "Something went wrong. Try again."
+    }
+  }
+}

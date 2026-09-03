@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { seed, seedHabits, iso } from "./data.js";
 import { updateEngagement } from "./engine.js";
 import { buildPages, buildNavGroups, onboardingSteps } from "./pages.js";
@@ -30,18 +31,7 @@ const THEMES = [
 // reuses the same category-tint system already used for chips/toggles
 // throughout the app (see data.js's TINTS) rather than introducing a
 // separate icon set.
-const GROUP_TINT = { Start: "accent", Tasks: "work", Money: "money", Wellness: "health" };
-const NAV_BADGE_TITLES = { setup: "Type in your info here — every other tab reads from it", auto: "Fills in automatically from what you enter elsewhere — nothing to type here" };
-// Shown only while a group is expanded — a one-line reminder of what's
-// inside it (Recognition over Recall: don't make someone open "Wellness"
-// just to find out it means meals/fitness/habits) doubling as the app's
-// only contextual help, without a separate help system (Help & Docs).
-const GROUP_DESC = {
-  Start: "Your overview, today, and setup",
-  Tasks: "Track and schedule what you need to do",
-  Money: "Budget, bills, debt, and investments",
-  Wellness: "Meals, fitness, habits, and more",
-};
+const GROUP_TINT = { start: "accent", tasks: "work", money: "money", wellness: "health" };
 
 // Precomputed once (not per-celebration) — a small fixed burst pattern is
 // plenty convincing and avoids recalculating trig on every badge earned.
@@ -137,6 +127,12 @@ export default function AppGate() {
 }
 
 function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
+  // Aliased to `translate`, not `t` -- the sidebar's own nav-item map
+  // callback below already uses `t` as its loop variable for "tab", and
+  // that pattern repeats throughout this file; renaming every one of
+  // those would be a much larger, riskier diff than aliasing the one new
+  // import instead.
+  const { t: translate } = useTranslation();
   // Today, not Dashboard — the daily landing page once you're past the
   // one-time Overview-then-Dashboard intro a brand-new account gets (see
   // the data-loading effect below, which overrides this to "overview" for
@@ -165,7 +161,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
   // Dashboard, lives there) and re-syncs to whichever group contains the
   // current tab whenever it changes (search result click, welcome-card
   // "Overview" link, etc.).
-  const [openGroup, setOpenGroup] = useState("Start");
+  const [openGroup, setOpenGroup] = useState("start");
   const searchRef = useRef(null);
 
   const toggleGroup = useCallback((name) => {
@@ -433,12 +429,19 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
 
   const q = query.trim().toLowerCase();
   const navGroups = buildNavGroups(data);
-  const groups = navGroups.map(([name, items]) => ({
-    name,
-    items: items
-      .filter(([, label]) => !q || label.toLowerCase().includes(q) || name.toLowerCase().includes(q))
-      .map(([id, label, badge]) => ({ id, label, badge, on: tab === id })),
-  })).filter((g) => g.items.length);
+  const groups = navGroups.map(([groupId, items]) => {
+    const name = translate("nav.group." + groupId);
+    return {
+      id: groupId,
+      name,
+      items: items
+        .map(([id, badge]) => ({ id, label: translate("nav.tab." + id), badge, on: tab === id }))
+        // Filters against the TRANSLATED label/group name, not the raw id
+        // -- otherwise search would only ever match English text typed
+        // into an Arabic UI, which defeats the point of translating it.
+        .filter((it) => !q || it.label.toLowerCase().includes(q) || name.toLowerCase().includes(q)),
+    };
+  }).filter((g) => g.items.length);
 
   const today = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const kpis = page.kpis || [];
@@ -456,41 +459,42 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             <div className="brand-dot" />
             <div className="brand-name">Align</div>
           </div>
-          <div className="brand-sub">Synced to your account</div>
+          <div className="brand-sub">{translate("app.syncedToAccount")}</div>
         </div>
 
         {syncError && (
           <div className="storage-warning" data-c="home">
-            Couldn't save your last change to the server. Check your connection — it'll retry on your next edit.
+            {translate("app.syncErrorBanner")}
           </div>
         )}
 
         <div className="find-box">
-          <span className="find-label">Find</span>
-          <input ref={searchRef} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="a tab…" />
+          <span className="find-label">{translate("app.find")}</span>
+          <input ref={searchRef} value={query} onChange={(e) => setQuery(e.target.value)} placeholder={translate("app.findPlaceholder")} />
           {!query && <span className="find-shortcut">/</span>}
         </div>
 
-        <nav className="nav-groups" aria-label="Sections">
+        <nav className="nav-groups" aria-label={translate("app.sections")}>
           {groups.map((g) => {
             // Collapsed state is ignored while searching — a match hiding
             // inside a collapsed group would make the search box feel
             // broken ("I typed the right thing and nothing showed up").
-            const expanded = !!q || openGroup === g.name;
+            const expanded = !!q || openGroup === g.id;
+            const groupDesc = translate("nav.groupDesc." + g.id, { defaultValue: "" });
             return (
-              <div key={g.name} className="nav-group">
+              <div key={g.id} className="nav-group">
                 <div
                   className="nav-group-name"
                   role="button"
                   tabIndex={0}
-                  onClick={() => toggleGroup(g.name)}
-                  onKeyDown={(e) => { if (e.key === "Enter") toggleGroup(g.name); }}
+                  onClick={() => toggleGroup(g.id)}
+                  onKeyDown={(e) => { if (e.key === "Enter") toggleGroup(g.id); }}
                 >
                   <span>{g.name}</span>
                   <span className="nav-group-chevron" data-open={expanded ? "1" : ""}>▾</span>
                 </div>
-                {expanded && !q && GROUP_DESC[g.name] && (
-                  <div className="nav-group-desc">{GROUP_DESC[g.name]}</div>
+                {expanded && !q && groupDesc && (
+                  <div className="nav-group-desc">{groupDesc}</div>
                 )}
                 {/* Every item is always reachable in one click — the
                     collapse/expand toggle above is now just a visual
@@ -509,7 +513,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
                       onKeyDown={(e) => { if (e.key === "Enter") setTab(t.id); }}
                       className="nav-item"
                     >
-                      <span className="nav-icon" data-c={GROUP_TINT[g.name]}>{NavIcon && <NavIcon />}</span>
+                      <span className="nav-icon" data-c={GROUP_TINT[g.id]}>{NavIcon && <NavIcon />}</span>
                       <span>{t.label}</span>
                       {/* The word alone ("setup"/"auto") doesn't explain
                           itself to someone seeing it for the first time,
@@ -517,7 +521,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
                           tooltip is the lowest-risk fix (no new
                           dismissal-tracking state, just an attribute). */}
                       {t.badge && (
-                        <span className="nav-badge" title={NAV_BADGE_TITLES[t.badge] || ""}>{t.badge}</span>
+                        <span className="nav-badge" title={translate("nav.badgeTitle." + t.badge)}>{translate("nav.badge." + t.badge)}</span>
                       )}
                     </div>
                   );
@@ -817,9 +821,9 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
         className="mobile-tabs-btn"
         data-visible={showTabsBtn ? "1" : ""}
         onClick={() => setSidebarOpen((o) => !o)}
-        aria-label="Open tabs"
+        aria-label={translate("app.openTabs")}
       >
-        ☰ Menu
+        ☰ {translate("app.menu")}
       </button>
 
       <AIAssistant data={data} patch={patch} />

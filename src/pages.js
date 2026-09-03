@@ -1381,13 +1381,18 @@ export function onboardingSteps(data, patch) {
 // exists once Overview's Gender setting is "Female", so the nav (and the
 // `ids` list App.jsx derives from it) has to be recomputed from `data`
 // instead of being a fixed constant.
+// Returns [groupId, [[tabId, badge], ...]] -- ids only, not display text.
+// App.jsx translates both via t("nav.group." + id) / t("nav.tab." + id) at
+// render time, so this stays the single stable identity every other part
+// of the sidebar (GROUP_TINT, GROUP_DESC, the openGroup expand/collapse
+// state) keys off, regardless of which language is active.
 export function buildNavGroups(data) {
-  const life = [["meals", "Meal Plan", ""], ["fitness", "Fitness", ""], ["weight", "Weight Tracker", ""], ["habits", "Habit Tracker", ""]];
-  if (data?.settings?.gender === "Female") life.push(["cycle", "Cycle Tracker", ""]);
+  const life = [["meals", ""], ["fitness", ""], ["weight", ""], ["habits", ""]];
+  if (data?.settings?.gender === "Female") life.push(["cycle", ""]);
   return [
-    ["Start", [["overview", "Overview", "setup"], ["dashboard", "Dashboard", "auto"], ["today", "Today", "auto"]]],
-    ["Tasks", [["tasks", "Task Tracker", ""], ["calendar", "Monthly Calendar", "auto"], ["weekly", "Weekly Planner", ""]]],
-    ["Money", [["spending", "Spending", ""], ["income", "Income", ""], ["bills", "Bills", ""], ["networth", "Net Worth", ""]]],
-    ["Wellness", life],
+    ["start", [["overview", "setup"], ["dashboard", "auto"], ["today", "auto"]]],
+    ["tasks", [["tasks", ""], ["calendar", "auto"], ["weekly", ""]]],
+    ["money", [["spending", ""], ["income", ""], ["bills", ""], ["networth", ""]]],
+    ["wellness", life],
   ];
 }

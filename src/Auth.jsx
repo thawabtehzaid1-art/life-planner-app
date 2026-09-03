@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "./supabaseClient.js";
 
 // Supabase's raw auth errors are written for developers, not the person
@@ -7,33 +8,21 @@ import { supabase } from "./supabaseClient.js";
 // all). Matched by substring, not error code -- if nothing matches, the
 // original message still shows, so this only ever adds clarity, never
 // hides a real error.
-function friendlyAuthError(message, mode) {
+function friendlyAuthError(message, mode, t) {
   const m = (message || "").toLowerCase();
-  if (m.includes("invalid login credentials")) {
-    return "That email and password don't match — double-check them, or use \"Forgot password?\" below.";
-  }
-  if (m.includes("already registered") || m.includes("already exists")) {
-    return "An account with that email already exists — try signing in instead.";
-  }
-  if (m.includes("email not confirmed")) {
-    return "Confirm your email first — check your inbox for the link we sent when you signed up.";
-  }
-  if (m.includes("password should be at least") || m.includes("password is too short")) {
-    return "That password is too short — use at least 6 characters.";
-  }
-  if (m.includes("rate limit") || m.includes("only request this after")) {
-    return "Too many attempts in a row — wait a minute and try again.";
-  }
-  if (m.includes("failed to fetch") || m.includes("network")) {
-    return "Couldn't reach the server — check your connection and try again.";
-  }
-  return message || (mode === MODES.SIGN_UP ? "Couldn't create your account. Try again." : "Something went wrong. Try again.");
+  if (m.includes("invalid login credentials")) return t("auth.error.invalidCredentials");
+  if (m.includes("already registered") || m.includes("already exists")) return t("auth.error.alreadyRegistered");
+  if (m.includes("email not confirmed")) return t("auth.error.emailNotConfirmed");
+  if (m.includes("password should be at least") || m.includes("password is too short")) return t("auth.error.passwordTooShort");
+  if (m.includes("rate limit") || m.includes("only request this after")) return t("auth.error.rateLimit");
+  if (m.includes("failed to fetch") || m.includes("network")) return t("auth.error.network");
+  return message || (mode === MODES.SIGN_UP ? t("auth.error.genericSignUp") : t("auth.error.genericSignIn"));
 }
 
 const MODES = { SIGN_IN: "sign_in", SIGN_UP: "sign_up", RESET: "reset" };
 const PATH_BY_MODE = { [MODES.SIGN_IN]: "/", [MODES.SIGN_UP]: "/signup", [MODES.RESET]: "/forgot-password" };
 const MODE_BY_PATH = { "/": MODES.SIGN_IN, "/signup": MODES.SIGN_UP, "/forgot-password": MODES.RESET };
-const TITLE_BY_MODE = { [MODES.SIGN_IN]: "Sign in", [MODES.SIGN_UP]: "Create account", [MODES.RESET]: "Reset password" };
+const TITLE_KEY_BY_MODE = { [MODES.SIGN_IN]: "auth.title.signIn", [MODES.SIGN_UP]: "auth.title.signUpShort", [MODES.RESET]: "auth.title.reset" };
 
 // Confirming a fresh sign-up happens by clicking a link in an email client,
 // not a same-tab transition -- that link click reloads the whole app,
@@ -44,6 +33,7 @@ const TITLE_BY_MODE = { [MODES.SIGN_IN]: "Sign in", [MODES.SIGN_UP]: "Create acc
 const PENDING_EMAIL_KEY = "align_pending_signup_email";
 
 export default function Auth() {
+  const { t } = useTranslation();
   const [mode, setMode] = useState(() => MODE_BY_PATH[window.location.pathname] ?? MODES.SIGN_IN);
   const [email, setEmail] = useState(() => {
     try { return localStorage.getItem(PENDING_EMAIL_KEY) || ""; } catch { return ""; }
@@ -73,8 +63,8 @@ export default function Auth() {
   }, []);
 
   useEffect(() => {
-    document.title = `${TITLE_BY_MODE[mode]} · Align`;
-  }, [mode]);
+    document.title = `${t(TITLE_KEY_BY_MODE[mode])} · Align`;
+  }, [mode, t]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -90,16 +80,16 @@ export default function Auth() {
         const { error: err } = await supabase.auth.signUp({ email, password });
         if (err) throw err;
         try { localStorage.setItem(PENDING_EMAIL_KEY, email); } catch { /* private mode */ }
-        setNotice("Check your email to confirm your account, then sign in.");
+        setNotice(t("auth.notice.signUpCheckEmail"));
         goTo(MODES.SIGN_IN, true);
       } else if (mode === MODES.RESET) {
         const { error: err } = await supabase.auth.resetPasswordForEmail(email);
         if (err) throw err;
-        setNotice("Check your email for a password reset link.");
+        setNotice(t("auth.notice.resetCheckEmail"));
         goTo(MODES.SIGN_IN, true);
       }
     } catch (err) {
-      setError(friendlyAuthError(err.message, mode));
+      setError(friendlyAuthError(err.message, mode, t));
     } finally {
       setBusy(false);
     }
@@ -114,9 +104,9 @@ export default function Auth() {
         </div>
 
         <h1 className="auth-title">
-          {mode === MODES.SIGN_IN && "Sign in"}
-          {mode === MODES.SIGN_UP && "Create your account"}
-          {mode === MODES.RESET && "Reset your password"}
+          {mode === MODES.SIGN_IN && t("auth.title.signIn")}
+          {mode === MODES.SIGN_UP && t("auth.title.signUp")}
+          {mode === MODES.RESET && t("auth.title.reset")}
         </h1>
 
         {notice && <div className="auth-notice" data-c="health">{notice}</div>}
@@ -124,7 +114,7 @@ export default function Auth() {
 
         <form onSubmit={handleSubmit} className="auth-form">
           <label className="auth-field">
-            <span>Email</span>
+            <span>{t("auth.email")}</span>
             <input
               type="email" required autoComplete="email" value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -133,7 +123,7 @@ export default function Auth() {
 
           {mode !== MODES.RESET && (
             <label className="auth-field">
-              <span>Password</span>
+              <span>{t("auth.password")}</span>
               <div className="password-field">
                 <input
                   type={showPassword ? "text" : "password"} required minLength={6}
@@ -145,8 +135,8 @@ export default function Auth() {
                   className="password-toggle"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-pressed={showPassword}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  title={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+                  title={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
                 >
                   {showPassword ? (
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -165,8 +155,8 @@ export default function Auth() {
           )}
 
           <button type="submit" className="btn-solid auth-submit" disabled={busy}>
-            {busy ? "Please wait…" : (
-              mode === MODES.SIGN_IN ? "Sign in" : mode === MODES.SIGN_UP ? "Create account" : "Send reset link"
+            {busy ? t("auth.pleaseWait") : (
+              mode === MODES.SIGN_IN ? t("auth.submitSignIn") : mode === MODES.SIGN_UP ? t("auth.submitSignUp") : t("auth.submitReset")
             )}
           </button>
           {/* Sets expectations before committing (Fogg Behavior Model —
@@ -175,7 +165,7 @@ export default function Auth() {
               having handed over a password. Sign-up only, not sign-in — a
               returning user isn't about to see the checklist. */}
           {mode === MODES.SIGN_UP && (
-            <p className="auth-hint">Takes about 2 minutes once you're in — a short guided setup, skip anytime.</p>
+            <p className="auth-hint">{t("auth.setupHint")}</p>
           )}
         </form>
 
@@ -183,16 +173,16 @@ export default function Auth() {
           {mode === MODES.SIGN_IN && (
             <>
               <button type="button" onClick={() => { goTo(MODES.SIGN_UP); setError(""); setNotice(""); }}>
-                Need an account? Sign up
+                {t("auth.needAccount")}
               </button>
               <button type="button" onClick={() => { goTo(MODES.RESET); setError(""); setNotice(""); }}>
-                Forgot password?
+                {t("auth.forgotPassword")}
               </button>
             </>
           )}
           {mode !== MODES.SIGN_IN && (
             <button type="button" onClick={() => { goTo(MODES.SIGN_IN); setError(""); setNotice(""); }}>
-              Back to sign in
+              {t("auth.backToSignIn")}
             </button>
           )}
         </div>
