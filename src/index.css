@@ -818,13 +818,28 @@ button { font-family: inherit; }
   html, body, #root { height: 100%; }
   .app-shell { grid-template-columns: 1fr; height: 100dvh; overflow: hidden; }
 
+  /* inset-inline-start (not the old `inset: 0` shorthand) so the anchor
+     edge is declared directly instead of relying on the browser's
+     over-constrained left/right resolution rule -- that rule does
+     technically flip with the containing block's direction, but
+     translateX() below doesn't, so it needs its own explicit [dir="rtl"]
+     override anyway. Declaring the anchor edge outright keeps both halves
+     of this rule legible together instead of one being implicit. */
   .sidebar {
-    position: fixed; inset: 0; z-index: 30; width: 84vw; max-width: 320px;
-    border-right: 1px solid var(--color-neutral-800); border-bottom: none;
+    position: fixed; inset-inline-start: 0; top: 0; bottom: 0; z-index: 30; width: 84vw; max-width: 320px;
+    border-inline-end: 1px solid var(--color-neutral-800); border-bottom: none;
     background: var(--color-bg); overflow-y: auto;
     transform: translateX(-100%); transition: transform 0.22s ease;
   }
   .sidebar[data-open="1"] { transform: translateX(0); }
+  /* translateX has no logical-property equivalent -- "-100%" always means
+     screen-left in physical pixels, which only hides the drawer off-canvas
+     when it's anchored to the left (LTR). Under RTL the drawer anchors to
+     the right (inset-inline-start flips), so the closed state needs the
+     mirrored physical value to actually leave the viewport, same pattern
+     as .nav-item's box-shadow and .line-svg's scaleX(-1) below. */
+  [dir="rtl"] .sidebar { transform: translateX(100%); }
+  [dir="rtl"] .sidebar[data-open="1"] { transform: translateX(0); }
   .sidebar-backdrop { position: fixed; inset: 0; z-index: 29; background: rgba(0, 0, 0, 0.5); }
 
   .main-col { height: 100dvh; overflow-y: auto; }
