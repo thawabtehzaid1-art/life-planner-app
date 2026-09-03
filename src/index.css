@@ -16,25 +16,44 @@
   --radius-lg: 14px;
 }
 
-/* ---- theme token sets ---- */
-/* Dark (default — Nocturne, the original design system) */
+/* ---- theme token sets ----
+   Circadian/eye-strain-motivated palette (replaces the original violet
+   system): Light uses sage green (calming for sustained daytime viewing),
+   Dark uses a muted terracotta (long-wavelength, furthest from
+   melanopsin's blue-light peak, to minimize evening/night melatonin
+   disruption), Warm uses amber (also long-wavelength, kept visually
+   distinct from Dark's terracotta so the two read as genuinely different
+   themes). Every value below was computed and verified via script against
+   the WCAG 2.1 AA floors (4.5:1 for text, including --color-accent-400,
+   which is used as real text color in several places -- a:hover,
+   .health-sync-token, .quick-capture-status-ok, not just backgrounds), not
+   eyeballed. --color-surface is a separate step from --color-bg (cards sit
+   on surface, not bg directly) derived using each theme's own original
+   bg->surface lightness relationship. --cat-l/--cat-c/--status-l (the
+   category-tint rainbow: work/home/health/money/people) are independent
+   of --color-accent and intentionally unchanged -- they don't reference
+   the accent token, so this doesn't touch them. One real, measured
+   caution: Dark's terracotta accent (#C97158) sits only 9° of hue from
+   this same theme's existing "home"/error-tint red (#ed8881) -- distinct
+   enough to pass every contrast check, but close enough on the color
+   wheel that it's worth a second look anywhere the two sit side by side. */
 :root,
 :root[data-theme="dark"] {
-  --color-bg: #161826;
-  --color-surface: #232532;
-  --color-text: #e9e9ed;
-  --color-accent: #9184d9;
-  --color-accent-400: #b5abfc;
-  --color-accent-900: #2b2741;
-  --color-on-accent: #161826;
-  --color-neutral-400: #b2b6ca;
-  --color-neutral-500: #9397ab;
-  --color-neutral-600: #83879b;
-  --color-neutral-700: #7d8196;
-  --color-del: #9397ab;
-  --color-neutral-800: #3f424d;
-  --color-neutral-900: #292b31;
-  --shadow-sm: 0 0 0 1px #3f424d;
+  --color-bg: #1D1512;
+  --color-surface: #2c201c;
+  --color-text: #EDE2DE;
+  --color-accent: #C97158;
+  --color-accent-400: #d89987;
+  --color-accent-900: #3f1e14;
+  --color-on-accent: #1D1512;
+  --color-neutral-400: #abb0c5;
+  --color-neutral-500: #8c91a6;
+  --color-neutral-600: #7c8196;
+  --color-neutral-700: #767b91;
+  --color-del: #8c91a6;
+  --color-neutral-800: #393c46;
+  --color-neutral-900: #23252a;
+  --shadow-sm: 0 0 0 1px #393c46;
   --cat-l: 0.734; --cat-c: 0.125; --cat-money-l: 0.734;
   /* Solid-fill lightness for .status-chip only (see below) — kept separate
      from --cat-l, which every other chip/tint in the app already relies on
@@ -42,55 +61,55 @@
   --status-l: 0.734;
 }
 
-/* Light — same violet accent, deepened for contrast on a light ground */
+/* Light — sage green: calming, comfortable for long daytime sessions */
 :root[data-theme="light"] {
-  --color-bg: #f7f6fb;
-  --color-surface: #ffffff;
-  --color-text: #201f2e;
-  --color-accent: #6f61c2;
-  --color-accent-400: #8b7ddb;
-  --color-accent-900: #ece9f9;
+  --color-bg: #F1F5F0;
+  --color-surface: #f8faf8;
+  --color-text: #263B2E;
+  --color-accent: #3F7A5C;
+  /* Lighter doesn't work as a hover/text state here -- this bg is already
+     light, so lightening the accent further just erodes contrast (an
+     earlier derivation pass landed at 2.51:1 that way). Darker + a touch
+     more saturated instead: stays clearly distinct from the resting
+     accent AND comfortably clears 4.5:1 (verified 7.11:1). */
+  --color-accent-400: #2b5b43;
+  --color-accent-900: #e0efe7;
   --color-on-accent: #ffffff;
-  --color-neutral-400: #57566b;
-  --color-neutral-500: #6e6d82;
-  --color-neutral-600: #6b6a80;
-  --color-neutral-700: #706f85;
-  --color-del: #6e6d82;
-  --color-neutral-800: #dcdae6;
-  --color-neutral-900: #eeecf5;
-  --shadow-sm: 0 0 0 1px #dcdae6;
+  --color-neutral-400: #5c5b71;
+  --color-neutral-500: #6f6d83;
+  --color-neutral-600: #6f6e84;
+  --color-neutral-700: #737289;
+  --color-del: #6f6d83;
+  --color-neutral-800: #d7d5e3;
+  --color-neutral-900: #e8e5f1;
+  --shadow-sm: 0 0 0 1px #d7d5e3;
   --cat-l: 0.58; --cat-c: 0.13; --cat-money-l: 0.64;
   --status-l: 0.54;
 }
 
-/* Warm — cream ground, warm-brown ink, terracotta accent */
+/* Warm — amber: also long-wavelength/evening-appropriate, kept distinct
+   from Dark's terracotta so these read as genuinely different themes. */
 :root[data-theme="warm"] {
-  --color-bg: #e8d6b8;
-  --color-surface: #faf3e6;
-  --color-text: #2a2118;
-  /* --color-accent and --color-neutral-500 were each computed (not
-     eyeballed) at ~4.1-4.2:1 against --color-surface — just under the
-     4.5:1 AA floor for normal text. Darkened by the minimal amount that
-     clears 4.5:1 (verified via script): accent #b0623a->#a65c36 (4.51:1),
-     neutral-500 #83725f->#7d6d5a (4.55:1). Small enough that the warm
-     theme's terracotta identity is unchanged. */
-  --color-accent: #a65c36;
-  --color-accent-400: #c98354;
-  --color-accent-900: #f0dcc3;
+  --color-bg: #F6F0E4;
+  --color-surface: #fdfbf7;
+  --color-text: #3A2E1F;
+  /* The originally-proposed accent (#C97F2E) measured 2.82:1 against this
+     background -- fails even the 3:1 UI-component floor, let alone 4.5:1
+     text. Darkened (same hue/saturation) to the minimum that clears 4.5:1,
+     verified via script, not eyeballed. Same for neutral-500 (originally
+     #8A7860, 3.75:1, also below the 4.5:1 text floor). */
+  --color-accent: #996123;
+  --color-accent-400: #744715;
+  --color-accent-900: #fdfbf8;
   --color-on-accent: #ffffff;
-  --color-neutral-400: #6b5d4d;
-  --color-neutral-500: #7d6d5a;
-  --color-neutral-600: #5f5346;
-  --color-neutral-700: #695c4e;
-  --color-del: #5f5346;
-  --color-neutral-800: #ddceb0;
-  --color-neutral-900: #f3e9d4;
-  --shadow-sm: 0 0 0 1px #ddceb0;
-  /* --cat-l likewise dropped 0.58->0.55: the "home" hue's error/danger
-     text (.push-optin-error, .btn-danger) measured 4.13:1, below 4.5:1;
-     0.55 clears it (4.69:1) and only uniformly deepens category-tinted
-     text/tints elsewhere in this theme rather than changing any one hue
-     relative to another. */
+  --color-neutral-400: #7f6f5c;
+  --color-neutral-500: #7b6b59;
+  --color-neutral-600: #726454;
+  --color-neutral-700: #7d6d5d;
+  --color-del: #7b6b59;
+  --color-neutral-800: #eee6d7;
+  --color-neutral-900: #f6f1e6;
+  --shadow-sm: 0 0 0 1px #eee6d7;
   --cat-l: 0.55; --cat-c: 0.13; --cat-money-l: 0.64;
   --status-l: 0.54;
 }
@@ -253,9 +272,9 @@ button { font-family: inherit; }
 .nav-badge { font-size: 10px; color: var(--color-neutral-700); margin-inline-start: auto; }
 
 .theme-swatch { display: inline-block; width: 16px; height: 16px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--color-neutral-800); }
-.theme-swatch-dark { background: linear-gradient(135deg, #161826 50%, #9184d9 50%); }
-.theme-swatch-light { background: linear-gradient(135deg, #f7f6fb 50%, #6f61c2 50%); }
-.theme-swatch-warm { background: linear-gradient(135deg, #e8d6b8 50%, #b0623a 50%); }
+.theme-swatch-dark { background: linear-gradient(135deg, #1D1512 50%, #C97158 50%); }
+.theme-swatch-light { background: linear-gradient(135deg, #F1F5F0 50%, #3F7A5C 50%); }
+.theme-swatch-warm { background: linear-gradient(135deg, #F6F0E4 50%, #996123 50%); }
 
 .header-link-btn {
   background: transparent; border: none; color: var(--color-neutral-500);

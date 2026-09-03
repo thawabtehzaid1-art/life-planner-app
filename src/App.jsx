@@ -53,6 +53,23 @@ function loadInitialTheme() {
   return "dark";
 }
 
+const THEME_AUTO_KEY = "life-planner-theme-auto-v1";
+function loadInitialThemeAuto() {
+  try { return window.localStorage.getItem(THEME_AUTO_KEY) === "1"; } catch { return false; }
+}
+// Matches each theme's own circadian rationale (see index.css's theme
+// token comment): sage for the long stretch of actual daylight, amber for
+// the evening wind-down, terracotta once it's genuinely dark out. Boundary
+// hours are approximate on purpose -- this runs on whatever the device
+// clock says, not sunrise/sunset for the person's real location, so exact
+// precision here wouldn't mean anything anyway.
+function themeForTimeOfDay(now) {
+  const h = now.getHours();
+  if (h >= 6 && h < 17) return "light";
+  if (h >= 17 && h < 21) return "warm";
+  return "dark";
+}
+
 function isEntitled(subscription) {
   if (!subscription) return false;
   if (subscription.status === "active") return true;
@@ -152,6 +169,22 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
   const [data, setData] = useState(null); // null = still loading this user's data
   const [syncError, setSyncError] = useState(false);
   const [theme, setTheme] = useState(loadInitialTheme);
+  // The manually-picked theme above is preserved even while auto mode is
+  // on, so turning auto off falls back to whatever was actually chosen
+  // rather than defaulting back to Dark. `effectiveTheme` below is the one
+  // actually applied to the page.
+  const [themeAuto, setThemeAuto] = useState(loadInitialThemeAuto);
+  const [autoClock, setAutoClock] = useState(() => new Date());
+  useEffect(() => {
+    if (!themeAuto) return;
+    // 5 minutes is frequent enough to catch a boundary crossing (6am,
+    // 5pm, 9pm) within a session that's just sitting open, without
+    // waking the tab up for something this coarse -- same reasoning
+    // FastingTimer's own 30s tick uses for a similarly slow-moving value.
+    const id = setInterval(() => setAutoClock(new Date()), 5 * 60 * 1000);
+    return () => clearInterval(id);
+  }, [themeAuto]);
+  const effectiveTheme = themeAuto ? themeForTimeOfDay(autoClock) : theme;
   // Which group's chevron is rotated open and shows its one-line
   // description — exactly one at a time, not independent toggles. No
   // longer gates whether a group's nav items are visible/clickable (every
@@ -217,9 +250,14 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
   const timerRef = useRef(null);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.theme = effectiveTheme;
+  }, [effectiveTheme]);
+  useEffect(() => {
     try { window.localStorage.setItem(THEME_KEY, theme); } catch { /* private mode */ }
   }, [theme]);
+  useEffect(() => {
+    try { window.localStorage.setItem(THEME_AUTO_KEY, themeAuto ? "1" : "0"); } catch { /* private mode */ }
+  }, [themeAuto]);
 
   // On the stacked mobile layout the sidebar (with every nav item, the
   // theme switcher, etc.) sits above the page content, so scrolling to
@@ -733,8 +771,10 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             <AccountSettings
               userEmail={userEmail}
               subscription={subscription}
-              theme={theme}
-              setTheme={setTheme}
+              theme={effectiveTheme}
+              setTheme={(id) => { setThemeAuto(false); setTheme(id); }}
+              themeAuto={themeAuto}
+              setThemeAuto={setThemeAuto}
               THEMES={THEMES}
               push={push}
               gcal={gcal}

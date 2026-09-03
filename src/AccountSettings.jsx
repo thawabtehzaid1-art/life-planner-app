@@ -32,7 +32,7 @@ function SettingsSection({ title, note, children, danger }) {
   );
 }
 
-export default function AccountSettings({ userEmail, subscription, theme, setTheme, THEMES, push, gcal, health, onSignOut, onNavigate, onboarded, patch, reset }) {
+export default function AccountSettings({ userEmail, subscription, theme, setTheme, themeAuto, setThemeAuto, THEMES, push, gcal, health, onSignOut, onNavigate, onboarded, patch, reset }) {
   const { t, i18n } = useTranslation();
   const [resetState, setResetState] = useState("idle"); // idle | busy | sent | error
   const [resetError, setResetError] = useState("");
@@ -195,6 +195,24 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
                 <span>{t.label}</span>
               </button>
             ))}
+          </div>
+          <div className="push-optin">
+            {/* Same stable-button pattern as the push-notification toggle
+                below (label/style flips with state, element never
+                unmounts) -- clicking a specific swatch above already
+                turns this back off (see setTheme in App.jsx), same
+                "manual pick wins" convention a thermostat's schedule
+                override uses. */}
+            <button
+              type="button"
+              className={themeAuto ? "header-link-btn" : "btn-outline"}
+              onClick={() => setThemeAuto((v) => !v)}
+            >
+              {themeAuto ? t("account.theme.autoOn") : t("account.theme.autoOff")}
+            </button>
+            {themeAuto && (
+              <span className="push-optin-on" role="status">{t("account.theme.autoNote")}</span>
+            )}
           </div>
         </div>
       </SettingsSection>

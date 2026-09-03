@@ -9,6 +9,11 @@
     "language": "Language"
   },
   "account": {
+    "theme": {
+      "autoOff": "Match time of day",
+      "autoOn": "Auto: on",
+      "autoNote": "Sage by day, amber in the evening, terracotta at night — updates as you go."
+    },
     "language": {
       "title": "Language",
       "note": "Applies on this device",
