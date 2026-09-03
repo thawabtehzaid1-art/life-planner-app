@@ -1,8 +1,15 @@
-// Pure parsing/matching logic for QuickCapture.jsx, kept separate from the
-// component so it's cheap to reason about (and test) without React. No
-// network calls, no LLM -- these two command shapes are simple enough to
-// resolve locally, which also keeps capture instant (no round-trip) and
-// free of any dependency on the still-dark AI_ENABLED flag.
+// Pure parsing/matching/execution logic for QuickCapture.jsx (typed input)
+// and VoiceCapture's normalized-transcript path (see quickCapture.js's
+// applyWeight/applyHabit below) -- kept separate from either component so
+// it's cheap to reason about (and test) without React, and so both callers
+// share one implementation instead of two copies that could drift. No
+// network calls, no LLM in this file itself -- these two command shapes
+// are simple enough to resolve locally once the text is in hand, which
+// also keeps typed capture instant (no round-trip) and free of any
+// dependency on the still-dark AI_ENABLED flag.
+
+import { iso } from "./data.js";
+import { supabase } from "./supabaseClient.js";
 
 const KG_PER_LB = 0.45359237;
 
@@ -112,6 +119,55 @@ export function matchHabit(candidateRaw, habits) {
   }
   const close = scored.filter((s) => s.score >= 0.4).slice(0, 3).map((s) => ({ h: s.h, index: s.index }));
   return { match: null, index: -1, alternatives: close };
+}
+
+// Mutation + status-message pair for a parsed weight command. Returns the
+// status object rather than setting it directly (no React here) -- both
+// QuickCapture.jsx and VoiceCapture.jsx just do `setStatus(applyWeight(...))`.
+export function applyWeight(data, patch, value, unit) {
+  const settingsUnit = data.settings.units === "Metric" ? "kg" : "lb";
+  const converted = toSettingsUnit(value, unit, settingsUnit);
+  const today = iso(Date.now());
+  patch((n) => {
+    const idx = n.weights.findIndex((w) => w.date === today && w.who === "Me");
+    if (idx >= 0) n.weights[idx].kg = converted;
+    else n.weights.push({ date: today, who: "Me", kg: converted, note: "" });
+  });
+  const noteConversion = unit && unit !== settingsUnit;
+  return {
+    kind: "ok",
+    text: `Logged ${converted.toFixed(1)} ${settingsUnit}${noteConversion ? ` (converted from ${value} ${unit})` : ""}.`,
+  };
+}
+
+export function applyHabit(data, patch, index, name) {
+  const dayNum = new Date().getDate();
+  const alreadyDone = !!data.habits[index]?.days?.[dayNum];
+  if (!alreadyDone) {
+    patch((n) => { n.habits[index].days[dayNum] = true; });
+  }
+  return { kind: "ok", text: alreadyDone ? `"${name}" was already marked done today.` : `"${name}" marked done today.` };
+}
+
+// Fire-and-forget: the voice_command_log table (see
+// supabase/migrations/0007_voice_command_log.sql) exists purely as future
+// personalization training signal right now -- nothing reads it back yet
+// -- so a logging failure must never surface to the user or block the
+// command that already applied.
+export async function logVoiceCommand(transcript, normalizedText, parsedIntent, applied) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("voice_command_log").insert({
+      user_id: user.id,
+      transcript,
+      normalized_text: normalizedText,
+      parsed_intent: parsedIntent,
+      applied,
+    });
+  } catch {
+    /* best-effort logging only */
+  }
 }
 
 // The one entry point QuickCapture.jsx calls. Weight is checked first

@@ -1,21 +1,31 @@
 import { useState, useRef } from "react";
-import { iso } from "./data.js";
-import { parseCommand, toSettingsUnit } from "./quickCapture.js";
+import { parseCommand, applyWeight, applyHabit, logVoiceCommand } from "./quickCapture.js";
+import { supabase } from "./supabaseClient.js";
+import MicButton from "./MicButton.jsx";
 
 // A one-line, no-confirmation-screen capture box for exactly two command
-// shapes: logging a weight entry and marking a habit done today. Parsing
-// happens entirely client-side (see quickCapture.js) -- no network round
-// trip, no LLM, no dependency on the still-dark AI_ENABLED flag -- because
-// the whole point is that typing one line and hitting Enter should be
-// instant. AIAssistant.jsx's chat-with-confirmation pattern is a
-// deliberately different, heavier tool for open-ended requests; this is
-// the fast path for the two shapes that don't need a model's judgment.
+// shapes: logging a weight entry and marking a habit done today. Typed
+// input is parsed entirely client-side (see quickCapture.js) -- no network
+// round trip, no LLM -- because the whole point of typing one line and
+// hitting Enter is that it's instant. AIAssistant.jsx's chat-with-
+// confirmation pattern is a deliberately different, heavier tool for
+// open-ended requests; this is the fast path for the two shapes that don't
+// need a model's judgment.
+//
+// Voice input is the one path that DOES leave the client: a transcript
+// (from the browser's own free speech recognition, see useSpeechToText.js
+// -- no self-hosted STT needed) goes to the voice-command Edge Function,
+// which forwards it to a self-hosted Ollama model just to normalize casual/
+// bilingual phrasing into the same command shapes runCommand() already
+// parses -- the actual matching/mutation logic below is identical either
+// way, never duplicated between the typed and voice paths.
 export default function QuickCapture({ data, patch }) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   // status is one of: null | {kind:"ok", text} | {kind:"hint", text} |
   // {kind:"choices", candidate, options:[{h,index}]}
   const [status, setStatus] = useState(null);
+  const [voiceBusy, setVoiceBusy] = useState(false);
   const inputRef = useRef(null);
 
   function toggle() {
@@ -26,38 +36,19 @@ export default function QuickCapture({ data, patch }) {
     });
   }
 
-  function applyWeight(value, unit) {
-    const settingsUnit = data.settings.units === "Metric" ? "kg" : "lb";
-    const converted = toSettingsUnit(value, unit, settingsUnit);
-    const today = iso(Date.now());
-    patch((n) => {
-      const idx = n.weights.findIndex((w) => w.date === today && w.who === "Me");
-      if (idx >= 0) n.weights[idx].kg = converted;
-      else n.weights.push({ date: today, who: "Me", kg: converted, note: "" });
-    });
-    const noteConversion = unit && unit !== settingsUnit;
-    setStatus({
-      kind: "ok",
-      text: `Logged ${converted.toFixed(1)} ${settingsUnit}${noteConversion ? ` (converted from ${value} ${unit})` : ""}.`,
-    });
-  }
-
-  function applyHabit(index, name) {
-    const dayNum = new Date().getDate();
-    const alreadyDone = !!data.habits[index]?.days?.[dayNum];
-    if (!alreadyDone) {
-      patch((n) => { n.habits[index].days[dayNum] = true; });
-    }
-    setStatus({ kind: "ok", text: alreadyDone ? `"${name}" was already marked done today.` : `"${name}" marked done today.` });
-  }
-
+  // Returns {result, applied} (not just setting status) so the voice path
+  // below can log the outcome without re-deriving it -- one source of
+  // truth for the branching, shared by both the typed and voice callers.
   function runCommand(text) {
     const result = parseCommand(text, data.habits);
+    let applied = false;
     if (result.kind === "weight") {
-      applyWeight(result.value, result.unit);
+      setStatus(applyWeight(data, patch, result.value, result.unit));
+      applied = true;
     } else if (result.kind === "habit") {
       if (result.match) {
-        applyHabit(result.index, result.match.name);
+        setStatus(applyHabit(data, patch, result.index, result.match.name));
+        applied = true;
       } else if (result.alternatives.length > 0) {
         setStatus({ kind: "choices", options: result.alternatives });
       } else {
@@ -66,6 +57,7 @@ export default function QuickCapture({ data, patch }) {
     } else {
       setStatus({ kind: "hint", text: 'Try "log my weight as 78kg" or "mark Meditation done".' });
     }
+    return { result, applied };
   }
 
   function send() {
@@ -77,7 +69,30 @@ export default function QuickCapture({ data, patch }) {
   }
 
   function pickAlternative(opt) {
-    applyHabit(opt.index, opt.h.name);
+    setStatus(applyHabit(data, patch, opt.index, opt.h.name));
+  }
+
+  async function handleVoiceTranscript(transcript) {
+    setVoiceBusy(true);
+    setStatus(null);
+    let normalized = null;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const { data: res, error } = await supabase.functions.invoke("voice-command", {
+        body: { transcript },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (error) throw error;
+      normalized = res?.normalized || null;
+    } catch {
+      setStatus({ kind: "hint", text: "Voice command failed — try typing it instead." });
+      setVoiceBusy(false);
+      return;
+    }
+    const { result, applied } = runCommand(normalized || transcript);
+    logVoiceCommand(transcript, normalized, result, applied);
+    setVoiceBusy(false);
   }
 
   return (
@@ -94,9 +109,10 @@ export default function QuickCapture({ data, patch }) {
         <div className="quick-capture-panel">
           <div className="quick-capture-header">Quick capture</div>
           <div className="quick-capture-body">
-            {!status && (
+            {voiceBusy && <div className="quick-capture-hint">Working on it…</div>}
+            {!voiceBusy && !status && (
               <div className="quick-capture-hint">
-                Type a line and hit Enter — e.g. "log my weight as 78kg" or "mark Meditation done".
+                Type a line and hit Enter, or use the mic — e.g. "log my weight as 78kg" or "mark Meditation done".
               </div>
             )}
             {status?.kind === "ok" && <div className="quick-capture-status quick-capture-status-ok">{status.text}</div>}
@@ -123,8 +139,10 @@ export default function QuickCapture({ data, patch }) {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") send(); if (e.key === "Escape") setOpen(false); }}
               placeholder="log my weight as 78kg…"
+              disabled={voiceBusy}
             />
-            <button type="button" className="btn-outline" onClick={send}>Go</button>
+            <MicButton onText={handleVoiceTranscript} label="Dictate a command" />
+            <button type="button" className="btn-outline" onClick={send} disabled={voiceBusy}>Go</button>
           </div>
         </div>
       )}
