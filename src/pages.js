@@ -1001,7 +1001,9 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   };
 
   // ===== Meal Plan
-  const mealRows = ["Breakfast", "Lunch", "Dinner", "Snacks"];
+  // Reuses the same translation keys Today's meals note already uses --
+  // one shared vocabulary for "Breakfast/Lunch/Dinner/Snacks", not two.
+  const mealRows = [t("today.meals.breakfast"), t("today.meals.lunch"), t("today.meals.dinner"), t("today.meals.snacks")];
   // Most-recent-first, same ordering convention as the weight log below.
   const fastLog = (d.fastingLog || []).slice().sort((a, b) => (parseISO(b.date) || 0) - (parseISO(a.date) || 0));
   const fastCompletedCount = fastLog.filter((f) => !f.endedEarly).length;
@@ -1009,49 +1011,49 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   let fastStreak = 0;
   for (const f of fastLog) { if (f.endedEarly) break; fastStreak++; }
   P.meals = {
-    title: "Meal Plan", role: "Type freely", roleTint: "health",
-    sub: "Fill the week, list the ingredients, and the shop at the bottom rolls the quantities up for you — repeat an ingredient and it adds together automatically.",
+    title: t("meals.title"), role: t("meals.role"), roleTint: "health",
+    sub: t("meals.sub"),
     kpis: [
-      { label: "Still to buy", value: String(groceryTotal - gotCount), note: "", tint: "money", explain: "Items on The shop below not yet ticked Got." },
-      { label: "In the trolley", value: String(gotCount), note: "", hasBar: true, pct: groceryTotal ? 100 * gotCount / groceryTotal : 0, tint: "health", explain: "Items on The shop below already ticked Got." },
+      { label: t("meals.kpi.stillToBuy"), value: String(groceryTotal - gotCount), note: "", tint: "money", explain: t("meals.kpi.stillToBuyExplain") },
+      { label: t("meals.kpi.inTrolley"), value: String(gotCount), note: "", hasBar: true, pct: groceryTotal ? 100 * gotCount / groceryTotal : 0, tint: "health", explain: t("meals.kpi.inTrolleyExplain") },
     ],
     blocks: [
-      settingsBlock("Your eating habits", "used to tailor this tab and, if you fast, to run the timer on Today", [
-        { label: "Meals per day", isNum: true, v: String(d.settings.mealsPerDay ?? 3), set: setS("mealsPerDay", num) },
-        { label: "Diet", isSelect: true, v: d.settings.diet || "No restrictions", options: DIETS, set: setS("diet") },
+      settingsBlock(t("meals.settings.title"), t("meals.settings.note"), [
+        { label: t("meals.settings.mealsPerDay"), isNum: true, v: String(d.settings.mealsPerDay ?? 3), set: setS("mealsPerDay", num) },
+        { label: t("meals.settings.diet"), isSelect: true, v: d.settings.diet || "No restrictions", options: DIETS, set: setS("diet") },
         {
-          label: "Do you fast?", isSelect: true, v: d.settings.fasts || "No", options: ["No", "Yes"],
-          hint: "Yes adds a live fasting countdown to the Today page",
+          label: t("meals.settings.doYouFast"), isSelect: true, v: d.settings.fasts || "No", options: ["No", "Yes"],
+          hint: t("meals.settings.doYouFastHint"),
           set: setS("fasts"),
         },
         ...(d.settings.fasts === "Yes" ? [
-          { label: "Fast starts", isTime: true, v: d.settings.fastStart || "20:00", hint: "when your eating window closes", set: setS("fastStart") },
-          { label: "Fast ends", isTime: true, v: d.settings.fastEnd || "12:00", hint: "when your eating window opens", set: setS("fastEnd") },
+          { label: t("meals.settings.fastStarts"), isTime: true, v: d.settings.fastStart || "20:00", hint: t("meals.settings.fastStartsHint"), set: setS("fastStart") },
+          { label: t("meals.settings.fastEnds"), isTime: true, v: d.settings.fastEnd || "12:00", hint: t("meals.settings.fastEndsHint"), set: setS("fastEnd") },
         ] : []),
       ]),
       ...(d.settings.fasts === "Yes" && fastLog.length ? [
-        notes("Fasting history", "", [
+        notes(t("meals.fastingHistory.title"), "", [
           {
-            t: fastStreak > 0 ? fastStreak + "-fast streak, no early stops" : "No current streak",
-            s: fastCompletedCount + " of " + fastLog.length + " logged fasts completed on schedule (" + fastCompletionPct + "%).",
+            t: fastStreak > 0 ? t("meals.fastingHistory.streak", { count: fastStreak }) : t("meals.fastingHistory.noStreak"),
+            s: t("meals.fastingHistory.summary", { done: fastCompletedCount, total: fastLog.length, pct: fastCompletionPct }),
           },
         ]),
         table({
-          title: "Past fasts", note: "logged automatically when a fast completes, or when you stop one early",
+          title: t("meals.pastFasts.title"), note: t("meals.pastFasts.note"),
           grid: "110px 130px 90px 120px",
-          head: ["Date", "Scheduled window", "Ended", "Result"],
+          head: [t("meals.pastFasts.head.date"), t("meals.pastFasts.head.window"), t("meals.pastFasts.head.ended"), t("meals.pastFasts.head.result")],
           rows: fastLog.map((f) => ({
             cells: [
               plain(fmtDate(parseISO(f.date))),
               plain(f.scheduledStart + "–" + f.scheduledEnd, { muted: true }),
               plain(f.endedAt ? new Date(f.endedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "—", { muted: true }),
-              chip(f.endedEarly ? "Ended early" : "Completed", f.endedEarly ? "home" : "health"),
+              chip(f.endedEarly ? t("meals.pastFasts.endedEarly") : t("meals.pastFasts.completed"), f.endedEarly ? "home" : "health"),
             ],
           })),
         }),
       ] : []),
       table({
-        title: "The week", note: "type anything — it saves as you go",
+        title: t("meals.week.title"), note: t("meals.week.note"),
         grid: "120px repeat(7,1fr)",
         head: [""].concat(DAYNAMES_T),
         rows: mealRows.map((label, mi) => ({
@@ -1061,9 +1063,9 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
         })),
       }),
       table({
-        title: "Ingredients", note: "this is what builds the shop",
+        title: t("meals.ingredients.title"), note: t("meals.ingredients.note"),
         grid: "1.8fr 160px 110px 110px 1.4fr",
-        head: ["Ingredient", "Aisle", { t: "Qty", align: "right" }, "Unit", "Used in"],
+        head: [t("meals.ingredients.head.ingredient"), t("meals.ingredients.head.aisle"), { t: t("meals.ingredients.head.qty"), align: "right" }, t("meals.ingredients.head.unit"), t("meals.ingredients.head.usedIn")],
         rows: d.ingredients.map((g, i) => ({
           remove: () => patch((n) => n.ingredients.splice(i, 1)),
           cells: [
@@ -1074,13 +1076,13 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
             edit(g.used, (e) => patch((n) => { n.ingredients[i].used = txt(e); })),
           ],
         })),
-        add: () => patch((n) => n.ingredients.push({ name: "New ingredient", aisle: "Produce", qty: 1, unit: "ea", used: "" })),
-        addLabel: "+ New ingredient",
+        add: () => patch((n) => n.ingredients.push({ name: t("meals.ingredients.newIngredient"), aisle: "Produce", qty: 1, unit: "ea", used: "" })),
+        addLabel: t("meals.ingredients.addLabel"),
       }),
       table({
-        title: "The shop", note: "quantities rolled up, sorted by aisle",
+        title: t("meals.shop.title"), note: t("meals.shop.note"),
         grid: "1.8fr 170px 120px 110px 70px",
-        head: ["Item", "Aisle", { t: "Total qty", align: "right" }, "Unit", "Got"],
+        head: [t("meals.shop.head.item"), t("meals.shop.head.aisle"), { t: t("meals.shop.head.totalQty"), align: "right" }, t("meals.shop.head.unit"), t("meals.shop.head.got")],
         rows: grocery.map((g) => {
           const k = g.name + "|" + g.unit;
           return {
@@ -1095,9 +1097,9 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
         }),
       }),
       table({
-        title: "Extras", note: "not in the meal plan",
+        title: t("meals.extras.title"), note: t("meals.extras.note"),
         grid: "1.8fr 170px 120px 110px 70px",
-        head: ["Item", "Aisle", { t: "Qty", align: "right" }, "Unit", "Got"],
+        head: [t("meals.extras.head.item"), t("meals.extras.head.aisle"), { t: t("meals.extras.head.qty"), align: "right" }, t("meals.extras.head.unit"), t("meals.extras.head.got")],
         rows: d.extras.map((x, i) => ({
           remove: () => patch((n) => n.extras.splice(i, 1)),
           cells: [
@@ -1108,8 +1110,8 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
             tog(x.got, () => patch((n) => { n.extras[i].got = !n.extras[i].got; }), "health"),
           ],
         })),
-        add: () => patch((n) => n.extras.push({ name: "New item", aisle: "Household", qty: 1, unit: "ea", got: false })),
-        addLabel: "+ New extra",
+        add: () => patch((n) => n.extras.push({ name: t("meals.extras.newItem"), aisle: "Household", qty: 1, unit: "ea", got: false })),
+        addLabel: t("meals.extras.addLabel"),
       }),
     ],
   };

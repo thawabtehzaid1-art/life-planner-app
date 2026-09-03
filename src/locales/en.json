@@ -300,6 +300,46 @@
       "newHolding": "New holding", "addLabel": "+ New holding"
     }
   },
+  "meals": {
+    "title": "Meal Plan", "role": "Type freely",
+    "sub": "Fill the week, list the ingredients, and the shop at the bottom rolls the quantities up for you — repeat an ingredient and it adds together automatically.",
+    "kpi": {
+      "stillToBuy": "Still to buy", "stillToBuyExplain": "Items on The shop below not yet ticked Got.",
+      "inTrolley": "In the trolley", "inTrolleyExplain": "Items on The shop below already ticked Got."
+    },
+    "settings": {
+      "title": "Your eating habits", "note": "used to tailor this tab and, if you fast, to run the timer on Today",
+      "mealsPerDay": "Meals per day", "diet": "Diet",
+      "doYouFast": "Do you fast?", "doYouFastHint": "Yes adds a live fasting countdown to the Today page",
+      "fastStarts": "Fast starts", "fastStartsHint": "when your eating window closes",
+      "fastEnds": "Fast ends", "fastEndsHint": "when your eating window opens"
+    },
+    "fastingHistory": {
+      "title": "Fasting history",
+      "streak": "{{count}}-fast streak, no early stops", "noStreak": "No current streak",
+      "summary": "{{done}} of {{total}} logged fasts completed on schedule ({{pct}}%)."
+    },
+    "pastFasts": {
+      "title": "Past fasts", "note": "logged automatically when a fast completes, or when you stop one early",
+      "head": { "date": "Date", "window": "Scheduled window", "ended": "Ended", "result": "Result" },
+      "endedEarly": "Ended early", "completed": "Completed"
+    },
+    "week": { "title": "The week", "note": "type anything — it saves as you go" },
+    "ingredients": {
+      "title": "Ingredients", "note": "this is what builds the shop",
+      "head": { "ingredient": "Ingredient", "aisle": "Aisle", "qty": "Qty", "unit": "Unit", "usedIn": "Used in" },
+      "newIngredient": "New ingredient", "addLabel": "+ New ingredient"
+    },
+    "shop": {
+      "title": "The shop", "note": "quantities rolled up, sorted by aisle",
+      "head": { "item": "Item", "aisle": "Aisle", "totalQty": "Total qty", "unit": "Unit", "got": "Got" }
+    },
+    "extras": {
+      "title": "Extras", "note": "not in the meal plan",
+      "head": { "item": "Item", "aisle": "Aisle", "qty": "Qty", "unit": "Unit", "got": "Got" },
+      "newItem": "New item", "addLabel": "+ New extra"
+    }
+  },
   "auth": {
     "title": { "signIn": "Sign in", "signUpShort": "Sign up", "signUp": "Create your account", "reset": "Reset your password" },
     "email": "Email",
