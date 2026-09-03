@@ -1,26 +1,62 @@
-// Minimal, hand-written service worker — deliberately does NOT precache or
-// intercept normal page/asset requests. Its only job is push notifications
-// (and, as a side effect of merely existing + being registered, it helps
-// this app qualify for Android/desktop Chrome's "Install app" prompt).
+// Minimal, hand-written service worker. Push notifications are its main
+// job (and, as a side effect of merely existing + being registered, it
+// helps this app qualify for Android/desktop Chrome's "Install app"
+// prompt) — plus one narrow, safe cache: Vite's content-hashed JS/CSS
+// bundle (dist/assets/index-<hash>.js etc).
 //
-// Kept intentionally cache-free: useVersionCheck.js + vercel.json's
-// no-cache header on index.html are what already solved iOS's aggressive
-// PWA caching earlier this session. A service worker that also cached the
-// app shell would reintroduce that exact bug, so this one doesn't.
+// index.html and version.json stay completely untouched by this file —
+// they're still served no-cache straight from the network every time (see
+// vercel.json + useVersionCheck.js), which is what actually solved iOS's
+// aggressive PWA caching earlier this session. The risk that fix was
+// guarding against was ever serving a STALE index.html pointing at an old
+// script tag. Caching the hashed bundle files themselves can't reintroduce
+// that: a new deploy emits new filenames (the hash changes whenever the
+// content does), so an old cached bundle just becomes an orphaned, unused
+// entry rather than something that could ever be served instead of the
+// new one — index.html's own fresh, always-revalidated fetch is what picks
+// the filename, this cache only ever saves re-downloading a file whose
+// content, by construction, cannot have changed under that exact name.
+const ASSET_CACHE = "align-assets-v1";
+// Cheap unbounded-growth guard across many deploys, since nothing else
+// ever evicts an old hashed filename's entry — most-recently-used trimming
+// via delete+re-set (Cache Storage preserves insertion order for keys()),
+// not a real LRU, just enough to keep this from growing forever.
+const ASSET_CACHE_LIMIT = 20;
 
 self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((names) =>
+      Promise.all(names.filter((n) => n !== ASSET_CACHE).map((n) => caches.delete(n))),
+    ).then(() => self.clients.claim()),
+  );
 });
 
-// No fetch handler that serves cached responses — every request just goes
-// to the network as if there were no service worker at all. (Some browsers
-// want *a* fetch listener present for installability; this one exists but
-// intentionally does nothing but pass the request through.)
-self.addEventListener("fetch", () => {});
+function isHashedAsset(url) {
+  return url.origin === self.location.origin && /\/assets\/.+/.test(url.pathname);
+}
+
+self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+  if (event.request.method !== "GET" || !isHashedAsset(url)) return; // everything else: untouched passthrough, as before
+
+  event.respondWith(
+    caches.open(ASSET_CACHE).then(async (cache) => {
+      const cached = await cache.match(event.request);
+      if (cached) return cached;
+      const res = await fetch(event.request);
+      if (res.ok) {
+        const keys = await cache.keys();
+        if (keys.length >= ASSET_CACHE_LIMIT) await cache.delete(keys[0]);
+        cache.put(event.request, res.clone());
+      }
+      return res;
+    }),
+  );
+});
 
 // This file is a static asset (not processed by Vite), so it can't read
 // import.meta.env.BASE_URL like the rest of the app — but its own script
