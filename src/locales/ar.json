@@ -427,6 +427,27 @@
     },
     "privacy": { "title": "الخصوصية", "item": { "title": "🔒 بياناتك", "body": "تُخزَّن بنفس طريقة بقية بيانات مخططك — خاصة بحسابك، ولا تُشارَك أو تُباع أبدًا." } }
   },
+  "fasting": {
+    "timer": {
+      "fasting": "صيام",
+      "eatingWindow": "نافذة الأكل",
+      "eatingWindowOpensAt": "تفتح نافذة الأكل عند {{time}}",
+      "endedEarly": "انتهى مبكرًا — يبدأ الصيام التالي عند {{time}}",
+      "fastStartsAt": "يبدأ الصيام عند {{time}}",
+      "stopFast": "إنهاء الصيام",
+      "adjustStartTime": "تعديل وقت البدء",
+      "changesSchedule": "يغيّر جدولك اليومي"
+    }
+  },
+  "focusTimer": {
+    "label": "تركيز عميق",
+    "done": "اكتملت الجلسة — عمل رائع.",
+    "start": "بدء 30 دقيقة",
+    "resume": "استئناف",
+    "pause": "إيقاف مؤقت",
+    "reset": "إعادة تعيين",
+    "sessionsToday": "الجلسات اليوم: {{count}}"
+  },
   "auth": {
     "title": { "signIn": "تسجيل الدخول", "signUpShort": "إنشاء حساب", "signUp": "إنشاء حسابك", "reset": "إعادة تعيين كلمة المرور" },
     "email": "البريد الإلكتروني",

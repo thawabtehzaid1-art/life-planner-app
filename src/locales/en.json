@@ -427,6 +427,27 @@
     },
     "privacy": { "title": "Privacy", "item": { "title": "🔒 Your data", "body": "Stored the same way as the rest of your planner data — private to your account, never shared or sold." } }
   },
+  "fasting": {
+    "timer": {
+      "fasting": "Fasting",
+      "eatingWindow": "Eating window",
+      "eatingWindowOpensAt": "Eating window opens at {{time}}",
+      "endedEarly": "Ended early — next fast starts at {{time}}",
+      "fastStartsAt": "Fast starts at {{time}}",
+      "stopFast": "Stop fast",
+      "adjustStartTime": "Adjust start time",
+      "changesSchedule": "changes your daily schedule"
+    }
+  },
+  "focusTimer": {
+    "label": "Deep focus",
+    "done": "Session complete — nice work.",
+    "start": "Start 30 min",
+    "resume": "Resume",
+    "pause": "Pause",
+    "reset": "Reset",
+    "sessionsToday": "Sessions today: {{count}}"
+  },
   "auth": {
     "title": { "signIn": "Sign in", "signUpShort": "Sign up", "signUp": "Create your account", "reset": "Reset your password" },
     "email": "Email",

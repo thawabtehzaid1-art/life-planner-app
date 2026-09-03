@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { fastingStatus } from "./engine.js";
 import { iso } from "./data.js";
 
@@ -12,6 +13,7 @@ function fmtRemaining(mins) {
 // so this ticks every 30s rather than every second like the focus timer --
 // no reason to wake the tab up that often for something this coarse.
 export default function FastingTimer({ data, patch }) {
+  const { t } = useTranslation();
   const [now, setNow] = useState(() => new Date());
   const [adjusting, setAdjusting] = useState(false);
 
@@ -47,7 +49,7 @@ export default function FastingTimer({ data, patch }) {
   return (
     <div className="fasting-timer">
       <div className="fasting-timer-left">
-        <div className="fasting-timer-label">{status.fasting ? "Fasting" : "Eating window"}</div>
+        <div className="fasting-timer-label">{status.fasting ? t("fasting.timer.fasting") : t("fasting.timer.eatingWindow")}</div>
         <div className="fasting-timer-clock">{fmtRemaining(status.remainingMin)}</div>
         <div className="fasting-timer-track">
           <div
@@ -60,19 +62,19 @@ export default function FastingTimer({ data, patch }) {
       <div className="fasting-timer-right">
         <div className="fasting-timer-note">
           {status.fasting
-            ? "Eating window opens at " + status.endLabel
+            ? t("fasting.timer.eatingWindowOpensAt", { time: status.endLabel })
             : status.endedEarly
-              ? "Ended early — next fast starts at " + status.startLabel
-              : "Fast starts at " + status.startLabel}
+              ? t("fasting.timer.endedEarly", { time: status.startLabel })
+              : t("fasting.timer.fastStartsAt", { time: status.startLabel })}
         </div>
         {status.fasting && (
           <button type="button" className="header-link-btn fasting-timer-action" onClick={stopFast}>
-            Stop fast
+            {t("fasting.timer.stopFast")}
           </button>
         )}
         {!adjusting ? (
           <button type="button" className="header-link-btn fasting-timer-action" onClick={() => setAdjusting(true)}>
-            Adjust start time
+            {t("fasting.timer.adjustStartTime")}
           </button>
         ) : (
           <label className="fasting-timer-adjust">
@@ -90,7 +92,7 @@ export default function FastingTimer({ data, patch }) {
                 endedEarlyAt one above; skipped for now since the schedule
                 edit already covers the common "I typed the wrong time"
                 case in one tap. */}
-            <span className="fasting-timer-adjust-hint">changes your daily schedule</span>
+            <span className="fasting-timer-adjust-hint">{t("fasting.timer.changesSchedule")}</span>
           </label>
         )}
       </div>

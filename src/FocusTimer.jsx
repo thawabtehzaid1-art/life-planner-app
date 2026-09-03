@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 const SESSION_SECONDS = 30 * 60;
 
@@ -9,6 +10,7 @@ function fmt(s) {
 }
 
 export default function FocusTimer({ sessionsToday, onSessionComplete }) {
+  const { t } = useTranslation();
   const [remaining, setRemaining] = useState(SESSION_SECONDS);
   const [running, setRunning] = useState(false);
   const [justFinished, setJustFinished] = useState(false);
@@ -44,21 +46,25 @@ export default function FocusTimer({ sessionsToday, onSessionComplete }) {
   return (
     <div className="focus-timer">
       <div className="focus-timer-left">
-        <div className="focus-timer-label">Deep focus</div>
+        <div className="focus-timer-label">{t("focusTimer.label")}</div>
         <div className="focus-timer-clock">{fmt(remaining)}</div>
         <div className="focus-timer-track">
           <div className="focus-timer-fill" style={{ width: pct + "%" }} />
         </div>
-        {justFinished && <div className="focus-timer-done">Session complete — nice work.</div>}
+        {justFinished && <div className="focus-timer-done">{t("focusTimer.done")}</div>}
       </div>
       <div className="focus-timer-right">
         <div className="focus-timer-buttons">
           {!running
-            ? <button className="btn-outline" onClick={start}>{remaining === SESSION_SECONDS || remaining === 0 ? "Start 30 min" : "Resume"}</button>
-            : <button className="btn-outline" onClick={pause}>Pause</button>}
-          <button className="btn-outline" onClick={reset}>Reset</button>
+            ? <button className="btn-outline" onClick={start}>{remaining === SESSION_SECONDS || remaining === 0 ? t("focusTimer.start") : t("focusTimer.resume")}</button>
+            : <button className="btn-outline" onClick={pause}>{t("focusTimer.pause")}</button>}
+          <button className="btn-outline" onClick={reset}>{t("focusTimer.reset")}</button>
         </div>
-        <div className="focus-timer-sessions">{sessionsToday} session{sessionsToday === 1 ? "" : "s"} today</div>
+        {/* Phrased around the count rather than declined with it, same
+            reasoning as the Dashboard hero headline: Arabic plural
+            agreement has six forms, not English's two, and getting every
+            dynamic count string right is its own dedicated pass. */}
+        <div className="focus-timer-sessions">{t("focusTimer.sessionsToday", { count: sessionsToday })}</div>
       </div>
     </div>
   );
