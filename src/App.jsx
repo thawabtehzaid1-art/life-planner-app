@@ -13,7 +13,6 @@ import OnboardingGuide from "./OnboardingGuide.jsx";
 import { useAutoHide } from "./useAutoHide.js";
 import { useVersionCheck } from "./useVersionCheck.js";
 import AIAssistant from "./AIAssistant.jsx";
-import QuickCapture from "./QuickCapture.jsx";
 import { usePushSubscription } from "./usePushSubscription.js";
 import { useGoogleCalendar } from "./useGoogleCalendar.js";
 import { useHealthToken } from "./useHealthToken.js";
@@ -824,7 +823,14 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
       </button>
 
       <AIAssistant data={data} patch={patch} />
-      <QuickCapture data={data} patch={patch} />
+      {/* Quick Capture (QuickCapture.jsx / quickCapture.js) is intentionally
+          not rendered right now -- the parsing/matching logic and UI are
+          intact and tested, just not wired up. It shipped globally-visible
+          with only two working commands (log weight, mark habit done), which
+          tested as confusing: no signal on any tab about what it could
+          actually do. Re-enable once there's a better activation trigger
+          than an always-on floating button -- see the "voice wizard" idea
+          discussed for that. */}
 
       {celebrate && (
         <div className="celebrate-burst" aria-hidden="true">
