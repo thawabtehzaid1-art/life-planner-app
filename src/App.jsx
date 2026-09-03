@@ -253,6 +253,15 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
   const push = usePushSubscription(userId);
   const gcal = useGoogleCalendar(userId);
   const health = useHealthToken(userId);
+  // gcal.sync gets a new identity whenever gcal.connected changes (its own
+  // useCallback depends on it) -- without this ref, that identity change
+  // would cascade through flush -> patch -> the pages useMemo, forcing a
+  // full recompute of every tab's derived data (not just a re-render) the
+  // moment the Google Calendar status check resolves, unrelated to
+  // anything the user did. Reading the latest sync through a ref instead
+  // keeps flush/patch stable across that unrelated state change.
+  const gcalSyncRef = useRef(gcal.sync);
+  useEffect(() => { gcalSyncRef.current = gcal.sync; });
 
   // Load this user's row once on mount. A brand-new account's row is the
   // empty `{}` the signup trigger inserted — seed it with sample data the
@@ -309,8 +318,8 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
     setSyncError(!!error);
     // Same debounce as the save itself — runs at most once per save, not
     // once per keystroke. No-ops internally if Calendar isn't connected.
-    gcal.sync(toSave.tasks, toSave.bills, toSave.settings.timezone);
-  }, [userId, gcal.sync]);
+    gcalSyncRef.current(toSave.tasks, toSave.bills, toSave.settings.timezone);
+  }, [userId]);
 
   // Sync only otherwise fires on the next save's debounce — without this,
   // connecting Calendar for the first time (or returning to it after
@@ -339,7 +348,12 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
 
   const patch = useCallback((fn) => {
     setData((current) => {
-      const next = JSON.parse(JSON.stringify(current));
+      // structuredClone does one native deep-copy pass; JSON.stringify +
+      // JSON.parse did two full string round-trips of the entire data
+      // blob (every task, expense, habit-day, weight entry...) on every
+      // single keystroke anywhere in the app -- real, measurable lag on
+      // an account with a few years of accumulated data.
+      const next = structuredClone(current);
       fn(next);
       pendingRef.current = next;
       clearTimeout(timerRef.current);
