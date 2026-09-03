@@ -9,6 +9,9 @@
     "language": "Language"
   },
   "account": {
+    "pageTitle": "Account",
+    "pageRole": "Profile, plan, and connected apps",
+    "pageSub": "Manage your sign-in, subscription, notifications, connected apps, and appearance.",
     "theme": {
       "autoOff": "Match time of day",
       "autoOn": "Auto: on",
@@ -339,6 +342,90 @@
       "head": { "item": "Item", "aisle": "Aisle", "qty": "Qty", "unit": "Unit", "got": "Got" },
       "newItem": "New item", "addLabel": "+ New extra"
     }
+  },
+  "fitness": {
+    "title": "Fitness", "role": "Type freely",
+    "sub": "A weekly split per person, then a set-by-set log. Volume is sets × reps × weight, calculated for you.",
+    "now": "now", "weeksAgo": "−{{count}}w",
+    "kpi": {
+      "sessions": "Sessions", "allTime": "all time", "sessionsExplain": "Every row logged in Workout log below, ever.",
+      "thisWeek": "This week", "thisWeekExplain": "Workout log entries dated within the current week.",
+      "totalVolume": "Total volume", "kgLifted": "kg lifted", "totalVolumeExplain": "Sets × reps × weight, summed across every logged workout.",
+      "restDaysPlanned": "Rest days planned", "restDaysPlannedExplain": "Rest days across This week's split below, for everyone in the household."
+    },
+    "volume": { "title": "Training volume", "note": "kg lifted per week" },
+    "split": { "title": "This week's split", "me": "Me", "partner": "Partner" },
+    "log": {
+      "title": "Workout log", "note": "newest first",
+      "head": { "date": "Date", "person": "Person", "exercise": "Exercise", "focus": "Focus", "sets": "Sets", "reps": "Reps", "weight": "Weight", "volume": "Volume" },
+      "newExercise": "New exercise", "addLabel": "+ Log a set"
+    }
+  },
+  "weight": {
+    "title": "Weight & BMI", "role": "Type freely",
+    "sub": "BMI follows the units and height set on Overview. Log in any order — the chart sorts by date.",
+    "unit": { "cm": "cm", "in": "in" },
+    "kpi": {
+      "latest": "Latest", "latestExplain": "Your most recent entry from the Log below.",
+      "bmi": "BMI", "bmiNote": "at {{height}} {{unit}}", "bmiExplain": "Calculated from your latest weight and the height set on Overview.",
+      "change": "Change", "changeNote": "since your first entry", "changeExplain": "Latest entry minus your very first logged entry.",
+      "towardGoal": "Toward your goal", "towardGoalUnset": "set one below, if you'd like", "towardGoalUnsetExplain": "Set a goal weight below to track progress toward it.",
+      "youreThere": "You're there", "niceWork": "nice work", "reachedExplain": "You've reached the goal weight set below.",
+      "awayAtYourOwnPace": "away, at your own pace", "distanceExplain": "Difference between your latest entry and the goal weight set below."
+    },
+    "goal": {
+      "title": "Your goal", "note": "entirely optional — only set this if a target feels motivating to you",
+      "goalWeight": "Goal weight ({{unit}})", "motivation": "Motivation", "motivationHint": "your own reason why — a reminder for days motivation dips"
+    },
+    "chart": { "title": "Weight", "note": "every entry, in date order", "now": "now" },
+    "log": {
+      "title": "Log",
+      "head": { "date": "Date", "person": "Person", "weight": "Weight", "bmi": "BMI", "notes": "Notes" },
+      "addLabel": "+ New entry"
+    },
+    "bmiNote": {
+      "title": "A note on BMI",
+      "item1": { "title": "It is a population measure, not a verdict", "body": "BMI is a rough screening number across large groups, not a health assessment of one person. Muscle, frame, and age all throw it off — it's one data point among many, not a score to chase." },
+      "item2": { "title": "Curious what a general reference looks like?", "body": "A commonly cited BMI band (18.5–24.9) works out to roughly {{low}}–{{high}} {{unit}} at your height. It's a population average, not a personal target — your own goal above is the one that actually matters." }
+    }
+  },
+  "habits": {
+    "title": "Habit Tracker", "role": "Click the squares",
+    "sub": "Streak counts back from today; the percentage is days done out of days elapsed.",
+    "newHabit": "New habit",
+    "kpi": {
+      "habits": "Habits", "habitsExplain": "Total habits tracked below.",
+      "daysCounted": "Days counted", "of": "of {{count}}", "daysCountedExplain": "Days elapsed so far in the month shown below, or the whole month if it's a past one.",
+      "bestStreak": "Best streak", "bestStreakExplain": "Longest run of consecutive done days this month, across every habit.",
+      "monthAverage": "Month average", "monthAverageExplain": "Average completion rate across all habits this month."
+    },
+    "grid": { "note": "one square a day" }
+  },
+  "cycle": {
+    "title": "Cycle Tracker", "role": "Log period start dates",
+    "sub": "An estimate, not a medical prediction — averages are calculated from the dates you log below.",
+    "phase": {
+      "menstrual": { "label": "Menstrual", "whatHappens": "The uterine lining sheds — this is the bleeding itself. Estrogen and progesterone are at their lowest, which is often why energy dips too.", "selfCare": "rest when you need it, warmth for cramps, iron-rich food, and light movement like walking — often eases cramping more than staying still." },
+      "follicular": { "label": "Follicular", "whatHappens": "Estrogen climbs as the body prepares to release an egg. Energy and mood commonly lift through this stretch.", "selfCare": "a good window for more demanding workouts or focus-heavy tasks, if that matches how you're feeling." },
+      "ovulatory": { "label": "Ovulatory", "whatHappens": "An egg is released as estrogen peaks. Some people notice a short burst of energy around this time.", "selfCare": "nothing specific — worth noting if you're tracking symptoms alongside the calendar." },
+      "luteal": { "label": "Luteal", "whatHappens": "Progesterone rises then falls — the drop late in this phase is usually behind PMS symptoms like mood changes, bloating, or fatigue.", "selfCare": "prioritizing sleep, gentle movement, and going easy on yourself tends to help more than pushing through — cravings here are normal, not a lack of willpower." }
+    },
+    "kpi": {
+      "cycleDay": "Cycle day", "onPeriod": "on period", "cycleDayExplain": "Days since your most recently logged period start.",
+      "nextPeriod": "Next period", "inDays": "in {{count}} days", "daysLate": "{{count}} days late", "logAStartDate": "log a start date", "nextPeriodExplain": "Projected from your average cycle length and last logged start date.",
+      "avgCycleLength": "Avg cycle length", "daysValue": "{{count}} days", "avgCycleLengthExplain": "Averaged from the gaps between your logged period starts, or your typical-cycle setting below until there are at least two.",
+      "avgPeriodLength": "Avg period length", "avgPeriodLengthExplain": "Your typical period length setting below.",
+      "phase": "Phase", "daysRange": "Days {{from}}–{{to}}", "phaseExplainEmpty": "Shows once you've logged a period start — see Your cycle stages below."
+    },
+    "typical": { "title": "Typical cycle", "note": "used until at least two periods are logged below", "cycleLength": "Typical cycle length (days)", "periodLength": "Typical period length (days)" },
+    "stages": { "title": "Your cycle stages", "note": "general patterns, not a diagnosis — every body is different" },
+    "history": {
+      "title": "Period history", "note": "one row per period start date",
+      "emptyLabel": "No periods logged yet", "emptyNote": "Log a start date below to get your first estimate.",
+      "head": { "startDate": "Start date" },
+      "addLabel": "+ Log a period start"
+    },
+    "privacy": { "title": "Privacy", "item": { "title": "🔒 Your data", "body": "Stored the same way as the rest of your planner data — private to your account, never shared or sold." } }
   },
   "auth": {
     "title": { "signIn": "Sign in", "signUpShort": "Sign up", "signUp": "Create your account", "reset": "Reset your password" },

@@ -148,53 +148,53 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     // framing.
     const PHASE_COPY = {
       menstrual: {
-        whatHappens: "The uterine lining sheds — this is the bleeding itself. Estrogen and progesterone are at their lowest, which is often why energy dips too.",
-        selfCare: "rest when you need it, warmth for cramps, iron-rich food, and light movement like walking — often eases cramping more than staying still.",
+        whatHappens: t("cycle.phase.menstrual.whatHappens"),
+        selfCare: t("cycle.phase.menstrual.selfCare"),
       },
       follicular: {
-        whatHappens: "Estrogen climbs as the body prepares to release an egg. Energy and mood commonly lift through this stretch.",
-        selfCare: "a good window for more demanding workouts or focus-heavy tasks, if that matches how you're feeling.",
+        whatHappens: t("cycle.phase.follicular.whatHappens"),
+        selfCare: t("cycle.phase.follicular.selfCare"),
       },
       ovulatory: {
-        whatHappens: "An egg is released as estrogen peaks. Some people notice a short burst of energy around this time.",
-        selfCare: "nothing specific — worth noting if you're tracking symptoms alongside the calendar.",
+        whatHappens: t("cycle.phase.ovulatory.whatHappens"),
+        selfCare: t("cycle.phase.ovulatory.selfCare"),
       },
       luteal: {
-        whatHappens: "Progesterone rises then falls — the drop late in this phase is usually behind PMS symptoms like mood changes, bloating, or fatigue.",
-        selfCare: "prioritizing sleep, gentle movement, and going easy on yourself tends to help more than pushing through — cravings here are normal, not a lack of willpower.",
+        whatHappens: t("cycle.phase.luteal.whatHappens"),
+        selfCare: t("cycle.phase.luteal.selfCare"),
       },
     };
-    const phases = cyclePhases(cyc.cycleDay, cyc.avgLength, cyc.duration).map((p) => ({ ...p, ...PHASE_COPY[p.id] }));
+    const phases = cyclePhases(cyc.cycleDay, cyc.avgLength, cyc.duration).map((p) => ({ ...p, ...PHASE_COPY[p.id], label: t("cycle.phase." + p.id + ".label") }));
     const currentPhase = phases.find((p) => p.current);
     P.cycle = {
-      title: "Cycle Tracker", role: "Log period start dates", roleTint: "home",
-      sub: "An estimate, not a medical prediction — averages are calculated from the dates you log below.",
+      title: t("cycle.title"), role: t("cycle.role"), roleTint: "home",
+      sub: t("cycle.sub"),
       kpis: [
         // No tint on purpose, even while on a period — a reused "home" (the
         // same red as an overdue bill or task) would color-code a normal
         // biological state as a problem. The note text already says "on
         // period" in words, same principle Weight & BMI already applies to
         // its own "Change" stat.
-        { label: "Cycle day", value: cyc.cycleDay ? String(cyc.cycleDay) : "—", note: cyc.onPeriod ? "on period" : "", explain: "Days since your most recently logged period start." },
-        { label: "Next period", value: cyc.nextStartISO ? fmtDate(cyc.nextStart) : "—", note: cyc.daysUntilNext !== null ? (cyc.daysUntilNext >= 0 ? "in " + cyc.daysUntilNext + " days" : Math.abs(cyc.daysUntilNext) + " days late") : "log a start date", explain: "Projected from your average cycle length and last logged start date." },
-        { label: "Avg cycle length", value: cyc.avgLength + " days", note: "", explain: "Averaged from the gaps between your logged period starts, or your typical-cycle setting below until there are at least two." },
-        { label: "Avg period length", value: cyc.duration + " days", note: "", explain: "Your typical period length setting below." },
+        { label: t("cycle.kpi.cycleDay"), value: cyc.cycleDay ? String(cyc.cycleDay) : "—", note: cyc.onPeriod ? t("cycle.kpi.onPeriod") : "", explain: t("cycle.kpi.cycleDayExplain") },
+        { label: t("cycle.kpi.nextPeriod"), value: cyc.nextStartISO ? fmtDate(cyc.nextStart) : "—", note: cyc.daysUntilNext !== null ? (cyc.daysUntilNext >= 0 ? t("cycle.kpi.inDays", { count: cyc.daysUntilNext }) : t("cycle.kpi.daysLate", { count: Math.abs(cyc.daysUntilNext) })) : t("cycle.kpi.logAStartDate"), explain: t("cycle.kpi.nextPeriodExplain") },
+        { label: t("cycle.kpi.avgCycleLength"), value: t("cycle.kpi.daysValue", { count: cyc.avgLength }), note: "", explain: t("cycle.kpi.avgCycleLengthExplain") },
+        { label: t("cycle.kpi.avgPeriodLength"), value: t("cycle.kpi.daysValue", { count: cyc.duration }), note: "", explain: t("cycle.kpi.avgPeriodLengthExplain") },
         {
-          label: "Phase", value: currentPhase ? currentPhase.label : "—", note: currentPhase ? "Days " + currentPhase.from + "–" + currentPhase.to : "log a start date",
-          explain: currentPhase ? currentPhase.whatHappens : "Shows once you've logged a period start — see Your cycle stages below.",
+          label: t("cycle.kpi.phase"), value: currentPhase ? currentPhase.label : "—", note: currentPhase ? t("cycle.kpi.daysRange", { from: currentPhase.from, to: currentPhase.to }) : t("cycle.kpi.logAStartDate"),
+          explain: currentPhase ? currentPhase.whatHappens : t("cycle.kpi.phaseExplainEmpty"),
         },
       ],
       blocks: [
-        settingsBlock("Typical cycle", "used until at least two periods are logged below", [
-          { label: "Typical cycle length (days)", isNum: true, v: String(cycleData.avgLength), set: (e) => withCycle((n) => { n.cycle.avgLength = num(e.target.value); }) },
-          { label: "Typical period length (days)", isNum: true, v: String(cycleData.avgDuration), set: (e) => withCycle((n) => { n.cycle.avgDuration = num(e.target.value); }) },
+        settingsBlock(t("cycle.typical.title"), t("cycle.typical.note"), [
+          { label: t("cycle.typical.cycleLength"), isNum: true, v: String(cycleData.avgLength), set: (e) => withCycle((n) => { n.cycle.avgLength = num(e.target.value); }) },
+          { label: t("cycle.typical.periodLength"), isNum: true, v: String(cycleData.avgDuration), set: (e) => withCycle((n) => { n.cycle.avgDuration = num(e.target.value); }) },
         ]),
-        phasesBlock("Your cycle stages", "general patterns, not a diagnosis — every body is different", phases),
+        phasesBlock(t("cycle.stages.title"), t("cycle.stages.note"), phases),
         table({
-          title: "Period history", note: "one row per period start date",
-          emptyLabel: "No periods logged yet", emptyNote: "Log a start date below to get your first estimate.",
+          title: t("cycle.history.title"), note: t("cycle.history.note"),
+          emptyLabel: t("cycle.history.emptyLabel"), emptyNote: t("cycle.history.emptyNote"),
           grid: "1fr 1fr",
-          head: ["Start date", ""],
+          head: [t("cycle.history.head.startDate"), ""],
           rows: cycleData.periods.slice().sort((a, b) => (parseISO(b) || 0) - (parseISO(a) || 0)).map((p) => {
             const i = cycleData.periods.indexOf(p);
             return {
@@ -206,10 +206,10 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
             };
           }),
           add: () => withCycle((n) => { n.cycle.periods.push(iso(today)); }),
-          addLabel: "+ Log a period start",
+          addLabel: t("cycle.history.addLabel"),
         }),
-        notes("Privacy", "", [
-          { t: "🔒 Your data", s: "Stored the same way as the rest of your planner data — private to your account, never shared or sold." },
+        notes(t("cycle.privacy.title"), "", [
+          { t: t("cycle.privacy.item.title"), s: t("cycle.privacy.item.body") },
         ]),
       ],
     };
@@ -1122,24 +1122,24 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     const from = wkFrom - w * 7 * DAY;
     const v = d.workouts.filter((x) => { const t = parseISO(x.date); return t !== null && t >= from && t < from + 7 * DAY; })
       .reduce((s, x) => s + num(x.sets) * num(x.reps) * num(x.weight), 0);
-    volByWeek.push({ label: w === 0 ? "now" : "−" + w + "w", n: v, value: v ? Math.round(v / 100) / 10 + "k" : "0", tint: w === 0 ? "accent" : "health" });
+    volByWeek.push({ label: w === 0 ? t("fitness.now") : t("fitness.weeksAgo", { count: w }), n: v, value: v ? Math.round(v / 100) / 10 + "k" : "0", tint: w === 0 ? "accent" : "health" });
   }
   P.fitness = {
-    title: "Fitness", role: "Type freely", roleTint: "health",
-    sub: "A weekly split per person, then a set-by-set log. Volume is sets × reps × weight, calculated for you.",
+    title: t("fitness.title"), role: t("fitness.role"), roleTint: "health",
+    sub: t("fitness.sub"),
     kpis: [
-      { label: "Sessions", value: String(d.workouts.length), note: "all time", explain: "Every row logged in Workout log below, ever." },
-      { label: "This week", value: String(workoutsWk.length), note: "", explain: "Workout log entries dated within the current week." },
-      { label: "Total volume", value: Math.round(volume).toLocaleString(), note: "kg lifted", explain: "Sets × reps × weight, summed across every logged workout." },
-      { label: "Rest days planned", value: String(Object.keys(d.split).filter((k) => d.split[k] === "Rest").length), note: "", explain: "Rest days across This week's split below, for everyone in the household." },
+      { label: t("fitness.kpi.sessions"), value: String(d.workouts.length), note: t("fitness.kpi.allTime"), explain: t("fitness.kpi.sessionsExplain") },
+      { label: t("fitness.kpi.thisWeek"), value: String(workoutsWk.length), note: "", explain: t("fitness.kpi.thisWeekExplain") },
+      { label: t("fitness.kpi.totalVolume"), value: Math.round(volume).toLocaleString(), note: t("fitness.kpi.kgLifted"), explain: t("fitness.kpi.totalVolumeExplain") },
+      { label: t("fitness.kpi.restDaysPlanned"), value: String(Object.keys(d.split).filter((k) => d.split[k] === "Rest").length), note: "", explain: t("fitness.kpi.restDaysPlannedExplain") },
     ],
     blocks: [
-      columns("Training volume", "kg lifted per week", volByWeek),
+      columns(t("fitness.volume.title"), t("fitness.volume.note"), volByWeek),
       table({
-        title: "This week's split", note: "",
+        title: t("fitness.split.title"), note: "",
         grid: "120px repeat(7,1fr)",
         head: [""].concat(DAYNAMES_T),
-        rows: ["Me", "Partner"].map((who, pi) => ({
+        rows: [t("fitness.split.me"), t("fitness.split.partner")].map((who, pi) => ({
           cells: [plain(who, { muted: true })].concat(
             DAYNAMES_T.map((_, di) => {
               const k = di + "-" + pi;
@@ -1150,9 +1150,9 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
         })),
       }),
       table({
-        title: "Workout log", note: "newest first",
+        title: t("fitness.log.title"), note: t("fitness.log.note"),
         grid: "140px 110px 1.6fr 130px 80px 80px 110px 120px",
-        head: ["Date", "Person", "Exercise", "Focus", { t: "Sets", align: "right" }, { t: "Reps", align: "right" }, { t: "Weight", align: "right" }, { t: "Volume", align: "right" }],
+        head: [t("fitness.log.head.date"), t("fitness.log.head.person"), t("fitness.log.head.exercise"), t("fitness.log.head.focus"), { t: t("fitness.log.head.sets"), align: "right" }, { t: t("fitness.log.head.reps"), align: "right" }, { t: t("fitness.log.head.weight"), align: "right" }, { t: t("fitness.log.head.volume"), align: "right" }],
         rows: d.workouts.slice().sort((a, b) => (parseISO(b.date) || 0) - (parseISO(a.date) || 0)).slice(0, 10).map((w) => {
           const i = d.workouts.indexOf(w);
           const vol = num(w.sets) * num(w.reps) * num(w.weight);
@@ -1175,8 +1175,8 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
             ],
           };
         }),
-        add: () => patch((n) => n.workouts.unshift({ date: iso(today), who: "Me", ex: "New exercise", focus: "Push", sets: 3, reps: 10, weight: 20 })),
-        addLabel: "+ Log a set",
+        add: () => patch((n) => n.workouts.unshift({ date: iso(today), who: "Me", ex: t("fitness.log.newExercise"), focus: "Push", sets: 3, reps: 10, weight: 20 })),
+        addLabel: t("fitness.log.addLabel"),
       }),
     ],
   };
@@ -1205,55 +1205,55 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     : 24.9 * Math.pow(num(d.settings.height), 2) / 703;
   const toGoal = weightGoal.target > 0 && lastWeight ? num(lastWeight.kg) - num(weightGoal.target) : null;
   P.weight = {
-    title: "Weight & BMI", role: "Type freely", roleTint: "health",
-    sub: "BMI follows the units and height set on Overview. Log in any order — the chart sorts by date.",
+    title: t("weight.title"), role: t("weight.role"), roleTint: "health",
+    sub: t("weight.sub"),
     // Every card keeps the same label in every render, whatever the data
     // says — only the value/note/tint change. Swapping a card's whole
     // identity (e.g. "Entries" <-> "Toward your goal") based on live state
     // made the row visibly jump every time the goal field passed through
     // an empty/zero value mid-keystroke while typing a new number.
     kpis: [
-      { label: "Latest", value: lastWeight ? num(lastWeight.kg) + (d.settings.units === "Metric" ? " kg" : " lb") : "—", note: lastWeight ? fmtDate(parseISO(lastWeight.date)) : "", explain: "Your most recent entry from the Log below." },
-      { label: "BMI", value: bmi ? (Math.round(bmi * 10) / 10).toFixed(1) : "—", note: "at " + d.settings.height + (d.settings.units === "Metric" ? " cm" : " in"), explain: "Calculated from your latest weight and the height set on Overview." },
+      { label: t("weight.kpi.latest"), value: lastWeight ? num(lastWeight.kg) + (d.settings.units === "Metric" ? " kg" : " lb") : "—", note: lastWeight ? fmtDate(parseISO(lastWeight.date)) : "", explain: t("weight.kpi.latestExplain") },
+      { label: t("weight.kpi.bmi"), value: bmi ? (Math.round(bmi * 10) / 10).toFixed(1) : "—", note: t("weight.kpi.bmiNote", { height: d.settings.height, unit: d.settings.units === "Metric" ? t("weight.unit.cm") : t("weight.unit.in") }), explain: t("weight.kpi.bmiExplain") },
       {
-        label: "Change", note: "since your first entry",
+        label: t("weight.kpi.change"), note: t("weight.kpi.changeNote"),
         // No color-coding here on purpose — tinting a drop green (and by
         // implication a rise as "bad") assumes weight loss is everyone's
         // goal, which isn't true for someone building muscle or working
         // toward a higher target. Same neutral color either direction.
         value: wSorted.length > 1 ? (num(wSorted[wSorted.length - 1].kg) - num(wSorted[0].kg)).toFixed(1) + " " + weightUnit : "—",
-        explain: "Latest entry minus your very first logged entry.",
+        explain: t("weight.kpi.changeExplain"),
       },
       // Distance is framed the same way whichever direction it runs — no
       // "to lose"/"to gain" — and reaching it gets an actual celebratory
       // note instead of just going quiet.
       toGoal === null
-        ? { label: "Toward your goal", value: "—", note: "set one below, if you'd like", explain: "Set a goal weight below to track progress toward it." }
+        ? { label: t("weight.kpi.towardGoal"), value: "—", note: t("weight.kpi.towardGoalUnset"), explain: t("weight.kpi.towardGoalUnsetExplain") }
         : (toGoal === 0
-          ? { label: "Toward your goal", value: "You're there", note: "nice work", tint: "health", explain: "You've reached the goal weight set below." }
-          : { label: "Toward your goal", value: Math.abs(toGoal).toFixed(1) + " " + weightUnit, note: "away, at your own pace", tint: "health", explain: "Difference between your latest entry and the goal weight set below." }),
+          ? { label: t("weight.kpi.towardGoal"), value: t("weight.kpi.youreThere"), note: t("weight.kpi.niceWork"), tint: "health", explain: t("weight.kpi.reachedExplain") }
+          : { label: t("weight.kpi.towardGoal"), value: Math.abs(toGoal).toFixed(1) + " " + weightUnit, note: t("weight.kpi.awayAtYourOwnPace"), tint: "health", explain: t("weight.kpi.distanceExplain") }),
     ],
     blocks: [
-      settingsBlock("Your goal", "entirely optional — only set this if a target feels motivating to you", [
-        { label: "Goal weight (" + weightUnit + ")", isNum: true, v: String(weightGoal.target || 0), set: (e) => withWeightGoal((n) => { n.weightGoal.target = num(e.target.value); }) },
+      settingsBlock(t("weight.goal.title"), t("weight.goal.note"), [
+        { label: t("weight.goal.goalWeight", { unit: weightUnit }), isNum: true, v: String(weightGoal.target || 0), set: (e) => withWeightGoal((n) => { n.weightGoal.target = num(e.target.value); }) },
         {
-          label: "Motivation", isText: true, v: weightGoal.motivation || "",
-          hint: "your own reason why — a reminder for days motivation dips",
+          label: t("weight.goal.motivation"), isText: true, v: weightGoal.motivation || "",
+          hint: t("weight.goal.motivationHint"),
           set: (e) => withWeightGoal((n) => { n.weightGoal.motivation = e.target.value; }),
         },
       ]),
-      line("Weight", "every entry, in date order", wSorted.map((w) => num(w.kg)),
+      line(t("weight.chart.title"), t("weight.chart.note"), wSorted.map((w) => num(w.kg)),
         // One real entry renders as two duplicated points (see line() in
         // engine.js), so its labels match that: the entry's own date and
         // "now", not the same date printed twice.
         wSorted.length === 0 ? ["—"]
-          : wSorted.length === 1 ? [fmtMon(parseISO(wSorted[0].date)), "now"]
-          : [fmtMon(parseISO(wSorted[0].date)), fmtMon(parseISO(wSorted[Math.floor(wSorted.length / 2)].date)), "now"],
+          : wSorted.length === 1 ? [fmtMon(parseISO(wSorted[0].date)), t("weight.chart.now")]
+          : [fmtMon(parseISO(wSorted[0].date)), fmtMon(parseISO(wSorted[Math.floor(wSorted.length / 2)].date)), t("weight.chart.now")],
         (v) => v.toFixed(1)),
       table({
-        title: "Log", note: "",
+        title: t("weight.log.title"), note: "",
         grid: "150px 120px 130px 110px 1.6fr",
-        head: ["Date", "Person", { t: "Weight", align: "right" }, { t: "BMI", align: "right" }, "Notes"],
+        head: [t("weight.log.head.date"), t("weight.log.head.person"), { t: t("weight.log.head.weight"), align: "right" }, { t: t("weight.log.head.bmi"), align: "right" }, t("weight.log.head.notes")],
         rows: d.weights.slice().sort((a, b) => (parseISO(b.date) || 0) - (parseISO(a.date) || 0)).map((w) => {
           const i = d.weights.indexOf(w);
           const b = d.settings.units === "Metric" ? num(w.kg) / Math.pow(num(d.settings.height) / 100, 2) : 703 * num(w.kg) / Math.pow(num(d.settings.height), 2);
@@ -1269,11 +1269,11 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
           };
         }),
         add: () => patch((n) => n.weights.push({ date: iso(today), who: "Me", kg: lastWeight ? num(lastWeight.kg) : 75, note: "" })),
-        addLabel: "+ New entry",
+        addLabel: t("weight.log.addLabel"),
       }),
-      notes("A note on BMI", "", [
-        { t: "It is a population measure, not a verdict", s: "BMI is a rough screening number across large groups, not a health assessment of one person. Muscle, frame, and age all throw it off — it's one data point among many, not a score to chase." },
-        { t: "Curious what a general reference looks like?", s: "A commonly cited BMI band (18.5–24.9) works out to roughly " + refLowWeight.toFixed(0) + "–" + refHighWeight.toFixed(0) + " " + weightUnit + " at your height. It's a population average, not a personal target — your own goal above is the one that actually matters." },
+      notes(t("weight.bmiNote.title"), "", [
+        { t: t("weight.bmiNote.item1.title"), s: t("weight.bmiNote.item1.body") },
+        { t: t("weight.bmiNote.item2.title"), s: t("weight.bmiNote.item2.body", { low: refLowWeight.toFixed(0), high: refHighWeight.toFixed(0), unit: weightUnit }) },
       ]),
     ],
   };
@@ -1291,17 +1291,17 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   const habitAvgTab = hsHabit.length ? Math.round(hsHabit.reduce((s, x) => s + x.pct, 0) / hsHabit.length) : 0;
   const bestHabitTab = hsHabit.map((x, i) => ({ n: d.habits[i].name, s: x.streak })).sort((a, b) => b.s - a.s)[0];
   P.habits = {
-    title: "Habit Tracker", role: "Click the squares", roleTint: "health",
-    sub: "Streak counts back from today; the percentage is days done out of days elapsed.",
+    title: t("habits.title"), role: t("habits.role"), roleTint: "health",
+    sub: t("habits.sub"),
     kpis: [
-      { label: "Habits", value: String(d.habits.length), note: "", explain: "Total habits tracked below." },
-      { label: "Days counted", value: String(hsHabit.length ? hsHabit[0].counted : 0), note: "of " + hlen, explain: "Days elapsed so far in the month shown below, or the whole month if it's a past one." },
-      { label: "Best streak", value: String(Math.max(...hsHabit.map((x) => x.best), 0)), note: bestHabitTab ? bestHabitTab.n : "", tint: "health", explain: "Longest run of consecutive done days this month, across every habit." },
-      { label: "Month average", value: habitAvgTab + "%", note: "", hasBar: true, pct: habitAvgTab, tint: "health", explain: "Average completion rate across all habits this month." },
+      { label: t("habits.kpi.habits"), value: String(d.habits.length), note: "", explain: t("habits.kpi.habitsExplain") },
+      { label: t("habits.kpi.daysCounted"), value: String(hsHabit.length ? hsHabit[0].counted : 0), note: t("habits.kpi.of", { count: hlen }), explain: t("habits.kpi.daysCountedExplain") },
+      { label: t("habits.kpi.bestStreak"), value: String(Math.max(...hsHabit.map((x) => x.best), 0)), note: bestHabitTab ? bestHabitTab.n : "", tint: "health", explain: t("habits.kpi.bestStreakExplain") },
+      { label: t("habits.kpi.monthAverage"), value: habitAvgTab + "%", note: "", hasBar: true, pct: habitAvgTab, tint: "health", explain: t("habits.kpi.monthAverageExplain") },
     ],
     blocks: [
       habitGridBlock(
-        fmtMon(habitAnchor), "one square a day",
+        fmtMon(habitAnchor), t("habits.grid.note"),
         Array.from({ length: hlen }, (_, i) => (i + 1) % 5 === 0 ? String(i + 1) : "·"),
         d.habits.map((h, hi) => ({
           name: h.name, streak: String(hsHabit[hi].streak), pct: hsHabit[hi].pct + "%",
@@ -1314,7 +1314,7 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
             toggle: () => patch((n) => { const k = di + 1; if (n.habits[hi].days[k]) delete n.habits[hi].days[k]; else n.habits[hi].days[k] = true; }),
           })),
         })),
-        () => patch((n) => n.habits.push({ name: "New habit", tint: "work", days: {}, reminderTime: "" })),
+        () => patch((n) => n.habits.push({ name: t("habits.newHabit"), tint: "work", days: {}, reminderTime: "" })),
       ),
     ],
   };
@@ -1325,8 +1325,8 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   // zone — aren't shaped like a table/chart block), so this entry only
   // supplies the page header; kpis/blocks stay empty on purpose.
   P.account = {
-    title: "Account", role: "Profile, plan, and connected apps", roleTint: "accent",
-    sub: "Manage your sign-in, subscription, notifications, connected apps, and appearance.",
+    title: t("account.pageTitle"), role: t("account.pageRole"), roleTint: "accent",
+    sub: t("account.pageSub"),
     kpis: [],
     blocks: [],
   };
