@@ -4,11 +4,11 @@ import { supabase } from "./supabaseClient.js";
 
 const FUNCTIONS_URL = import.meta.env.VITE_SUPABASE_URL + "/functions/v1";
 
-const STATUS_COPY = {
-  trialing: { label: "Trial", tint: "work" },
-  active: { label: "Active", tint: "health" },
-  past_due: { label: "Payment failed", tint: "home" },
-  canceled: { label: "Canceled", tint: "home" },
+const STATUS_TINT = {
+  trialing: "work",
+  active: "health",
+  past_due: "home",
+  canceled: "home",
 };
 
 function daysLeft(trialEndsAt) {
@@ -70,7 +70,7 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
       if (error) throw error;
       setResetState("sent");
     } catch (err) {
-      setResetError(err.message || "Couldn't send the reset email. Try again.");
+      setResetError(err.message || t("account.profile.resetError"));
       setResetState("error");
     }
   }
@@ -81,12 +81,12 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
     setDeleteError("");
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Your session expired — sign in again to delete your account.");
+      if (!session) throw new Error(t("account.danger.deleteSessionExpired"));
       const res = await fetch(`${FUNCTIONS_URL}/delete-account`, {
         method: "POST",
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || "Couldn't delete your account — try again.");
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || t("account.danger.deleteFailed"));
       await supabase.auth.signOut();
       window.location.reload();
     } catch (err) {
@@ -95,35 +95,35 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
     }
   }
 
-  const status = subscription?.status ? STATUS_COPY[subscription.status] || { label: subscription.status, tint: "" } : null;
+  const status = subscription?.status ? { label: t("account.plan.status." + subscription.status, { defaultValue: subscription.status }), tint: STATUS_TINT[subscription.status] || "" } : null;
   const trialing = subscription?.status === "trialing";
   const left = trialing ? daysLeft(subscription.trial_ends_at) : 0;
   const deleteMatches = deleteText.trim().toLowerCase() === (userEmail || "").toLowerCase();
 
   return (
     <>
-      <SettingsSection title="Profile" note="Your sign-in identity">
+      <SettingsSection title={t("account.profile.title")} note={t("account.profile.note")}>
         <div className="account-fields">
           <div className="settings-field">
-            <div className="settings-label">Email</div>
+            <div className="settings-label">{t("account.profile.email")}</div>
             <div>{userEmail || "—"}</div>
           </div>
           <div className="settings-field">
             <div className="settings-label">
-              Password
-              <div className="settings-hint">We'll email you a link to set a new one</div>
+              {t("account.profile.password")}
+              <div className="settings-hint">{t("account.profile.passwordHint")}</div>
             </div>
             <div className="push-optin">
               <button type="button" className="btn-outline" onClick={sendPasswordReset} disabled={resetState === "busy"}>
-                {resetState === "busy" ? "Sending…" : "Send reset link"}
+                {resetState === "busy" ? t("account.profile.sending") : t("account.profile.sendResetLink")}
               </button>
-              {resetState === "sent" && <span className="push-optin-on" role="status">Check your email for the link</span>}
+              {resetState === "sent" && <span className="push-optin-on" role="status">{t("account.profile.checkEmail")}</span>}
               {resetState === "error" && <span className="push-optin-error" role="alert">{resetError}</span>}
             </div>
           </div>
         </div>
         <button type="button" className="welcome-link account-jump-link" onClick={() => onNavigate("overview")}>
-          Your name, timezone, and other planner setup live on Overview →
+          {t("account.profile.overviewJump")}
         </button>
         {/* Moved here from a permanent, un-dismissible link on Overview
             (same complaint as the old Health Sync pointer above it used to
@@ -135,35 +135,35 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
             className="welcome-link account-jump-link"
             onClick={() => { patch((n) => { n.onboarded = false; }); onNavigate("overview"); }}
           >
-            Restart the setup guide →
+            {t("account.profile.restartGuide")}
           </button>
         )}
       </SettingsSection>
 
-      <SettingsSection title="Plan" note="Billed and managed through Stripe">
+      <SettingsSection title={t("account.plan.title")} note={t("account.plan.note")}>
         {status ? (
           <div className="push-optin">
             <span className="chip status-chip" data-c={status.tint}>{status.label}</span>
             {trialing && (
               <span className="text-muted">
-                {left > 0 ? `${left} day${left === 1 ? "" : "s"} left in your trial` : "Trial ends today"}
+                {left > 0 ? t("account.plan.trialDaysLeft", { count: left }) : t("account.plan.trialEndsToday")}
               </span>
             )}
-            {subscription?.status === "active" && <span className="text-muted">Renews automatically each billing period</span>}
-            {subscription?.status === "past_due" && <span className="text-muted">Your last payment failed — update it with Stripe to keep access</span>}
+            {subscription?.status === "active" && <span className="text-muted">{t("account.plan.renewsAutomatically")}</span>}
+            {subscription?.status === "past_due" && <span className="text-muted">{t("account.plan.paymentFailedNote")}</span>}
           </div>
         ) : (
-          <div className="text-muted">Loading your plan…</div>
+          <div className="text-muted">{t("account.plan.loading")}</div>
         )}
       </SettingsSection>
 
-      <SettingsSection title="Appearance" note="Applies on this device">
+      <SettingsSection title={t("account.appearance.title")} note={t("account.appearance.note")}>
         <div className="settings-field">
-          <div className="settings-label">Theme</div>
+          <div className="settings-label">{t("account.appearance.theme")}</div>
           <div
             className="theme-switch-full"
             role="radiogroup"
-            aria-label="Color theme"
+            aria-label={t("account.appearance.colorTheme")}
             onKeyDown={(e) => {
               // role="radio" promises the standard radio-group keyboard
               // pattern (arrow keys move the single roving tab-stop) — Tab
@@ -172,27 +172,27 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
               // tells assistive tech to expect.
               if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key)) return;
               e.preventDefault();
-              const idx = THEMES.findIndex((t) => t.id === theme);
+              const idx = THEMES.findIndex((th) => th.id === theme);
               const dir = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
               const next = THEMES[(idx + dir + THEMES.length) % THEMES.length];
               setTheme(next.id);
               themeBtnRefs.current[next.id]?.focus();
             }}
           >
-            {THEMES.map((t) => (
+            {THEMES.map((th) => (
               <button
-                key={t.id}
-                ref={(el) => { themeBtnRefs.current[t.id] = el; }}
+                key={th.id}
+                ref={(el) => { themeBtnRefs.current[th.id] = el; }}
                 type="button"
                 role="radio"
-                aria-checked={theme === t.id}
-                tabIndex={theme === t.id ? 0 : -1}
-                data-on={theme === t.id ? "1" : ""}
+                aria-checked={theme === th.id}
+                tabIndex={theme === th.id ? 0 : -1}
+                data-on={theme === th.id ? "1" : ""}
                 className="theme-option-btn"
-                onClick={() => setTheme(t.id)}
+                onClick={() => setTheme(th.id)}
               >
-                <span className={"theme-swatch theme-swatch-" + t.id} />
-                <span>{t.label}</span>
+                <span className={"theme-swatch theme-swatch-" + th.id} />
+                <span>{t("account.appearance.themeName." + th.id)}</span>
               </button>
             ))}
           </div>
@@ -238,9 +238,9 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Notifications" note="Reminders for bills and due tasks">
+      <SettingsSection title={t("account.notifications.title")} note={t("account.notifications.note")}>
         {!push.supported ? (
-          <div className="text-muted">Not supported on this browser or device.</div>
+          <div className="text-muted">{t("account.notifications.notSupported")}</div>
         ) : (
           <div className="push-optin">
             {/* One stable button whose label/handler flips with push.subscribed,
@@ -253,11 +253,11 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
               onClick={push.subscribed ? push.unsubscribe : push.subscribe}
               disabled={push.busy}
             >
-              {push.busy ? (push.subscribed ? "Turning off…" : "Turning on…") : (push.subscribed ? "Turn off" : "Turn on reminders")}
+              {push.busy ? (push.subscribed ? t("account.notifications.turningOff") : t("account.notifications.turningOn")) : (push.subscribed ? t("account.notifications.turnOff") : t("account.notifications.turnOn"))}
             </button>
             {push.subscribed && (
               <span className="push-optin-on" role="status">
-                <span aria-hidden="true">🔔</span> Reminders are on for this device
+                <span aria-hidden="true">🔔</span> {t("account.notifications.onForDevice")}
               </span>
             )}
             {push.error && <span className="push-optin-error" role="alert">{push.error}</span>}
@@ -265,11 +265,11 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
         )}
       </SettingsSection>
 
-      <SettingsSection title="Connected apps" note="Sync your planner with other services">
+      <SettingsSection title={t("account.connected.title")} note={t("account.connected.note")}>
         <div className="account-row">
           <div className="account-row-label">
-            <div><span aria-hidden="true">📅</span> Google Calendar</div>
-            <div className="settings-hint">Tasks and bills appear as events</div>
+            <div><span aria-hidden="true">📅</span> {t("account.connected.googleCalendar")}</div>
+            <div className="settings-hint">{t("account.connected.googleCalendarHint")}</div>
           </div>
           <div className="push-optin">
             <button
@@ -278,7 +278,7 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
               onClick={gcal.connected ? gcal.disconnect : gcal.connect}
               disabled={gcal.busy}
             >
-              {gcal.busy ? "Disconnecting…" : (gcal.connected ? "Disconnect" : "Connect")}
+              {gcal.busy ? t("account.connected.disconnecting") : (gcal.connected ? t("account.connected.disconnect") : t("account.connected.connect"))}
             </button>
             {gcal.error && <span className="push-optin-error" role="alert">{gcal.error}</span>}
           </div>
@@ -286,19 +286,19 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
 
         <div className="account-row">
           <div className="account-row-label">
-            <div><span aria-hidden="true">🩺</span> Apple Health (via Shortcuts)</div>
-            <div className="settings-hint">Bridges steps and sleep in through a personal token</div>
+            <div><span aria-hidden="true">🩺</span> {t("account.connected.appleHealth")}</div>
+            <div className="settings-hint">{t("account.connected.appleHealthHint")}</div>
           </div>
           <div className="push-optin">
             <button type="button" className="btn-outline" onClick={health.generate} disabled={health.busy}>
-              {health.busy ? "Generating…" : health.token ? "Regenerate token" : "Set up"}
+              {health.busy ? t("account.connected.generating") : health.token ? t("account.connected.regenerateToken") : t("account.connected.setUp")}
             </button>
           </div>
         </div>
         {health.token && (
           <>
             <div className="health-sync-row">
-              <span className="health-sync-label">Your token</span>
+              <span className="health-sync-label">{t("account.connected.yourToken")}</span>
               <code className="health-sync-token">{health.token}</code>
               <button
                 type="button"
@@ -307,30 +307,32 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
                   navigator.clipboard?.writeText(health.token).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
                 }}
               >
-                {copied ? "Copied!" : "Copy"}
+                {copied ? t("account.connected.copied") : t("account.connected.copy")}
               </button>
             </div>
             <details className="account-details" open={healthOpen} onToggle={(e) => setHealthOpen(e.target.open)}>
-              <summary>How to connect it in Shortcuts</summary>
+              <summary>{t("account.connected.shortcutsHowTo")}</summary>
               <ol className="welcome-list health-sync-steps">
-                <li>Open the Shortcuts app → New Shortcut → add "Find Health Samples", set Sample Type to Steps (or Sleep Analysis) and Start Date to Today.</li>
-                <li>Add "Calculate Statistics" → Operation: Sum → input: the result of "Find Health Samples".</li>
-                <li>Add "Format Date" → Date field: Current Date → Date Format: Custom → <code>yyyy-MM-dd</code>.</li>
-                <li>Add "Get Contents of URL" using <code>{FUNCTIONS_URL}/health-ingest?token={health.token}&type=steps&date=[Formatted Date]&value=[Health Value]</code>, replacing the two bracketed placeholders with the matching chips.</li>
-                <li>Run it once and allow Health access, then add a Personal Automation (e.g. every morning) so it runs on its own.</li>
+                <li>{t("account.connected.shortcutsStep1")}</li>
+                <li>{t("account.connected.shortcutsStep2")}</li>
+                <li>
+                  {t("account.connected.shortcutsStep3.pre")} <code>yyyy-MM-dd</code>.
+                </li>
+                <li>{t("account.connected.shortcutsStep4.pre")} <code>{FUNCTIONS_URL}/health-ingest?token={health.token}&type=steps&date=[Formatted Date]&value=[Health Value]</code>{t("account.connected.shortcutsStep4.post")}</li>
+                <li>{t("account.connected.shortcutsStep5")}</li>
               </ol>
             </details>
           </>
         )}
       </SettingsSection>
 
-      <SettingsSection title="Danger zone" note="These affect your whole account" danger>
+      <SettingsSection title={t("account.danger.title")} note={t("account.danger.note")} danger>
         <div className="account-row">
           <div className="account-row-label">
-            <div>Sign out</div>
-            <div className="settings-hint">End your session on this device</div>
+            <div>{t("account.danger.signOut")}</div>
+            <div className="settings-hint">{t("account.danger.signOutHint")}</div>
           </div>
-          <button type="button" className="btn-outline" onClick={onSignOut}>Sign out</button>
+          <button type="button" className="btn-outline" onClick={onSignOut}>{t("account.danger.signOut")}</button>
         </div>
 
         {/* Used to be a plain, unguarded link in Today's header (one
@@ -340,26 +342,26 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
             just all at once. */}
         <div className="account-row">
           <div className="account-row-label">
-            <div>Reset to sample data</div>
-            <div className="settings-hint">Replaces everything with the example planner — can't be undone</div>
+            <div>{t("account.danger.resetToSample")}</div>
+            <div className="settings-hint">{t("account.danger.resetToSampleHint")}</div>
           </div>
           <button
             type="button"
             className="btn-outline"
-            onClick={() => { if (window.confirm("Reset to sample data? Everything you've entered will be replaced. This can't be undone.")) reset(); }}
+            onClick={() => { if (window.confirm(t("account.danger.resetConfirm"))) reset(); }}
           >
-            Reset
+            {t("account.danger.reset")}
           </button>
         </div>
 
         <div className="account-row">
           <div className="account-row-label">
-            <div>Delete account</div>
-            <div className="settings-hint">Permanently erases your tasks, budget, habits, and everything else — this can't be undone</div>
+            <div>{t("account.danger.deleteAccount")}</div>
+            <div className="settings-hint">{t("account.danger.deleteAccountHint")}</div>
           </div>
           {!deleteOpen && (
             <button type="button" ref={deleteTriggerRef} className="btn-danger" aria-expanded={deleteOpen} onClick={() => setDeleteOpen(true)}>
-              Delete account
+              {t("account.danger.deleteAccount")}
             </button>
           )}
         </div>
@@ -367,7 +369,7 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
         {deleteOpen && (
           <div className="account-delete-confirm">
             <p id="delete-confirm-instructions">
-              Type your email (<strong>{userEmail}</strong>) to confirm. Everything you've entered will be gone for good.
+              {t("account.danger.typeEmailToConfirm.pre")} <strong>{userEmail}</strong>{t("account.danger.typeEmailToConfirm.post")}
             </p>
             <div className="account-delete-confirm-row">
               <input
@@ -380,7 +382,7 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
                 autoComplete="off"
               />
               <button type="button" className="btn-danger" onClick={confirmDelete} disabled={!deleteMatches || deleteBusy}>
-                {deleteBusy ? "Deleting…" : "Permanently delete"}
+                {deleteBusy ? t("account.danger.deleting") : t("account.danger.permanentlyDelete")}
               </button>
               <button
                 type="button"
@@ -388,7 +390,7 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
                 onClick={() => { setDeleteOpen(false); setDeleteText(""); setDeleteError(""); }}
                 disabled={deleteBusy}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
             {deleteError && <div className="auth-notice" data-c="home" role="alert">{deleteError}</div>}

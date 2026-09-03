@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 // A short, friendly setup checklist for brand-new accounts — five steps,
 // each one auto-checks itself the moment real data shows up (see
 // onboardingSteps() in pages.js), so there's nothing to separately
@@ -5,6 +7,7 @@
 // gate, since forcing every field before letting someone explore the app
 // tends to just make people bounce.
 export default function OnboardingGuide({ steps, onNavigate, onFinish }) {
+  const { t } = useTranslation();
   const doneCount = steps.filter((s) => s.done).length;
   const allDone = doneCount === steps.length;
   const pct = Math.round(100 * doneCount / steps.length);
@@ -16,8 +19,8 @@ export default function OnboardingGuide({ steps, onNavigate, onFinish }) {
             (onboarded === false) -- every time it's visible, it genuinely
             is the moment right after signing up, so the copy can just say
             so rather than opening straight into task mode. */}
-        <div className="welcome-title">Welcome to Align — let's get you set up</div>
-        <div className="onboarding-progress-label">{doneCount} of {steps.length} done</div>
+        <div className="welcome-title">{t("onboarding.welcomeTitle")}</div>
+        <div className="onboarding-progress-label">{t("onboarding.progressLabel", { done: doneCount, total: steps.length })}</div>
       </div>
       <div className="onboarding-track">
         <div className="onboarding-fill" style={{ width: pct + "%" }} />
@@ -58,14 +61,14 @@ export default function OnboardingGuide({ steps, onNavigate, onFinish }) {
                   }
                 }}
               >
-                Go
+                {t("onboarding.go")}
               </button>
             )}
           </li>
         ))}
       </ul>
       <button type="button" className="btn-outline welcome-dismiss" onClick={onFinish}>
-        {allDone ? "All set — take me to my Dashboard" : "Skip for now"}
+        {allDone ? t("onboarding.allSet") : t("onboarding.skipForNow")}
       </button>
     </div>
   );

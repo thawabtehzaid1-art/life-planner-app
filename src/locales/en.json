@@ -21,6 +21,59 @@
       "title": "Language",
       "note": "Applies on this device",
       "label": "App language"
+    },
+    "profile": {
+      "title": "Profile", "note": "Your sign-in identity",
+      "email": "Email", "password": "Password", "passwordHint": "We'll email you a link to set a new one",
+      "sending": "Sending…", "sendResetLink": "Send reset link", "checkEmail": "Check your email for the link",
+      "resetError": "Couldn't send the reset email. Try again.",
+      "overviewJump": "Your name, timezone, and other planner setup live on Overview →",
+      "restartGuide": "Restart the setup guide →"
+    },
+    "plan": {
+      "title": "Plan", "note": "Billed and managed through Stripe",
+      "loading": "Loading your plan…",
+      "trialDaysLeft": "{{count}} days left in your trial", "trialEndsToday": "Trial ends today",
+      "renewsAutomatically": "Renews automatically each billing period",
+      "paymentFailedNote": "Your last payment failed — update it with Stripe to keep access",
+      "status": { "trialing": "Trial", "active": "Active", "past_due": "Payment failed", "canceled": "Canceled" }
+    },
+    "appearance": {
+      "title": "Appearance", "note": "Applies on this device",
+      "theme": "Theme", "colorTheme": "Color theme",
+      "themeName": { "dark": "Dark", "light": "Light", "warm": "Warm" }
+    },
+    "notifications": {
+      "title": "Notifications", "note": "Reminders for bills and due tasks",
+      "notSupported": "Not supported on this browser or device.",
+      "turningOff": "Turning off…", "turningOn": "Turning on…", "turnOff": "Turn off", "turnOn": "Turn on reminders",
+      "onForDevice": "Reminders are on for this device"
+    },
+    "connected": {
+      "title": "Connected apps", "note": "Sync your planner with other services",
+      "googleCalendar": "Google Calendar", "googleCalendarHint": "Tasks and bills appear as events",
+      "disconnecting": "Disconnecting…", "disconnect": "Disconnect", "connect": "Connect",
+      "appleHealth": "Apple Health (via Shortcuts)", "appleHealthHint": "Bridges steps and sleep in through a personal token",
+      "generating": "Generating…", "regenerateToken": "Regenerate token", "setUp": "Set up",
+      "yourToken": "Your token", "copied": "Copied!", "copy": "Copy",
+      "shortcutsHowTo": "How to connect it in Shortcuts",
+      "shortcutsStep1": "Open the Shortcuts app → New Shortcut → add \"Find Health Samples\", set Sample Type to Steps (or Sleep Analysis) and Start Date to Today.",
+      "shortcutsStep2": "Add \"Calculate Statistics\" → Operation: Sum → input: the result of \"Find Health Samples\".",
+      "shortcutsStep3": { "pre": "Add \"Format Date\" → Date field: Current Date → Date Format: Custom →" },
+      "shortcutsStep4": { "pre": "Add \"Get Contents of URL\" using", "post": ", replacing the two bracketed placeholders with the matching chips." },
+      "shortcutsStep5": "Run it once and allow Health access, then add a Personal Automation (e.g. every morning) so it runs on its own."
+    },
+    "danger": {
+      "title": "Danger zone", "note": "These affect your whole account",
+      "signOut": "Sign out", "signOutHint": "End your session on this device",
+      "resetToSample": "Reset to sample data", "resetToSampleHint": "Replaces everything with the example planner — can't be undone",
+      "resetConfirm": "Reset to sample data? Everything you've entered will be replaced. This can't be undone.",
+      "reset": "Reset",
+      "deleteAccount": "Delete account", "deleteAccountHint": "Permanently erases your tasks, budget, habits, and everything else — this can't be undone",
+      "typeEmailToConfirm": { "pre": "Type your email (", "post": ") to confirm. Everything you've entered will be gone for good." },
+      "deleting": "Deleting…", "permanentlyDelete": "Permanently delete",
+      "deleteSessionExpired": "Your session expired — sign in again to delete your account.",
+      "deleteFailed": "Couldn't delete your account — try again."
     }
   },
   "cell": {
@@ -447,6 +500,29 @@
     "pause": "Pause",
     "reset": "Reset",
     "sessionsToday": "Sessions today: {{count}}"
+  },
+  "onboarding": {
+    "welcomeTitle": "Welcome to Align — let's get you set up",
+    "progressLabel": "{{done}} of {{total}} done",
+    "go": "Go",
+    "allSet": "All set — take me to my Dashboard",
+    "skipForNow": "Skip for now",
+    "name": { "label": "Add your name", "note": "so the app can greet you properly" },
+    "meals": { "label": "Tell us about your eating habits", "note": "meals a day, diet, and whether you fast — takes 10 seconds" },
+    "task": { "label": "Add something you need to do", "note": "a real task, not the sample one" },
+    "bill": { "label": "Add a bill or income entry", "note": "so Money reflects your real numbers" },
+    "habit": { "label": "Add a habit to build a streak on", "note": "anything you'd like to track daily" }
+  },
+  "paywall": {
+    "checkoutError": "Could not start checkout. Try again.",
+    "trialDaysLeft": "{{count}} days left in your trial",
+    "trialEnded": "Your trial has ended",
+    "subscribeBody": "Subscribe to keep your tasks, budget, meals, and habits syncing across every device.",
+    "subscriptionNeeded": "Subscription needed",
+    "subscriptionStatus": "Your subscription is {{status}}. Subscribe to get back in.",
+    "inactive": "inactive",
+    "redirecting": "Redirecting…",
+    "subscribe": "Subscribe"
   },
   "auth": {
     "title": { "signIn": "Sign in", "signUpShort": "Sign up", "signUp": "Create your account", "reset": "Reset your password" },

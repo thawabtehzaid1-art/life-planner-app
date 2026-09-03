@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "./supabaseClient.js";
 
 function daysLeft(trialEndsAt) {
@@ -8,6 +9,7 @@ function daysLeft(trialEndsAt) {
 }
 
 export default function Paywall({ subscription, onSignOut }) {
+  const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const trialing = subscription?.status === "trialing";
@@ -29,7 +31,7 @@ export default function Paywall({ subscription, onSignOut }) {
         throw new Error("No checkout URL returned.");
       }
     } catch (err) {
-      setError(err.message || "Could not start checkout. Try again.");
+      setError(err.message || t("paywall.checkoutError"));
       setBusy(false);
     }
   }
@@ -45,17 +47,17 @@ export default function Paywall({ subscription, onSignOut }) {
         {trialing ? (
           <>
             <h1 className="auth-title">
-              {left > 0 ? `${left} day${left === 1 ? "" : "s"} left in your trial` : "Your trial has ended"}
+              {left > 0 ? t("paywall.trialDaysLeft", { count: left }) : t("paywall.trialEnded")}
             </h1>
             <p className="auth-body">
-              Subscribe to keep your tasks, budget, meals, and habits syncing across every device.
+              {t("paywall.subscribeBody")}
             </p>
           </>
         ) : (
           <>
-            <h1 className="auth-title">Subscription needed</h1>
+            <h1 className="auth-title">{t("paywall.subscriptionNeeded")}</h1>
             <p className="auth-body">
-              Your subscription is {subscription?.status || "inactive"}. Subscribe to get back in.
+              {t("paywall.subscriptionStatus", { status: t("account.plan.status." + (subscription?.status || "inactive"), { defaultValue: subscription?.status || t("paywall.inactive") }) })}
             </p>
           </>
         )}
@@ -63,11 +65,11 @@ export default function Paywall({ subscription, onSignOut }) {
         {error && <div className="auth-notice" data-c="home">{error}</div>}
 
         <button className="btn-solid auth-submit" onClick={handleSubscribe} disabled={busy}>
-          {busy ? "Redirecting…" : "Subscribe"}
+          {busy ? t("paywall.redirecting") : t("paywall.subscribe")}
         </button>
 
         <div className="auth-links">
-          <button type="button" onClick={onSignOut}>Sign out</button>
+          <button type="button" onClick={onSignOut}>{t("account.danger.signOut")}</button>
         </div>
       </div>
     </div>

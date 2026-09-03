@@ -21,11 +21,9 @@ import AccountSettings from "./AccountSettings.jsx";
 import { NAV_ICONS, IconInfo } from "./icons.jsx";
 
 const THEME_KEY = "life-planner-theme-v1";
-const THEMES = [
-  { id: "dark", label: "Dark" },
-  { id: "light", label: "Light" },
-  { id: "warm", label: "Warm" },
-];
+// Display labels come from AccountSettings.jsx's t("account.appearance.themeName." + id)
+// rather than a field here, since this module has no access to the i18n hook.
+const THEMES = [{ id: "dark" }, { id: "light" }, { id: "warm" }];
 
 // One tint per nav group so items are scannable by color, not just text —
 // reuses the same category-tint system already used for chips/toggles

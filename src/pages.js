@@ -1352,28 +1352,28 @@ export function onboardingSteps(data, patch) {
   });
   const defs = [
     {
-      id: "name", tab: "overview", label: "Add your name",
-      note: "so the app can greet you properly",
+      id: "name", tab: "overview", label: i18n.t("onboarding.name.label"),
+      note: i18n.t("onboarding.name.note"),
       derived: !!(d.settings.name && d.settings.name.trim() && d.settings.name !== "Me"),
     },
     {
-      id: "meals", tab: "meals", label: "Tell us about your eating habits",
-      note: "meals a day, diet, and whether you fast — takes 10 seconds",
+      id: "meals", tab: "meals", label: i18n.t("onboarding.meals.label"),
+      note: i18n.t("onboarding.meals.note"),
       derived: d.settings.diet !== "No restrictions" || num(d.settings.mealsPerDay) !== 3 || d.settings.fasts === "Yes",
     },
     {
-      id: "task", tab: "tasks", label: "Add something you need to do",
-      note: "a real task, not the sample one",
-      derived: d.tasks.some((t) => t.name !== "Renew passport"),
+      id: "task", tab: "tasks", label: i18n.t("onboarding.task.label"),
+      note: i18n.t("onboarding.task.note"),
+      derived: d.tasks.some((task) => task.name !== "Renew passport"),
     },
     {
-      id: "bill", tab: "bills", label: "Add a bill or income entry",
-      note: "so Money reflects your real numbers",
+      id: "bill", tab: "bills", label: i18n.t("onboarding.bill.label"),
+      note: i18n.t("onboarding.bill.note"),
       derived: d.bills.some((b) => b.name !== "Rent") || d.income.some((i) => i.source !== "Monthly salary"),
     },
     {
-      id: "habit", tab: "habits", label: "Add a habit to build a streak on",
-      note: "anything you'd like to track daily",
+      id: "habit", tab: "habits", label: i18n.t("onboarding.habit.label"),
+      note: i18n.t("onboarding.habit.note"),
       derived: d.habits.some((h) => h.name !== "Take meds"),
     },
   ];
