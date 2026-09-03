@@ -76,6 +76,50 @@
       "deleteFailed": "تعذّر حذف حسابك — حاول مرة أخرى."
     }
   },
+  "ai": {
+    "assistantLabel": "المساعد",
+    "ask": "✦ اسأل",
+    "hint": "جرّب \"أضف مهمة لتجديد جواز سفري\" أو \"كم أنفقت على البقالة هذا الشهر؟\"",
+    "error": "عذرًا، حدث خطأ ما: {{message}}",
+    "done": "تم.",
+    "inputPlaceholder": "اسأل أو أخبرني بفعل شيء…",
+    "send": "إرسال",
+    "confirm": {
+      "addTaskDue": "إضافة مهمة \"{{name}}\" مستحقة في {{due}}؟",
+      "addTask": "إضافة مهمة \"{{name}}\"؟",
+      "addExpense": "تسجيل مصروف \"{{desc}}\" بقيمة {{amount}}؟",
+      "addHabit": "إضافة عادة \"{{name}}\"؟",
+      "applyChange": "تطبيق هذا التغيير؟"
+    }
+  },
+  "mic": {
+    "dictate": "إملاء",
+    "stopDictating": "إيقاف الإملاء",
+    "listening": "جارٍ الاستماع…"
+  },
+  "block": {
+    "table": {
+      "rowFallback": "صف {{n}}",
+      "cellFor": "{{field}} لـ {{row}}",
+      "removeRow": "إزالة {{row}}",
+      "removeRowConfirm": "إزالة هذا الصف؟ لا يمكن التراجع عن هذا.",
+      "addByVoice": "إضافة بالصوت"
+    },
+    "habitGrid": {
+      "remindAt": "التذكير عند",
+      "streak": "السلسلة",
+      "dayLabel": "{{month}} {{day}}، {{name}}",
+      "removeHabit": "إزالة عادة {{name}}",
+      "addLabel": "+ عادة جديدة"
+    },
+    "chart": { "nothingLogged": "لم يُسجَّل شيء بعد" },
+    "phases": {
+      "youAreHere": "أنتِ هنا · الأيام {{from}}–{{to}}",
+      "daysRange": "الأيام {{from}}–{{to}}",
+      "mayHelp": "قد يساعد:"
+    },
+    "badges": { "earned": "مكتسب", "locked": "مقفل" }
+  },
   "cell": {
     "typeValue": "اكتب قيمة",
     "chooseFromList": "اختر من القائمة بدلاً من ذلك",

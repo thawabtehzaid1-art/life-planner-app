@@ -76,6 +76,50 @@
       "deleteFailed": "Couldn't delete your account — try again."
     }
   },
+  "ai": {
+    "assistantLabel": "Assistant",
+    "ask": "✦ Ask",
+    "hint": "Try \"add a task to renew my passport\" or \"how much did I spend on groceries this month?\"",
+    "error": "Sorry, something went wrong: {{message}}",
+    "done": "Done.",
+    "inputPlaceholder": "Ask or tell me to do something…",
+    "send": "Send",
+    "confirm": {
+      "addTaskDue": "Add task \"{{name}}\" due {{due}}?",
+      "addTask": "Add task \"{{name}}\"?",
+      "addExpense": "Log expense \"{{desc}}\" for {{amount}}?",
+      "addHabit": "Add habit \"{{name}}\"?",
+      "applyChange": "Apply this change?"
+    }
+  },
+  "mic": {
+    "dictate": "Dictate",
+    "stopDictating": "Stop dictating",
+    "listening": "Listening…"
+  },
+  "block": {
+    "table": {
+      "rowFallback": "row {{n}}",
+      "cellFor": "{{field}} for {{row}}",
+      "removeRow": "Remove {{row}}",
+      "removeRowConfirm": "Remove this row? This can't be undone.",
+      "addByVoice": "Add by voice"
+    },
+    "habitGrid": {
+      "remindAt": "Remind at",
+      "streak": "Streak",
+      "dayLabel": "{{month}} {{day}}, {{name}}",
+      "removeHabit": "Remove {{name}} habit",
+      "addLabel": "+ New habit"
+    },
+    "chart": { "nothingLogged": "Nothing logged yet" },
+    "phases": {
+      "youAreHere": "You are here · Days {{from}}–{{to}}",
+      "daysRange": "Days {{from}}–{{to}}",
+      "mayHelp": "May help:"
+    },
+    "badges": { "earned": "Earned", "locked": "Locked" }
+  },
   "cell": {
     "typeValue": "Type a value",
     "chooseFromList": "Choose from the list instead",

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "./supabaseClient.js";
 import { iso } from "./data.js";
 
@@ -47,15 +48,16 @@ function applyTool(patch, tool) {
   }
 }
 
-function describeTool(tool) {
+function describeTool(tool, t) {
   const { name, args } = tool;
-  if (name === "add_task") return `Add task "${args.name}"${args.due ? ` due ${args.due}` : ""}?`;
-  if (name === "add_expense") return `Log expense "${args.desc}" for ${args.amount}?`;
-  if (name === "add_habit") return `Add habit "${args.name}"?`;
-  return "Apply this change?";
+  if (name === "add_task") return args.due ? t("ai.confirm.addTaskDue", { name: args.name, due: args.due }) : t("ai.confirm.addTask", { name: args.name });
+  if (name === "add_expense") return t("ai.confirm.addExpense", { desc: args.desc, amount: args.amount });
+  if (name === "add_habit") return t("ai.confirm.addHabit", { name: args.name });
+  return t("ai.confirm.applyChange");
 }
 
 export default function AIAssistant({ data, patch }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
@@ -81,7 +83,7 @@ export default function AIAssistant({ data, patch }) {
       setMessages((m) => [...m, { role: "assistant", text: res.reply || "" }]);
       if (res.tool) setPendingTool(res.tool);
     } catch (err) {
-      setMessages((m) => [...m, { role: "assistant", text: "Sorry, something went wrong: " + (err.message || err) }]);
+      setMessages((m) => [...m, { role: "assistant", text: t("ai.error", { message: err.message || err }) }]);
     } finally {
       setBusy(false);
     }
@@ -89,7 +91,7 @@ export default function AIAssistant({ data, patch }) {
 
   function confirmTool() {
     applyTool(patch, pendingTool);
-    setMessages((m) => [...m, { role: "assistant", text: "Done." }]);
+    setMessages((m) => [...m, { role: "assistant", text: t("ai.done") }]);
     setPendingTool(null);
   }
 
@@ -99,26 +101,26 @@ export default function AIAssistant({ data, patch }) {
         type="button"
         className="ai-assistant-btn"
         onClick={() => setOpen((o) => !o)}
-        aria-label="AI assistant"
+        aria-label={t("ai.assistantLabel")}
       >
-        {open ? "×" : "✦ Ask"}
+        {open ? "×" : t("ai.ask")}
       </button>
       {open && (
         <div className="ai-assistant-panel">
-          <div className="ai-assistant-header">Assistant</div>
+          <div className="ai-assistant-header">{t("ai.assistantLabel")}</div>
           <div className="ai-assistant-messages">
             {messages.length === 0 && (
-              <div className="ai-assistant-hint">Try "add a task to renew my passport" or "how much did I spend on groceries this month?"</div>
+              <div className="ai-assistant-hint">{t("ai.hint")}</div>
             )}
             {messages.map((m, i) => (
               <div key={i} className={"ai-assistant-msg ai-assistant-msg-" + m.role}>{m.text}</div>
             ))}
             {pendingTool && (
               <div className="ai-assistant-confirm">
-                <div>{describeTool(pendingTool)}</div>
+                <div>{describeTool(pendingTool, t)}</div>
                 <div className="ai-assistant-confirm-actions">
-                  <button type="button" className="btn-outline" onClick={confirmTool}>Confirm</button>
-                  <button type="button" className="header-link-btn" onClick={() => setPendingTool(null)}>Cancel</button>
+                  <button type="button" className="btn-outline" onClick={confirmTool}>{t("common.confirm")}</button>
+                  <button type="button" className="header-link-btn" onClick={() => setPendingTool(null)}>{t("common.cancel")}</button>
                 </div>
               </div>
             )}
@@ -129,10 +131,10 @@ export default function AIAssistant({ data, patch }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") send(); }}
-              placeholder="Ask or tell me to do something…"
+              placeholder={t("ai.inputPlaceholder")}
               disabled={busy}
             />
-            <button type="button" className="btn-outline" onClick={send} disabled={busy}>{busy ? "…" : "Send"}</button>
+            <button type="button" className="btn-outline" onClick={send} disabled={busy}>{busy ? "…" : t("ai.send")}</button>
           </div>
         </div>
       )}

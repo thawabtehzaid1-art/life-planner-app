@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import Cell, { SyncedInput } from "./Cell.jsx";
 import EditableSpan from "./EditableSpan.jsx";
 import MicButton from "./MicButton.jsx";
@@ -42,6 +43,7 @@ function slug(title) {
 }
 
 function TableBlock({ b, highlightIds }) {
+  const { t } = useTranslation();
   // One shared CSS grid for the whole table, not one independent grid per
   // row: each `.grid-row` is `display:contents` (see index.css) so its
   // cells become direct children of this single grid instead of starting
@@ -73,7 +75,7 @@ function TableBlock({ b, highlightIds }) {
         // (usually the row's title, e.g. a task or bill name) since that's
         // the closest thing this generic grid has to a row label.
         const rowLabelCell = r.cells.find((cell) => cell.kind === "edit" || cell.kind === "plain");
-        const rowLabel = (rowLabelCell && rowLabelCell.v) || `row ${ri + 1}`;
+        const rowLabel = (rowLabelCell && rowLabelCell.v) || t("block.table.rowFallback", { n: ri + 1 });
         return (
           <div key={ri} className="grid-row body-row" data-highlight={highlightIds?.has(r.id) ? "1" : ""}>
             {r.cells.map((c, ci) => (
@@ -85,7 +87,7 @@ function TableBlock({ b, highlightIds }) {
                 data-kind={c.kind}
                 style={{ textAlign: logicalAlign(c.align), justifyContent: c.justify }}
               >
-                <Cell c={c} ariaLabel={c.kind === "select" ? `${b.head[ci]?.t} for ${rowLabel}` : undefined} />
+                <Cell c={c} ariaLabel={c.kind === "select" ? t("block.table.cellFor", { field: b.head[ci]?.t, row: rowLabel }) : undefined} />
               </div>
             ))}
             {b.canDelete && (
@@ -98,8 +100,8 @@ function TableBlock({ b, highlightIds }) {
               <button
                 type="button"
                 className="del-cell"
-                aria-label={`Remove ${rowLabel}`}
-                onClick={() => { if (window.confirm("Remove this row? This can't be undone.")) r.remove(); }}
+                aria-label={t("block.table.removeRow", { row: rowLabel })}
+                onClick={() => { if (window.confirm(t("block.table.removeRowConfirm"))) r.remove(); }}
               ><DeleteIcon /></button>
             )}
           </div>
@@ -108,7 +110,7 @@ function TableBlock({ b, highlightIds }) {
       {b.canAdd && (
         <div className="add-row">
           <button className="btn-outline" onClick={b.add}>{b.addLabel}</button>
-          {b.voiceAdd && <MicButton onText={b.voiceAdd} label="Add by voice" />}
+          {b.voiceAdd && <MicButton onText={b.voiceAdd} label={t("block.table.addByVoice")} />}
         </div>
       )}
     </div>
@@ -187,6 +189,7 @@ function WeekBlock({ b, revealed, toggleReveal }) {
 }
 
 function HabitGridBlock({ b }) {
+  const { t } = useTranslation();
   // b.title is the month/year label ("Sep 2026") already shown above the
   // grid — reused here so each square's own name doesn't depend on a
   // sighted user having tied a bare checkbox back to its column position.
@@ -195,11 +198,11 @@ function HabitGridBlock({ b }) {
     <div>
       <div className="habit-grid-head">
         <div />
-        <div className="habit-col-label">Remind at</div>
+        <div className="habit-col-label">{t("block.habitGrid.remindAt")}</div>
         <div className="habit-ticks">
           {b.dayTicks.map((n, i) => <span key={i}>{n}</span>)}
         </div>
-        <div className="habit-col-label">Streak</div>
+        <div className="habit-col-label">{t("block.habitGrid.streak")}</div>
         <div className="habit-col-label">%</div>
         <div />
       </div>
@@ -217,7 +220,7 @@ function HabitGridBlock({ b }) {
                 tabIndex={0}
                 role="checkbox"
                 aria-checked={d.on}
-                aria-label={`${monthAbbrev} ${di + 1}, ${h.name}`}
+                aria-label={t("block.habitGrid.dayLabel", { month: monthAbbrev, day: di + 1, name: h.name })}
                 onClick={d.toggle}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); d.toggle(); } }}
               />
@@ -225,19 +228,20 @@ function HabitGridBlock({ b }) {
           </div>
           <div className="habit-metric">{h.streak}</div>
           <div className="habit-metric">{h.pct}</div>
-          <button type="button" className="del-cell" aria-label={`Remove ${h.name} habit`} onClick={h.remove}><DeleteIcon /></button>
+          <button type="button" className="del-cell" aria-label={t("block.habitGrid.removeHabit", { name: h.name })} onClick={h.remove}><DeleteIcon /></button>
         </div>
       ))}
       <div className="add-row">
-        <button className="btn-outline" onClick={b.add}>+ New habit</button>
+        <button className="btn-outline" onClick={b.add}>{t("block.habitGrid.addLabel")}</button>
       </div>
     </div>
   );
 }
 
 function ColumnsBlock({ b }) {
+  const { t } = useTranslation();
   if (b.empty) {
-    return <div className="chart-empty"><p className="table-empty-label">Nothing logged yet</p></div>;
+    return <div className="chart-empty"><p className="table-empty-label">{t("block.chart.nothingLogged")}</p></div>;
   }
   return (
     <div>
@@ -257,8 +261,9 @@ function ColumnsBlock({ b }) {
 }
 
 function LineBlock({ b }) {
+  const { t } = useTranslation();
   if (b.empty) {
-    return <div className="chart-empty"><p className="table-empty-label">Nothing logged yet</p></div>;
+    return <div className="chart-empty"><p className="table-empty-label">{t("block.chart.nothingLogged")}</p></div>;
   }
   return (
     <div>
@@ -286,8 +291,9 @@ function LineBlock({ b }) {
 }
 
 function DonutBlock({ b }) {
+  const { t } = useTranslation();
   if (b.empty) {
-    return <div className="chart-empty"><p className="table-empty-label">Nothing logged yet</p></div>;
+    return <div className="chart-empty"><p className="table-empty-label">{t("block.chart.nothingLogged")}</p></div>;
   }
   return (
     <div className="donut-wrap">
@@ -398,6 +404,7 @@ function NotesBlock({ b }) {
 // elsewhere, plus an explicit "You are here" label rather than relying on
 // the ring alone to communicate it.
 function PhasesBlock({ b }) {
+  const { t } = useTranslation();
   return (
     <div className="phase-list">
       {b.phases.map((p) => (
@@ -405,13 +412,13 @@ function PhasesBlock({ b }) {
           <div className="phase-header">
             <span className="phase-name">{p.label}</span>
             {p.current ? (
-              <span className="phase-current-tag">You are here · Days {p.from}–{p.to}</span>
+              <span className="phase-current-tag">{t("block.phases.youAreHere", { from: p.from, to: p.to })}</span>
             ) : (
-              <span className="phase-range">Days {p.from}–{p.to}</span>
+              <span className="phase-range">{t("block.phases.daysRange", { from: p.from, to: p.to })}</span>
             )}
           </div>
           <div className="phase-what">{p.whatHappens}</div>
-          <div className="phase-care"><b>May help:</b> {p.selfCare}</div>
+          <div className="phase-care"><b>{t("block.phases.mayHelp")}</b> {p.selfCare}</div>
         </div>
       ))}
     </div>
@@ -419,6 +426,7 @@ function PhasesBlock({ b }) {
 }
 
 function BadgesBlock({ b }) {
+  const { t } = useTranslation();
   return (
     <div className="badges-grid">
       {b.badges.map((x, i) => (
@@ -427,7 +435,7 @@ function BadgesBlock({ b }) {
             {x.achieved ? "✓" : "–"}
           </span>
           <div className="badge-label">{x.label}</div>
-          <div className="badge-status">{x.achieved ? "Earned" : "Locked"}</div>
+          <div className="badge-status">{x.achieved ? t("block.badges.earned") : t("block.badges.locked")}</div>
         </div>
       ))}
     </div>
