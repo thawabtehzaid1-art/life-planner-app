@@ -85,8 +85,10 @@ export default function AppGate() {
   const [subLoading, setSubLoading] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    performance.mark("perfdiag-getSession-call");
+    supabase.auth.getSession().then(({ data }) => { performance.mark("perfdiag-getSession-resolved"); setSession(data.session); });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, next) => {
+      performance.mark("perfdiag-authStateChange-" + _event);
       setSession(next);
     });
     return () => listener.subscription.unsubscribe();
