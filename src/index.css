@@ -1009,6 +1009,9 @@ button { font-family: inherit; }
 .fasting-timer-fill[data-state="eating"] { background: oklch(0.734 0.125 165); }
 .fasting-timer-right { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-3); }
 .fasting-timer-note { color: var(--color-neutral-500); font-size: 12px; max-width: 200px; text-align: right; }
+.fasting-timer-action { font-size: 12px; }
+.fasting-timer-adjust { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.fasting-timer-adjust-hint { color: var(--color-neutral-600); font-size: 10.5px; }
 
 /* ---- Today: journal ---- */
 .journal-card {

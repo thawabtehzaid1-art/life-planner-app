@@ -152,7 +152,12 @@ export function todayTs() {
 // Plan tab. Windows can cross midnight (a 20:00 -> 12:00 fast is the normal
 // case), so everything below works in "minutes since fastStart, wrapped to
 // a 24h clock" rather than comparing HH:MM strings directly.
-export function fastingStatus(settings, now) {
+// `today` is the optional data.fastingToday record ({ endedEarlyAt }) --
+// set when "Stop fast" was tapped. Matched by whether that timestamp falls
+// inside the CURRENT continuous fasting window (not by calendar date, which
+// would misfire right around midnight for a window that crosses it) so it
+// naturally stops applying once a new cycle starts, no cleanup required.
+export function fastingStatus(settings, now, today) {
   if (!settings || settings.fasts !== "Yes") return null;
   const start = settings.fastStart || "20:00";
   const end = settings.fastEnd || "12:00";
@@ -164,10 +169,16 @@ export function fastingStatus(settings, now) {
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const fastLen = ((endMin - startMin + 1440) % 1440) || 1440;
   const sinceStart = (nowMin - startMin + 1440) % 1440;
-  const fasting = sinceStart < fastLen;
+  let fasting = sinceStart < fastLen;
+  let endedEarly = false;
+  if (fasting && today?.endedEarlyAt) {
+    const endedAt = new Date(today.endedEarlyAt);
+    const windowStart = new Date(now.getTime() - sinceStart * 60000);
+    if (endedAt >= windowStart && endedAt <= now) { fasting = false; endedEarly = true; }
+  }
   const remainingMin = fasting ? fastLen - sinceStart : (startMin - nowMin + 1440) % 1440;
   const windowLen = fasting ? fastLen : 1440 - fastLen;
-  return { fasting, remainingMin, windowLen, startLabel: start, endLabel: end };
+  return { fasting, remainingMin, windowLen, startLabel: start, endLabel: end, endedEarly };
 }
 export function wkStart(data) { return data.settings.weekStart === "Sunday" ? 0 : 1; }
 // Same shape as weekBounds below: a plain offset from the real current

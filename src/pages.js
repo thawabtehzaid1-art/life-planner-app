@@ -995,6 +995,12 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
 
   // ===== Meal Plan
   const mealRows = ["Breakfast", "Lunch", "Dinner", "Snacks"];
+  // Most-recent-first, same ordering convention as the weight log below.
+  const fastLog = (d.fastingLog || []).slice().sort((a, b) => (parseISO(b.date) || 0) - (parseISO(a.date) || 0));
+  const fastCompletedCount = fastLog.filter((f) => !f.endedEarly).length;
+  const fastCompletionPct = fastLog.length ? Math.round(100 * fastCompletedCount / fastLog.length) : 0;
+  let fastStreak = 0;
+  for (const f of fastLog) { if (f.endedEarly) break; fastStreak++; }
   P.meals = {
     title: "Meal Plan", role: "Type freely", roleTint: "health",
     sub: "Fill the week, list the ingredients, and the shop at the bottom rolls the quantities up for you — repeat an ingredient and it adds together automatically.",
@@ -1016,6 +1022,27 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
           { label: "Fast ends", isTime: true, v: d.settings.fastEnd || "12:00", hint: "when your eating window opens", set: setS("fastEnd") },
         ] : []),
       ]),
+      ...(d.settings.fasts === "Yes" && fastLog.length ? [
+        notes("Fasting history", "", [
+          {
+            t: fastStreak > 0 ? fastStreak + "-fast streak, no early stops" : "No current streak",
+            s: fastCompletedCount + " of " + fastLog.length + " logged fasts completed on schedule (" + fastCompletionPct + "%).",
+          },
+        ]),
+        table({
+          title: "Past fasts", note: "logged automatically when a fast completes, or when you stop one early",
+          grid: "110px 130px 90px 120px",
+          head: ["Date", "Scheduled window", "Ended", "Result"],
+          rows: fastLog.map((f) => ({
+            cells: [
+              plain(fmtDate(parseISO(f.date))),
+              plain(f.scheduledStart + "–" + f.scheduledEnd, { muted: true }),
+              plain(f.endedAt ? new Date(f.endedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "—", { muted: true }),
+              chip(f.endedEarly ? "Ended early" : "Completed", f.endedEarly ? "home" : "health"),
+            ],
+          })),
+        }),
+      ] : []),
       table({
         title: "The week", note: "type anything — it saves as you go",
         grid: "120px repeat(7,1fr)",

@@ -627,7 +627,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
           )}
 
           {tab === "today" && !dayView && data.settings?.fasts === "Yes" && (
-            <FastingTimer settings={data.settings} />
+            <FastingTimer data={data} patch={patch} />
           )}
 
           {/* Strictly === false, not falsy — existing accounts predate this

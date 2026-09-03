@@ -103,6 +103,72 @@ function nudgesFor(data, todayISO, tomorrowISO, todayTsValue, currentHour) {
   return out;
 }
 
+// Fasting doesn't have its own reminderTime field like the other nudge
+// types -- it fires off the same fastStart/fastEnd the live timer on Today
+// already uses (see fastingStatus() in src/engine.js), matched to the hour
+// the same coarse way matchesHour() above does for everything else. A
+// "stop fast" override recorded client-side (data.fastingToday) isn't
+// checked here: if someone already ended their fast early, the complete
+// nudge would just be redundant, not wrong, and re-deriving that would
+// mean duplicating fastingStatus()'s window-crossing-midnight math too --
+// not worth it for a nudge that's at worst a few extra minutes late to a
+// fast the person already knows they ended.
+function fastingNudgesFor(data, todayISO, currentHour) {
+  const s = data.settings || {};
+  if (s.fasts !== "Yes") return [];
+  const startHour = parseInt((s.fastStart || "20:00").split(":")[0], 10);
+  const endHour = parseInt((s.fastEnd || "12:00").split(":")[0], 10);
+  const out = [];
+  if (currentHour === endHour) {
+    out.push({
+      title: "Fast complete", body: "Your eating window is open.",
+      key: `fasting-complete:${todayISO}`, dueDate: todayISO, kind: "fasting-complete",
+    });
+  }
+  if (currentHour === startHour) {
+    out.push({
+      title: "Time to fast", body: "Your eating window just closed.",
+      key: `fasting-start:${todayISO}`, dueDate: todayISO, kind: "fasting-start",
+    });
+  }
+  return out;
+}
+
+// Appends one fastingLog entry for a completed fast, re-reading the row
+// fresh right before writing rather than reusing the copy fetched at the
+// top of the scan loop -- that copy could be minutes stale by the time a
+// large user list reaches this row, and this write isn't merge-safe (it's
+// a full-object update, same as every other planner_data write in this
+// app). Re-fetching immediately before writing shrinks the window where a
+// concurrent edit from the person's own open tab could get clobbered down
+// to one round trip instead of the whole scan's duration -- doesn't
+// eliminate the race, just narrows it as far as a plain read-modify-write
+// reasonably can without a jsonb-merge RPC.
+async function logCompletedFast(admin, userId, settings, todayISO) {
+  const { data: fresh } = await admin.from("planner_data").select("data").eq("user_id", userId).single();
+  if (!fresh?.data) return;
+  // If fastingToday.endedEarlyAt is set at all right at the scheduled end
+  // hour, the person almost certainly already stopped THIS fast manually
+  // (see FastingTimer.jsx's "Stop fast" button, which logs its own history
+  // entry client-side the moment it's tapped) -- don't also log a
+  // contradictory "completed on schedule" entry for the same fast. Not a
+  // precise date match (fastingToday doesn't carry one, by design -- see
+  // the comment on fastingStatus() in engine.js), but skipping the
+  // auto-log here is the safe direction to be wrong in: a missed auto-log
+  // is a minor gap, a duplicate/contradictory entry is a real data-quality
+  // bug in someone's history.
+  if (fresh.data.fastingToday?.endedEarlyAt) return;
+  const entry = {
+    date: todayISO,
+    scheduledStart: settings.fastStart || "20:00",
+    scheduledEnd: settings.fastEnd || "12:00",
+    endedAt: new Date().toISOString(),
+    endedEarly: false,
+  };
+  const nextData = { ...fresh.data, fastingLog: [...(fresh.data.fastingLog || []), entry] };
+  await admin.from("planner_data").update({ data: nextData, updated_at: new Date().toISOString() }).eq("user_id", userId);
+}
+
 Deno.serve(async (_req) => {
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, getBackendKey());
 
@@ -122,7 +188,10 @@ Deno.serve(async (_req) => {
     const { dateISO: todayISO, hour: currentHour } = localDateAndHour(now, tz);
     const { dateISO: tomorrowISO } = localDateAndHour(new Date(now.getTime() + DAY), tz);
     const todayTsValue = Date.parse(todayISO + "T00:00:00Z");
-    const nudges = nudgesFor(row.data || {}, todayISO, tomorrowISO, todayTsValue, currentHour);
+    const nudges = [
+      ...nudgesFor(row.data || {}, todayISO, tomorrowISO, todayTsValue, currentHour),
+      ...fastingNudgesFor(row.data || {}, todayISO, currentHour),
+    ];
     if (!nudges.length) continue;
 
     const { data: already } = await admin.from("nudge_log").select("item_key").eq("user_id", row.user_id).in("item_key", nudges.map((n) => n.key));
@@ -152,9 +221,21 @@ Deno.serve(async (_req) => {
           }
         }
       }
-      // Only logged once actually delivered somewhere — a total failure
-      // (e.g. every device temporarily unreachable) gets retried next hour
-      // instead of being silently marked "done".
+      // A completed fast gets logged to history regardless of whether the
+      // push itself was delivered anywhere -- someone who never opted into
+      // push notifications (no rows in push_subscriptions at all) should
+      // still get their fasting history recorded; that's not the same
+      // question as whether a notification went out. Marked "handled" in
+      // nudge_log unconditionally too, so a person with no subscriptions
+      // doesn't get the same day logged again every hour the scan reruns.
+      if (n.kind === "fasting-complete") {
+        await logCompletedFast(admin, row.user_id, row.data?.settings || {}, todayISO);
+        await admin.from("nudge_log").upsert({ user_id: row.user_id, item_key: n.key, due_date: n.dueDate, sent_at: new Date().toISOString() });
+        continue;
+      }
+      // Every other nudge type: only marked "done" once actually delivered
+      // somewhere — a total failure (e.g. every device temporarily
+      // unreachable) gets retried next hour instead of silently dropped.
       if (anySuccess) {
         await admin.from("nudge_log").upsert({ user_id: row.user_id, item_key: n.key, due_date: n.dueDate, sent_at: new Date().toISOString() });
       }
