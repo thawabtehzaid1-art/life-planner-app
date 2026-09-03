@@ -84,6 +84,7 @@ function isEntitled(subscription) {
 // same shape of responsibility it had with plain localStorage.
 // ---------------------------------------------------------------------
 export default function AppGate() {
+  const { t } = useTranslation();
   const [session, setSession] = useState(undefined); // undefined = still checking
   const [subscription, setSubscription] = useState(null);
   const [subLoading, setSubLoading] = useState(false);
@@ -132,8 +133,8 @@ export default function AppGate() {
     <>
       {updateAvailable && (
         <div className="update-banner">
-          <span>A new version is ready.</span>
-          <button type="button" onClick={refresh}>Refresh</button>
+          <span>{t("app.updateAvailable")}</span>
+          <button type="button" onClick={refresh}>{t("app.refresh")}</button>
         </div>
       )}
       {body}
@@ -577,7 +578,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             area (Tasks, Money, Wellness…), so it's pinned to the sidebar
             footer instead — the same separation Linear/Notion/Stripe make
             between workspace content nav and account settings. */}
-        <nav className="sidebar-footer" aria-label="Account">
+        <nav className="sidebar-footer" aria-label={translate("account.pageTitle")}>
           <div
             data-nav="1"
             data-on={tab === "account" ? "1" : ""}
@@ -587,7 +588,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             className="nav-item"
           >
             <span className="nav-icon" data-c="accent"><NAV_ICONS.account /></span>
-            <span>Account</span>
+            <span>{translate("account.pageTitle")}</span>
           </div>
         </nav>
 
@@ -606,9 +607,9 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
                 everywhere else. */}
             <div className="page-title-row">
               <h1 className="page-title">{page.greeting ? page.greeting.title : page.title}</h1>
-              <button type="button" className="info-toggle" onClick={() => toggleReveal("page-sub")} aria-label="What this page shows"><IconInfo width="13" height="13" /></button>
+              <button type="button" className="info-toggle" onClick={() => toggleReveal("page-sub")} aria-label={translate("app.whatThisPageShows")}><IconInfo width="13" height="13" /></button>
               {tab === "today" && dayView && (
-                <button className="btn-outline back-today-btn" onClick={() => setDayView(null)}>← Back to today</button>
+                <button className="btn-outline back-today-btn" onClick={() => setDayView(null)}>{translate("app.backToToday")}</button>
               )}
             </div>
             <div className="page-sub page-quote">{page.greeting ? page.greeting.quote : page.role}</div>
@@ -616,10 +617,10 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             {tab === "overview" && push.supported && (
               <div className="push-optin">
                 {push.subscribed ? (
-                  <span className="push-optin-on">🔔 Reminders are on for this device</span>
+                  <span className="push-optin-on">🔔 {translate("account.notifications.onForDevice")}</span>
                 ) : (
                   <button type="button" className="header-link-btn" onClick={push.subscribe} disabled={push.busy}>
-                    {push.busy ? "Turning on…" : "🔔 Turn on reminders for bills and due tasks"}
+                    {push.busy ? translate("account.notifications.turningOn") : "🔔 " + translate("app.turnOnRemindersFull")}
                   </button>
                 )}
                 {push.error && <span className="push-optin-error"> — {push.error}</span>}
@@ -629,14 +630,14 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
               <div className="push-optin">
                 {gcal.connected ? (
                   <>
-                    <span className="push-optin-on">📅 Google Calendar is connected</span>
+                    <span className="push-optin-on">📅 {translate("app.googleCalendarConnected")}</span>
                     <button type="button" className="header-link-btn" onClick={gcal.disconnect} disabled={gcal.busy}>
-                      {gcal.busy ? "Disconnecting…" : "Disconnect"}
+                      {gcal.busy ? translate("account.connected.disconnecting") : translate("account.connected.disconnect")}
                     </button>
                   </>
                 ) : (
                   <button type="button" className="header-link-btn" onClick={gcal.connect}>
-                    📅 Connect Google Calendar
+                    📅 {translate("app.connectGoogleCalendar")}
                   </button>
                 )}
                 {gcal.error && <span className="push-optin-error"> — {gcal.error}</span>}
@@ -659,8 +660,8 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
               already shows. */}
           {data.onboarded === false && tab !== "overview" && (
             <div className="onboarding-strip">
-              <span>Setting up your account — {obDone} of {obSteps.length} done</span>
-              <button type="button" className="header-link-btn" onClick={() => setTab("overview")}>Back to checklist</button>
+              <span>{translate("app.settingUpAccount", { done: obDone, total: obSteps.length })}</span>
+              <button type="button" className="header-link-btn" onClick={() => setTab("overview")}>{translate("app.backToChecklist")}</button>
             </div>
           )}
 
@@ -809,14 +810,14 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
             <div className="journal-card">
               <div className="journal-header">
                 <div>
-                  <div className="journal-title">{dayView ? "Journal for that day" : "Today's journal"}</div>
-                  <div className="journal-sub">Whatever's on your mind — this isn't shown anywhere else.</div>
+                  <div className="journal-title">{dayView ? translate("app.journalForThatDay") : translate("app.todaysJournal")}</div>
+                  <div className="journal-sub">{translate("app.journalSub")}</div>
                 </div>
                 <MicButton onText={appendJournalText} />
               </div>
               <textarea
                 className="journal-box"
-                placeholder="Write anything…"
+                placeholder={translate("app.writeAnything")}
                 value={(data.journal && data.journal[dayView || todayISO]) || ""}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -829,25 +830,25 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
 
           {tab === "weekly" && (
             <div className="week-nav">
-              <button className="btn-outline" onClick={() => setWeek((w) => w - 1)}>← Previous week</button>
-              <button className="btn-outline" onClick={() => setWeek(0)}>This week</button>
-              <button className="btn-outline" onClick={() => setWeek((w) => w + 1)}>Next week →</button>
+              <button className="btn-outline" onClick={() => setWeek((w) => w - 1)}>{translate("app.previousWeek")}</button>
+              <button className="btn-outline" onClick={() => setWeek(0)}>{translate("app.thisWeek")}</button>
+              <button className="btn-outline" onClick={() => setWeek((w) => w + 1)}>{translate("app.nextWeek")}</button>
             </div>
           )}
 
           {tab === "calendar" && (
             <div className="week-nav">
-              <button className="btn-outline" onClick={() => setMonth((m) => m - 1)}>← Previous month</button>
-              <button className="btn-outline" disabled={month === 0} onClick={() => setMonth(0)}>This month</button>
-              <button className="btn-outline" onClick={() => setMonth((m) => m + 1)}>Next month →</button>
+              <button className="btn-outline" onClick={() => setMonth((m) => m - 1)}>{translate("app.previousMonth")}</button>
+              <button className="btn-outline" disabled={month === 0} onClick={() => setMonth(0)}>{translate("app.thisMonth")}</button>
+              <button className="btn-outline" onClick={() => setMonth((m) => m + 1)}>{translate("app.nextMonth")}</button>
             </div>
           )}
 
           {tab === "habits" && (
             <div className="week-nav">
-              <button className="btn-outline" onClick={() => setHabitMonth((m) => m - 1)}>← Previous month</button>
-              <button className="btn-outline" disabled={habitMonth === 0} onClick={() => setHabitMonth(0)}>This month</button>
-              <button className="btn-outline" onClick={() => setHabitMonth((m) => m + 1)}>Next month →</button>
+              <button className="btn-outline" onClick={() => setHabitMonth((m) => m - 1)}>{translate("app.previousMonth")}</button>
+              <button className="btn-outline" disabled={habitMonth === 0} onClick={() => setHabitMonth(0)}>{translate("app.thisMonth")}</button>
+              <button className="btn-outline" onClick={() => setHabitMonth((m) => m + 1)}>{translate("app.nextMonth")}</button>
             </div>
           )}
         </div>
