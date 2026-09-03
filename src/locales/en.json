@@ -597,6 +597,30 @@
     "redirecting": "Redirecting…",
     "subscribe": "Subscribe"
   },
+  "landing": {
+    "tagline": "Tasks · Money · Wellness · Habits",
+    "eyebrow": "One place, not five",
+    "h1": "Stop juggling five apps to run one life.",
+    "lede": "Tasks, spending, habits, and health — kept together, so nothing falls through the seams between separate apps.",
+    "pill": {
+      "accessible": "Built accessible from day one",
+      "streaks": "Streaks that encourage, never punish"
+    },
+    "proof": {
+      "eyebrow": "Why Align exists",
+      "lead": "Most of what pulls a life off track happens at the seams — the budget app that doesn't know your calendar, the habit tracker that doesn't know you're stressed about money.",
+      "body": "Align removes the seams instead of adding another single-purpose app to the pile. Every screen was built and re-checked for accessibility, not bolted on afterward — and every color in this product, including the ones on this page, was chosen from research on what's actually calming to look at, not just what looks nice."
+    },
+    "features": {
+      "title": "Everything that used to live somewhere else",
+      "sub": "Four apps' worth of upkeep, kept in one calm place.",
+      "tasks": { "title": "Tasks & planning", "body": "Daily focus, recurring work, and a week you can actually see at a glance." },
+      "money": { "title": "Money", "body": "Bills, spending, and net worth, without a separate login to remember." },
+      "wellness": { "title": "Wellness", "body": "Weight, fitness, cycle tracking, and health data synced in, not typed twice." },
+      "habits": { "title": "Habits", "body": "A streak that encourages, never punishes — no penalties for a missed day." }
+    },
+    "footerNote": "One calm place for the parts of life that keep you steady."
+  },
   "auth": {
     "title": { "signIn": "Sign in", "signUpShort": "Sign up", "signUp": "Create your account", "reset": "Reset your password" },
     "email": "Email",

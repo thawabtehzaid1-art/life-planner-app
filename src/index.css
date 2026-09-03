@@ -1015,6 +1015,83 @@ button { font-family: inherit; }
   background: var(--t, var(--color-neutral-900)); color: var(--c, var(--color-text)); font-size: 12.5px; line-height: 1.5;
 }
 
+/* ---- sign-in landing (unauthenticated marketing wrapper) ----
+   Only wraps SIGN_IN mode -- sign-up/reset stay on the plain .auth-shell
+   card above, since a returning user mid-signup or resetting a password
+   gains nothing from re-reading marketing copy. Forced to data-theme="light"
+   by Auth.jsx regardless of any previously-remembered theme, since nothing
+   has set a real theme preference yet for a visitor who isn't signed in
+   (PlannerApp is the only thing that ever writes document.documentElement.
+   dataset.theme, and it hasn't mounted) -- var(--color-*) below therefore
+   always resolves to the light/sage tokens, not a copy of them. */
+.landing-shell { min-height: 100vh; background: var(--color-bg); color: var(--color-text); }
+.landing-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  max-width: 1120px; margin: 0 auto; padding: var(--space-6) var(--space-6);
+}
+.landing-tagline { font-size: 12.5px; color: var(--color-neutral-500); }
+.landing-hero {
+  display: grid; grid-template-columns: 1.1fr 0.9fr; gap: var(--space-8);
+  align-items: center; max-width: 1120px; margin: 0 auto;
+  padding: var(--space-4) var(--space-6) 72px;
+}
+.landing-eyebrow {
+  font-size: 12.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--color-accent); margin: 0 0 var(--space-4);
+}
+.landing-h1 {
+  font-family: var(--font-heading); font-weight: 500; letter-spacing: -0.02em;
+  font-size: clamp(30px, 4.4vw, 50px); line-height: 1.1; margin: 0 0 var(--space-6);
+  text-wrap: balance;
+}
+.landing-lede { font-size: 16.5px; line-height: 1.6; color: var(--color-neutral-500); max-width: 44ch; margin: 0 0 var(--space-6); }
+.landing-pills { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.landing-pill {
+  background: var(--color-accent-900); color: var(--color-accent-400);
+  font-size: 12.5px; font-weight: 500; padding: var(--space-2) var(--space-4); border-radius: 20px;
+}
+.landing-signin-card {
+  background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+  padding: var(--space-8) var(--space-8);
+}
+.landing-signin-title { font-family: var(--font-heading); font-weight: 500; font-size: 19px; margin: 0 0 var(--space-6); text-align: center; }
+.landing-proof { background: var(--color-accent-900); }
+.landing-proof-inner {
+  display: flex; align-items: flex-start; gap: var(--space-8); flex-wrap: wrap;
+  max-width: 1120px; margin: 0 auto; padding: 56px var(--space-6);
+}
+.landing-proof-inner svg { flex-shrink: 0; }
+.landing-proof-body { flex: 1; min-width: 260px; }
+.landing-proof-eyebrow { font-size: 12.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 var(--space-4); }
+.landing-proof-lead { font-size: 18px; line-height: 1.55; font-weight: 500; color: var(--color-text); max-width: 52ch; margin: 0 0 var(--space-4); }
+.landing-proof-copy { font-size: 15px; line-height: 1.7; color: var(--color-neutral-500); max-width: 56ch; margin: 0; }
+.landing-features { max-width: 1120px; margin: 0 auto; padding: 60px var(--space-6) 84px; }
+.landing-features-head { text-align: center; margin-bottom: var(--space-8); }
+.landing-features-head h2 { font-family: var(--font-heading); font-weight: 500; font-size: 25px; letter-spacing: -0.01em; margin: 0 0 var(--space-3); }
+.landing-features-head p { font-size: 14.5px; color: var(--color-neutral-500); margin: 0; }
+.landing-feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-6); }
+.landing-feature-card { background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: var(--space-6); }
+.landing-feature-dot { display: block; width: 10px; height: 10px; border-radius: 50%; margin-bottom: var(--space-3); background: var(--c); }
+.landing-feature-card h3 { font-family: var(--font-heading); font-weight: 500; font-size: 14.5px; margin: 0 0 var(--space-2); }
+.landing-feature-card p { font-size: 13.5px; line-height: 1.6; color: var(--color-neutral-500); margin: 0; }
+.landing-footer { max-width: 1120px; margin: 0 auto; padding: 0 var(--space-6) var(--space-8); }
+.landing-footer-rule { height: 1px; background: var(--color-neutral-800); margin-bottom: var(--space-8); }
+.landing-footer-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+.landing-footer-note { font-size: 12.5px; color: var(--color-neutral-500); }
+
+@media (max-width: 900px) {
+  .landing-tagline { display: none; }
+  .landing-hero { grid-template-columns: 1fr; padding: var(--space-2) var(--space-4) var(--space-8); gap: var(--space-6); }
+  /* Sign-in first on mobile: a returning user shouldn't have to scroll
+     past marketing copy to reach the form every time they open the site
+     on their phone -- see the integration-plan reasoning behind this. */
+  .landing-hero-copy { order: 2; }
+  .landing-hero-form { order: 1; }
+  .landing-h1 { font-size: 30px; }
+  .landing-proof-inner { padding: 40px var(--space-4); gap: var(--space-6); }
+  .landing-features { padding: 40px var(--space-4) 56px; }
+}
+
 /* ---- Today: focus timer ---- */
 .focus-timer {
   background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
