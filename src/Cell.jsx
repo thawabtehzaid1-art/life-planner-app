@@ -75,6 +75,7 @@ function SelectCell({ c, ariaLabel }) {
 // Renders one table/week cell object built by the `plain/chip/edit/numc/
 // datec/sel/tog/barc` helpers in engine.js.
 export default function Cell({ c, ariaLabel }) {
+  const { t } = useTranslation();
   switch (c.kind) {
     case "plain":
       return (
@@ -93,7 +94,7 @@ export default function Cell({ c, ariaLabel }) {
           <span>{c.v}</span>
           {c.count > 0 && (
             <button type="button" className="link-badge" onClick={c.onClick}>
-              → {c.count} upcoming
+              {t("cell.upcomingCount", { count: c.count })}
             </button>
           )}
         </span>

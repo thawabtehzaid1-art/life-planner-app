@@ -123,7 +123,8 @@
   "cell": {
     "typeValue": "اكتب قيمة",
     "chooseFromList": "اختر من القائمة بدلاً من ذلك",
-    "custom": "مخصّص…"
+    "custom": "مخصّص…",
+    "upcomingCount": "← {{count}} قادم"
   },
   "app": {
     "syncedToAccount": "متزامن مع حسابك",
