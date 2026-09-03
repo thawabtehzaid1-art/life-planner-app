@@ -49,6 +49,105 @@
       "auto": "Fills in automatically from what you enter elsewhere — nothing to type here"
     }
   },
+  "overview": {
+    "title": "Overview", "role": "Edit the setup cells", "sub": "Set these once. Every other tab reads from them.",
+    "setup": {
+      "title": "Setup", "note": "the only settings in the whole planner",
+      "groupAboutYou": "About you", "groupPreferences": "Preferences",
+      "name": "Your name",
+      "birthday": "Birthday", "birthdayHint": "optional — just for a nice surprise on the day",
+      "height": "Height (cm)",
+      "gender": "Gender", "genderHint": "Selecting Female adds a Cycle Tracker tab",
+      "weekStart": "Week starts on",
+      "currency": "Currency symbol",
+      "units": "Measurement units",
+      "timezone": "Timezone", "timezoneHint": "Detected from this device automatically — only change it if that's wrong"
+    },
+    "goals": {
+      "title": "Your goals", "note": "target dates land on the calendar; progress feeds the dashboard",
+      "emptyLabel": "No goals yet", "emptyNote": "Add one below to start tracking progress toward it.",
+      "head": { "goal": "Goal", "category": "Category", "targetDate": "Target date", "target": "Target", "current": "Current", "progress": "Progress", "status": "Status" },
+      "status": { "done": "Done", "noDate": "No date", "overdue": "Overdue", "onTrack": "On track" },
+      "newGoal": "New goal", "addLabel": "+ New goal"
+    }
+  },
+  "greeting": {
+    "morning": "Good morning", "afternoon": "Good afternoon", "evening": "Good evening",
+    "withName": "{{label}}, {{name}}",
+    "birthday": "🎉 Happy birthday!", "birthdayWithName": "🎉 Happy birthday, {{name}}!",
+    "birthdayQuote": "Hope today's a good one."
+  },
+  "dashboard": {
+    "title": "Dashboard", "role": "Read only",
+    "welcomeBack": "Welcome back, {{name}}.",
+    "sub": "Every number here is counted from the other tabs. Edit anything anywhere and this page follows.",
+    "hero": {
+      "caughtUp": "You're all caught up",
+      "needsAttention": "Items needing your attention today: {{count}}",
+      "nothingDue": "Nothing due or overdue right now.",
+      "overdueRest": "Overdue: {{count}}, the rest due today.",
+      "allDueToday": "All due today — nothing overdue."
+    },
+    "kpi": {
+      "tasksComplete": "Tasks complete", "ofCount": "{{done}} of {{total}}",
+      "tasksCompleteExplain": "Completed one-off tasks (from Task Tracker) divided by all your non-cancelled tasks.",
+      "habits": "Habits", "days": "{{count}} days",
+      "habitsExplain": "Average completion rate across all habits this month, from the Habit Tracker.",
+      "goalProgress": "Goal progress", "goalsCount": "{{count}} goals",
+      "goalProgressExplain": "Average of every goal's current value divided by its target, from Overview.",
+      "leftToSpend": "Left to spend", "inAmount": "{{amount}} in",
+      "leftToSpendExplain": "This month's income minus paid bills and logged expenses.",
+      "reviewSpending": "Review spending →"
+    },
+    "progress": {
+      "investments": "Investments", "noHoldings": "no holdings yet",
+      "points": "Points", "badgesOf": "{{earned}} of {{total}} badges",
+      "dayStreak": "Day streak", "daysInRow": "days in a row", "openAgainTomorrow": "open it again tomorrow"
+    },
+    "dueTable": {
+      "title": "Due today and overdue", "note": "tick a recurring one and it rolls forward",
+      "head": { "task": "Task", "category": "Category", "priority": "Priority", "source": "Source", "when": "When" },
+      "sourceTasks": "Task Tracker", "sourceRecurring": "Recurring",
+      "today": "today", "daysLate": "{{count}} days late"
+    },
+    "donut": {
+      "title": "Money this month", "note": "in the shown month", "out": "out",
+      "bills": "Bills", "everydayExpenses": "Everyday expenses", "leftOver": "Left over"
+    },
+    "columns": { "title": "Habit rate", "note": "this month, per habit" },
+    "badges": { "title": "Badges", "note": "points: 10 per task, 15 per focus session, 5 per habit tick" }
+  },
+  "today": {
+    "title": "Today", "roleToday": "Check off as you go", "roleDayDetail": "Day detail",
+    "subToday": "Pulled together from Task Tracker, Bills, Habit Tracker, and your Fitness split — tick something here and it's ticked there too.",
+    "subDayDetail": "Whatever was (or is) due that day, its journal entry, and its spending — clicked from the Monthly Calendar.",
+    "checklist": {
+      "workout": "{{focus}} workout",
+      "sourceFitness": "Fitness", "sourceTask": "Task", "sourceRecurring": "Recurring",
+      "sourceBill": "Bill", "sourceHabit": "Habit", "sourceHabitTracker": "Habit Tracker",
+      "title": "Checklist", "leftCount": "{{count}} left", "nothingLeft": "nothing left",
+      "emptyLabel": "All clear", "emptyNoteToday": "Nothing due today — enjoy it.", "emptyNoteDay": "Nothing was due that day.",
+      "head": { "item": "Item", "category": "Category", "source": "Source" }
+    },
+    "kpi": {
+      "stillOpen": "Still open", "left": "left", "allClear": "all clear", "stillOpenExplain": "Rows still showing in the checklist below.",
+      "focusSessions": "Focus sessions", "today": "today", "thatDay": "that day", "focusSessionsExplain": "30-minute focus timer sessions completed, from the timer above.",
+      "spent": "Spent", "logged": "{{count}} logged", "spentExplain": "Logged in the Spending table below, for this date only.",
+      "steps": "Steps", "sleep": "Sleep", "fromHealth": "from Health via Shortcuts",
+      "fromHealthExplain": "Sent in by an Apple Shortcut you set up on Overview — not tracked directly in Align."
+    },
+    "donut": { "title": "Progress", "note": "everything due that day", "doneOf": "{{done}} of {{total}}", "done": "Done", "stillOpen": "Still open" },
+    "spending": {
+      "title": "Spending", "soFar": "{{amount}} so far", "nothingLogged": "nothing logged yet",
+      "head": { "description": "Description", "category": "Category", "amount": "Amount" },
+      "newExpense": "New expense", "addLabel": "+ Log spending"
+    },
+    "meals": {
+      "titleToday": "Today's meals", "titleDay": "Meals that day",
+      "breakfast": "Breakfast", "lunch": "Lunch", "dinner": "Dinner", "snacks": "Snacks",
+      "notPlanned": "Not planned"
+    }
+  },
   "auth": {
     "title": { "signIn": "Sign in", "signUpShort": "Sign up", "signUp": "Create your account", "reset": "Reset your password" },
     "email": "Email",

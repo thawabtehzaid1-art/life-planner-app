@@ -49,6 +49,105 @@
       "auto": "تُملأ تلقائيًا مما تُدخله في أماكن أخرى — لا حاجة للكتابة هنا"
     }
   },
+  "overview": {
+    "title": "نظرة عامة", "role": "عدّل خلايا الإعداد", "sub": "اضبط هذه مرة واحدة. كل تبويب آخر يقرأ منها.",
+    "setup": {
+      "title": "الإعداد", "note": "الإعدادات الوحيدة في المخطط بأكمله",
+      "groupAboutYou": "عنك", "groupPreferences": "التفضيلات",
+      "name": "اسمك",
+      "birthday": "تاريخ الميلاد", "birthdayHint": "اختياري — فقط لمفاجأة لطيفة في ذلك اليوم",
+      "height": "الطول (سم)",
+      "gender": "الجنس", "genderHint": "اختيار أنثى يضيف تبويب متتبّع الدورة",
+      "weekStart": "يبدأ الأسبوع في",
+      "currency": "رمز العملة",
+      "units": "وحدات القياس",
+      "timezone": "المنطقة الزمنية", "timezoneHint": "يُكتشف تلقائيًا من هذا الجهاز — غيّره فقط إذا كان غير صحيح"
+    },
+    "goals": {
+      "title": "أهدافك", "note": "تاريخ الاستحقاق يظهر في التقويم؛ التقدم يُغذّي لوحة التحكم",
+      "emptyLabel": "لا أهداف بعد", "emptyNote": "أضف هدفًا أدناه لبدء تتبع التقدم نحوه.",
+      "head": { "goal": "الهدف", "category": "الفئة", "targetDate": "تاريخ الاستحقاق", "target": "المستهدف", "current": "الحالي", "progress": "التقدم", "status": "الحالة" },
+      "status": { "done": "تم", "noDate": "بلا تاريخ", "overdue": "متأخر", "onTrack": "على المسار الصحيح" },
+      "newGoal": "هدف جديد", "addLabel": "+ هدف جديد"
+    }
+  },
+  "greeting": {
+    "morning": "صباح الخير", "afternoon": "طاب نهارك", "evening": "مساء الخير",
+    "withName": "{{label}}، {{name}}",
+    "birthday": "🎉 عيد ميلاد سعيد!", "birthdayWithName": "🎉 عيد ميلاد سعيد، {{name}}!",
+    "birthdayQuote": "نتمنى أن يكون يومًا جميلاً."
+  },
+  "dashboard": {
+    "title": "لوحة التحكم", "role": "للقراءة فقط",
+    "welcomeBack": "مرحبًا بعودتك، {{name}}.",
+    "sub": "كل رقم هنا محسوب من التبويبات الأخرى. عدّل أي شيء في أي مكان وستتبعه هذه الصفحة.",
+    "hero": {
+      "caughtUp": "أنجزت كل شيء",
+      "needsAttention": "عناصر تحتاج انتباهك اليوم: {{count}}",
+      "nothingDue": "لا شيء مستحق أو متأخر الآن.",
+      "overdueRest": "المتأخر: {{count}}، والباقي مستحق اليوم.",
+      "allDueToday": "كل شيء مستحق اليوم — لا شيء متأخر."
+    },
+    "kpi": {
+      "tasksComplete": "المهام المكتملة", "ofCount": "{{done}} من {{total}}",
+      "tasksCompleteExplain": "المهام الفردية المكتملة (من متتبّع المهام) مقسومة على جميع مهامك غير الملغاة.",
+      "habits": "العادات", "days": "{{count}} أيام",
+      "habitsExplain": "متوسط معدل الإنجاز لجميع العادات هذا الشهر، من متتبّع العادات.",
+      "goalProgress": "تقدّم الأهداف", "goalsCount": "{{count}} أهداف",
+      "goalProgressExplain": "متوسط القيمة الحالية لكل هدف مقسومة على المستهدف، من نظرة عامة.",
+      "leftToSpend": "المتبقي للإنفاق", "inAmount": "{{amount}} وارد",
+      "leftToSpendExplain": "دخل هذا الشهر مطروحًا منه الفواتير المدفوعة والمصروفات المسجَّلة.",
+      "reviewSpending": "مراجعة الإنفاق ←"
+    },
+    "progress": {
+      "investments": "الاستثمارات", "noHoldings": "لا استثمارات بعد",
+      "points": "النقاط", "badgesOf": "{{earned}} من {{total}} شارات",
+      "dayStreak": "سلسلة الأيام", "daysInRow": "أيام متتالية", "openAgainTomorrow": "افتحه مجددًا غدًا"
+    },
+    "dueTable": {
+      "title": "مستحق اليوم ومتأخر", "note": "علّم على المتكرر وسينتقل للأمام",
+      "head": { "task": "المهمة", "category": "الفئة", "priority": "الأولوية", "source": "المصدر", "when": "الموعد" },
+      "sourceTasks": "متتبّع المهام", "sourceRecurring": "متكرر",
+      "today": "اليوم", "daysLate": "متأخر {{count}} أيام"
+    },
+    "donut": {
+      "title": "المال هذا الشهر", "note": "في الشهر المعروض", "out": "صادر",
+      "bills": "الفواتير", "everydayExpenses": "المصاريف اليومية", "leftOver": "المتبقي"
+    },
+    "columns": { "title": "معدل العادات", "note": "هذا الشهر، لكل عادة" },
+    "badges": { "title": "الشارات", "note": "النقاط: 10 لكل مهمة، 15 لكل جلسة تركيز، 5 لكل عادة" }
+  },
+  "today": {
+    "title": "اليوم", "roleToday": "علّم أثناء التقدم", "roleDayDetail": "تفاصيل اليوم",
+    "subToday": "مجمّع من متتبّع المهام والفواتير ومتتبّع العادات وتقسيم اللياقة الخاص بك — علّم شيئًا هنا وسيُعلَّم هناك أيضًا.",
+    "subDayDetail": "كل ما كان (أو سيكون) مستحقًا ذلك اليوم، ومذكرته، وإنفاقه — بالنقر من التقويم الشهري.",
+    "checklist": {
+      "workout": "تمرين {{focus}}",
+      "sourceFitness": "اللياقة", "sourceTask": "مهمة", "sourceRecurring": "متكرر",
+      "sourceBill": "فاتورة", "sourceHabit": "عادة", "sourceHabitTracker": "متتبّع العادات",
+      "title": "قائمة المهام", "leftCount": "{{count}} متبقٍ", "nothingLeft": "لا شيء متبقٍ",
+      "emptyLabel": "كل شيء تم", "emptyNoteToday": "لا شيء مستحق اليوم — استمتع بوقتك.", "emptyNoteDay": "لم يكن هناك شيء مستحق ذلك اليوم.",
+      "head": { "item": "العنصر", "category": "الفئة", "source": "المصدر" }
+    },
+    "kpi": {
+      "stillOpen": "لا يزال مفتوحًا", "left": "متبقٍ", "allClear": "كل شيء تم", "stillOpenExplain": "الصفوف التي لا تزال تظهر في قائمة المهام أدناه.",
+      "focusSessions": "جلسات التركيز", "today": "اليوم", "thatDay": "ذلك اليوم", "focusSessionsExplain": "جلسات مؤقت التركيز التي مدتها 30 دقيقة والمكتملة، من المؤقت أعلاه.",
+      "spent": "المُنفَق", "logged": "{{count}} مسجَّل", "spentExplain": "مسجَّل في جدول الإنفاق أدناه، لهذا التاريخ فقط.",
+      "steps": "الخطوات", "sleep": "النوم", "fromHealth": "من تطبيق الصحة عبر الاختصارات",
+      "fromHealthExplain": "مُرسَل عبر اختصار Apple أعددته في نظرة عامة — لا يُتتبَّع مباشرة في Align."
+    },
+    "donut": { "title": "التقدّم", "note": "كل ما كان مستحقًا ذلك اليوم", "doneOf": "{{done}} من {{total}}", "done": "تم", "stillOpen": "لا يزال مفتوحًا" },
+    "spending": {
+      "title": "الإنفاق", "soFar": "{{amount}} حتى الآن", "nothingLogged": "لا شيء مسجَّل بعد",
+      "head": { "description": "الوصف", "category": "الفئة", "amount": "المبلغ" },
+      "newExpense": "مصروف جديد", "addLabel": "+ تسجيل إنفاق"
+    },
+    "meals": {
+      "titleToday": "وجبات اليوم", "titleDay": "وجبات ذلك اليوم",
+      "breakfast": "الفطور", "lunch": "الغداء", "dinner": "العشاء", "snacks": "وجبات خفيفة",
+      "notPlanned": "غير مخطَّط"
+    }
+  },
   "auth": {
     "title": { "signIn": "تسجيل الدخول", "signUpShort": "إنشاء حساب", "signUp": "إنشاء حسابك", "reset": "إعادة تعيين كلمة المرور" },
     "email": "البريد الإلكتروني",

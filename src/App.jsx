@@ -132,7 +132,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
   // that pattern repeats throughout this file; renaming every one of
   // those would be a much larger, riskier diff than aliasing the one new
   // import instead.
-  const { t: translate } = useTranslation();
+  const { t: translate, i18n: i18nInstance } = useTranslation();
   // Today, not Dashboard — the daily landing page once you're past the
   // one-time Overview-then-Dashboard intro a brand-new account gets (see
   // the data-loading effect below, which overrides this to "overview" for
@@ -389,9 +389,14 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
 
   const goToDay = useCallback((dateISO) => { setDayView(dateISO); setTab("today"); }, []);
 
+  // buildPages() calls the standalone i18n singleton's t() (it's a plain
+  // function, not a hook -- can't use useTranslation() inside it), so this
+  // memo has no other way to know a language switch should invalidate it.
+  // i18n.language is a plain string, which is exactly what useMemo needs
+  // to actually notice the change.
   const pages = useMemo(
     () => (data ? buildPages(data, { week, dayView, month, habitMonth }, { patch, catchUp, setWeek, goToDay, triggerHighlight }) : null),
-    [data, week, dayView, month, habitMonth, patch, catchUp, goToDay, triggerHighlight],
+    [data, week, dayView, month, habitMonth, patch, catchUp, goToDay, triggerHighlight, i18nInstance.language],
   );
 
   // Badge-earned celebration: watches the count rather than which badge,

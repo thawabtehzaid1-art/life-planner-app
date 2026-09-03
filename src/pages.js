@@ -9,6 +9,13 @@ import {
   todayTs, wkStart, monthAnchorAt, monthRange, inRange, weekBounds,
   occurrences, nextDue, lateOccurrences, simulateDebt, groceryRoll, habitStats, cycleStats, cyclePhases, gamificationStats, money,
 } from "./engine.js";
+import i18n from "./i18n.js";
+
+// buildPages() is a plain function, not a component or hook -- it can't
+// call useTranslation(). The standalone i18n singleton's own .t() works
+// the same way outside React, and App.jsx's pages useMemo already has
+// i18n.language in its dependency array so this recomputes on switch.
+const t = i18n.t.bind(i18n);
 
 // One per day, not per render — Math.random() here would flicker on every
 // edit (this function re-runs on every patch). Deterministic on the date
@@ -23,8 +30,11 @@ const GREETING_QUOTES = [
 ];
 function greetingFor(name, todayTsValue, birthday) {
   const h = new Date().getHours();
-  const label = h < 5 ? "Good evening" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+  const label = h < 5 ? t("greeting.evening") : h < 12 ? t("greeting.morning") : h < 17 ? t("greeting.afternoon") : t("greeting.evening");
   const dayOfYear = Math.floor(todayTsValue / DAY);
+  // GREETING_QUOTES itself is intentionally still English-only -- a full
+  // 20+ line motivational-quote translation pass is its own separate,
+  // not-yet-done piece of work, flagged rather than rushed.
   const quote = GREETING_QUOTES[dayOfYear % GREETING_QUOTES.length];
   // Compared as "MM-DD" (not full dates) on purpose — a birthday recurs
   // every year, so only the month and day should ever match, never the
@@ -34,9 +44,9 @@ function greetingFor(name, todayTsValue, birthday) {
   const todayD = new Date(todayTsValue);
   const todayMD = String(todayD.getMonth() + 1).padStart(2, "0") + "-" + String(todayD.getDate()).padStart(2, "0");
   if (birthday && birthday.slice(5) === todayMD) {
-    return { title: "🎉 Happy birthday" + (name ? ", " + name : "") + "!", quote: "Hope today's a good one." };
+    return { title: name ? t("greeting.birthdayWithName", { name }) : t("greeting.birthday"), quote: t("greeting.birthdayQuote") };
   }
-  return { title: name ? label + ", " + name : label, quote };
+  return { title: name ? t("greeting.withName", { label, name }) : label, quote };
 }
 
 // Builds every page's view-model from the raw data. `patch(fn)` mutates a
@@ -61,42 +71,43 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
 
   // ===== Overview
   P.overview = {
-    title: "Overview", role: "Edit the setup cells", roleTint: "money",
-    sub: "Set these once. Every other tab reads from them.",
+    title: t("overview.title"), role: t("overview.role"), roleTint: "money",
+    sub: t("overview.sub"),
     blocks: [
-      settingsBlock("Setup", "the only settings in the whole planner", [
-        { label: "Your name", isText: true, v: d.settings.name, set: setS("name"), group: "About you", id: "setup-name-field" },
+      settingsBlock(t("overview.setup.title"), t("overview.setup.note"), [
+        { label: t("overview.setup.name"), isText: true, v: d.settings.name, set: setS("name"), group: t("overview.setup.groupAboutYou"), id: "setup-name-field" },
         {
-          label: "Birthday", isDate: true, v: d.settings.birthday || "",
-          hint: "optional — just for a nice surprise on the day",
-          set: setS("birthday"), group: "About you",
+          label: t("overview.setup.birthday"), isDate: true, v: d.settings.birthday || "",
+          hint: t("overview.setup.birthdayHint"),
+          set: setS("birthday"), group: t("overview.setup.groupAboutYou"),
         },
-        { label: "Height (cm)", isNum: true, v: String(d.settings.height), set: setS("height", num), group: "About you" },
+        { label: t("overview.setup.height"), isNum: true, v: String(d.settings.height), set: setS("height", num), group: t("overview.setup.groupAboutYou") },
         {
-          label: "Gender", isSelect: true, v: d.settings.gender || "Prefer not to say",
-          hint: "Selecting Female adds a Cycle Tracker tab",
+          label: t("overview.setup.gender"), isSelect: true, v: d.settings.gender || "Prefer not to say",
+          hint: t("overview.setup.genderHint"),
           options: ["Prefer not to say", "Male", "Female", "Other"],
           set: (e) => patch((n) => { n.settings.gender = e.target.value === "Prefer not to say" ? "" : e.target.value; }),
-          group: "About you",
+          group: t("overview.setup.groupAboutYou"),
         },
-        { label: "Week starts on", isSelect: true, v: d.settings.weekStart, options: ["Monday", "Sunday"], set: setS("weekStart"), group: "Preferences" },
-        { label: "Currency symbol", isText: true, v: d.settings.currency, set: setS("currency"), maxLength: 3, group: "Preferences" },
-        { label: "Measurement units", isSelect: true, v: d.settings.units, options: ["Metric", "Imperial"], set: setS("units"), group: "Preferences" },
+        { label: t("overview.setup.weekStart"), isSelect: true, v: d.settings.weekStart, options: ["Monday", "Sunday"], set: setS("weekStart"), group: t("overview.setup.groupPreferences") },
+        { label: t("overview.setup.currency"), isText: true, v: d.settings.currency, set: setS("currency"), maxLength: 3, group: t("overview.setup.groupPreferences") },
+        { label: t("overview.setup.units"), isSelect: true, v: d.settings.units, options: ["Metric", "Imperial"], set: setS("units"), group: t("overview.setup.groupPreferences") },
         {
-          label: "Timezone", isText: true, v: d.settings.timezone || "UTC",
-          hint: "Detected from this device automatically — only change it if that's wrong",
-          set: setS("timezone"), group: "Preferences",
+          label: t("overview.setup.timezone"), isText: true, v: d.settings.timezone || "UTC",
+          hint: t("overview.setup.timezoneHint"),
+          set: setS("timezone"), group: t("overview.setup.groupPreferences"),
         },
       ]),
       table({
-        title: "Your goals", note: "target dates land on the calendar; progress feeds the dashboard",
-        emptyLabel: "No goals yet", emptyNote: "Add one below to start tracking progress toward it.",
+        title: t("overview.goals.title"), note: t("overview.goals.note"),
+        emptyLabel: t("overview.goals.emptyLabel"), emptyNote: t("overview.goals.emptyNote"),
         grid: "1.9fr 120px 150px 110px 110px 1fr 110px",
-        head: ["Goal", "Category", "Target date", { t: "Target", align: "right" }, { t: "Current", align: "right" }, "Progress", "Status"],
+        head: [t("overview.goals.head.goal"), t("overview.goals.head.category"), t("overview.goals.head.targetDate"), { t: t("overview.goals.head.target"), align: "right" }, { t: t("overview.goals.head.current"), align: "right" }, t("overview.goals.head.progress"), t("overview.goals.head.status")],
         rows: d.goals.map((g, i) => {
           const pct = num(g.target) ? Math.min(100, 100 * num(g.current) / num(g.target)) : 0;
           const due = parseISO(g.date);
           const status = pct >= 100 ? "Done" : (!due ? "No date" : (due < today ? "Overdue" : "On track"));
+          const statusLabel = { Done: t("overview.goals.status.done"), "No date": t("overview.goals.status.noDate"), Overdue: t("overview.goals.status.overdue"), "On track": t("overview.goals.status.onTrack") }[status];
           return {
             remove: () => patch((n) => n.goals.splice(i, 1)),
             cells: [
@@ -106,12 +117,12 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
               numc(g.target, (e) => patch((n) => { n.goals[i].target = num(e.target.value); })),
               numc(g.current, (e) => patch((n) => { n.goals[i].current = num(e.target.value); })),
               barc(pct, Math.round(pct) + "%", pct >= 100 ? "health" : CAT_TINT[g.cat]),
-              chip(status, status === "Overdue" ? "home" : (status === "Done" ? "health" : (status === "No date" ? "" : "health"))),
+              chip(statusLabel, status === "Overdue" ? "home" : (status === "Done" ? "health" : (status === "No date" ? "" : "health"))),
             ],
           };
         }),
-        add: () => patch((n) => n.goals.push({ name: "New goal", cat: "Personal", date: iso(today + 90 * DAY), target: 100, current: 0 })),
-        addLabel: "+ New goal",
+        add: () => patch((n) => n.goals.push({ name: t("overview.goals.newGoal"), cat: "Personal", date: iso(today + 90 * DAY), target: 100, current: 0 })),
+        addLabel: t("overview.goals.addLabel"),
       }),
     ],
   };
@@ -263,59 +274,54 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   const attentionCount = dueTodayTasks.length + occToday.length + overdueTasks.length + occOverdue.length;
   const attentionOverdue = overdueTasks.length + occOverdue.length;
   const hero = {
-    title: attentionCount === 0 ? "You're all caught up" : attentionCount + (attentionCount === 1 ? " thing needs" : " things need") + " your attention today",
-    sub: attentionCount === 0 ? "Nothing due or overdue right now." : attentionOverdue ? attentionOverdue + " overdue, the rest due today." : "All due today — nothing overdue.",
+    // Phrased around the count rather than declined with it ("Items
+    // needing attention today: N") -- Arabic has six grammatical plural
+    // forms (zero/one/two/few/many/other), not the two English gets away
+    // with, and getting all six genuinely right for every dynamic count
+    // string in this app is its own dedicated pass, not something to
+    // improvise correctly on the fly. This phrasing is correct Arabic in
+    // every case, just less colloquial than the English original.
+    title: attentionCount === 0 ? t("dashboard.hero.caughtUp") : t("dashboard.hero.needsAttention", { count: attentionCount }),
+    sub: attentionCount === 0 ? t("dashboard.hero.nothingDue") : attentionOverdue ? t("dashboard.hero.overdueRest", { count: attentionOverdue }) : t("dashboard.hero.allDueToday"),
     tone: attentionCount === 0 ? "health" : (attentionOverdue ? "home" : "money"),
   };
   P.dashboard = {
-    title: "Dashboard", role: "Read only", roleTint: "people",
-    sub: (ownName ? "Welcome back, " + ownName + ". " : "") + "Every number here is counted from the other tabs. Edit anything anywhere and this page follows.",
+    title: t("dashboard.title"), role: t("dashboard.role"), roleTint: "people",
+    sub: (ownName ? t("dashboard.welcomeBack", { name: ownName }) + " " : "") + t("dashboard.sub"),
     greeting: greetingFor(ownName, today, d.settings.birthday),
     hero,
-    // Capped at four (Miller's Law) and limited to the numbers that change
-    // how you'd act today — trend/motivational stats moved to `progress`
-    // below instead of competing here at equal weight (Progressive
-    // Disclosure: today's status first, everything else one glance later).
     kpis: [
-      { label: "Tasks complete", value: pctDone + "%", note: d.tasks.filter((t) => t.status === "Completed").length + " of " + liveTasks.length, hasBar: true, pct: pctDone, explain: "Completed one-off tasks (from Task Tracker) divided by all your non-cancelled tasks." },
-      { label: "Habits", value: habitAvg + "%", note: bestHabit ? bestHabit.n + " · " + bestHabit.s + " days" : "", tint: "health", hasBar: true, pct: habitAvg, explain: "Average completion rate across all habits this month, from the Habit Tracker." },
-      { label: "Goal progress", value: goalAvg + "%", note: d.goals.length + " goals", tint: "work", hasBar: true, pct: goalAvg, explain: "Average of every goal's current value divided by its target, from Overview." },
+      { label: t("dashboard.kpi.tasksComplete"), value: pctDone + "%", note: t("dashboard.kpi.ofCount", { done: d.tasks.filter((t) => t.status === "Completed").length, total: liveTasks.length }), hasBar: true, pct: pctDone, explain: t("dashboard.kpi.tasksCompleteExplain") },
+      { label: t("dashboard.kpi.habits"), value: habitAvg + "%", note: bestHabit ? bestHabit.n + " · " + t("dashboard.kpi.days", { count: bestHabit.s }) : "", tint: "health", hasBar: true, pct: habitAvg, explain: t("dashboard.kpi.habitsExplain") },
+      { label: t("dashboard.kpi.goalProgress"), value: goalAvg + "%", note: t("dashboard.kpi.goalsCount", { count: d.goals.length }), tint: "work", hasBar: true, pct: goalAvg, explain: t("dashboard.kpi.goalProgressExplain") },
       {
-        label: "Left to spend", value: mon(left), note: mon(incomeIn) + " in", tint: left < 0 ? "home" : "money",
-        explain: "This month's income minus paid bills and logged expenses.",
-        // A negative balance is exactly the moment someone's motivated to
-        // look closer — this puts the actual next step (not just a red
-        // number) right where that motivation already is, instead of
-        // leaving it to a separate tab switch.
-        link: left < 0 ? { label: "Review spending →", tab: "spending" } : null,
+        label: t("dashboard.kpi.leftToSpend"), value: mon(left), note: t("dashboard.kpi.inAmount", { amount: mon(incomeIn) }), tint: left < 0 ? "home" : "money",
+        explain: t("dashboard.kpi.leftToSpendExplain"),
+        link: left < 0 ? { label: t("dashboard.kpi.reviewSpending"), tab: "spending" } : null,
       },
     ],
-    // De-emphasized on purpose: motivational/trend stats, not today's
-    // status — shown smaller and later so they don't compete with the
-    // hero (Progressive Disclosure), in a quieter style than the KPI row
-    // to match a calm/trustworthy tone rather than a game-like one.
     progress: [
-      { label: "Investments", value: mon(investCurrentTotal), note: investments.length ? (investGain >= 0 ? "+" : "") + mon(investGain) + " (" + Math.round(investGainPct) + "%)" : "no holdings yet" },
-      { label: "Points", value: String(gam.points), note: gam.badgesEarned + " of " + gam.badges.length + " badges" },
-      { label: "Day streak", value: String(gam.loginStreak), note: gam.loginStreak ? "days in a row" : "open it again tomorrow" },
+      { label: t("dashboard.progress.investments"), value: mon(investCurrentTotal), note: investments.length ? (investGain >= 0 ? "+" : "") + mon(investGain) + " (" + Math.round(investGainPct) + "%)" : t("dashboard.progress.noHoldings") },
+      { label: t("dashboard.progress.points"), value: String(gam.points), note: t("dashboard.progress.badgesOf", { earned: gam.badgesEarned, total: gam.badges.length }) },
+      { label: t("dashboard.progress.dayStreak"), value: String(gam.loginStreak), note: gam.loginStreak ? t("dashboard.progress.daysInRow") : t("dashboard.progress.openAgainTomorrow") },
     ],
     blocks: [
       table({
-        title: "Due today and overdue", note: "tick a recurring one and it rolls forward",
+        title: t("dashboard.dueTable.title"), note: t("dashboard.dueTable.note"),
         grid: "34px 2fr 120px 120px 130px 1fr",
-        head: ["", "Task", "Category", "Priority", "Source", "When"],
-        rows: overdueTasks.concat(dueTodayTasks).map((t) => {
-          const i = d.tasks.indexOf(t);
-          const late = parseISO(t.due) < today;
-          const daysLate = late ? Math.round((today - parseISO(t.due)) / DAY) : 0;
+        head: ["", t("dashboard.dueTable.head.task"), t("dashboard.dueTable.head.category"), t("dashboard.dueTable.head.priority"), t("dashboard.dueTable.head.source"), t("dashboard.dueTable.head.when")],
+        rows: overdueTasks.concat(dueTodayTasks).map((task) => {
+          const i = d.tasks.indexOf(task);
+          const late = parseISO(task.due) < today;
+          const daysLate = late ? Math.round((today - parseISO(task.due)) / DAY) : 0;
           return {
             cells: [
               tog(false, () => patch((n) => { n.tasks[i].status = "Completed"; }), "health"),
-              plain(t.name, { tint: late ? "home" : "", tinted: late }),
-              chip(t.cat, CAT_TINT[t.cat]),
-              chip(t.prio, PRIO_TINT[t.prio]),
-              plain("Task Tracker", { muted: true }),
-              plain(late ? daysLate + (daysLate === 1 ? " day late" : " days late") : "today", { muted: !late, tint: late ? "home" : "" }),
+              plain(task.name, { tint: late ? "home" : "", tinted: late }),
+              chip(task.cat, CAT_TINT[task.cat]),
+              chip(task.prio, PRIO_TINT[task.prio]),
+              plain(t("dashboard.dueTable.sourceTasks"), { muted: true }),
+              plain(late ? t("dashboard.dueTable.daysLate", { count: daysLate }) : t("dashboard.dueTable.today"), { muted: !late, tint: late ? "home" : "" }),
             ],
           };
         }).concat(occOverdue.concat(occToday).map((o) => {
@@ -327,19 +333,19 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
               plain(o.task.name, { tint: overdue ? "home" : "", tinted: overdue }),
               chip(o.task.cat, CAT_TINT[o.task.cat]),
               chip(o.task.prio, PRIO_TINT[o.task.prio]),
-              plain("Recurring", { muted: true }),
-              plain(overdue ? daysLate + (daysLate === 1 ? " day late" : " days late") : "today", { muted: !overdue, tint: overdue ? "home" : "" }),
+              plain(t("dashboard.dueTable.sourceRecurring"), { muted: true }),
+              plain(overdue ? t("dashboard.dueTable.daysLate", { count: daysLate }) : t("dashboard.dueTable.today"), { muted: !overdue, tint: overdue ? "home" : "" }),
             ],
           };
         })),
       }),
-      donut("Money this month", "in the shown month", mon(out), "out", [
-        { label: "Bills", n: billsIn, value: mon(billsIn), tint: "money" },
-        { label: "Everyday expenses", n: expIn, value: mon(expIn), tint: "work" },
-        { label: "Left over", n: Math.max(0, left), value: mon(left), tint: "health" },
+      donut(t("dashboard.donut.title"), t("dashboard.donut.note"), mon(out), t("dashboard.donut.out"), [
+        { label: t("dashboard.donut.bills"), n: billsIn, value: mon(billsIn), tint: "money" },
+        { label: t("dashboard.donut.everydayExpenses"), n: expIn, value: mon(expIn), tint: "work" },
+        { label: t("dashboard.donut.leftOver"), n: Math.max(0, left), value: mon(left), tint: "health" },
       ]),
-      columns("Habit rate", "this month, per habit", d.habits.map((h, i) => ({ label: h.name.split(" ")[0], n: hs[i].pct, value: hs[i].pct + "%", tint: h.tint }))),
-      badges("Badges", "points: 10 per task, 15 per focus session, 5 per habit tick", gam.badges),
+      columns(t("dashboard.columns.title"), t("dashboard.columns.note"), d.habits.map((h, i) => ({ label: h.name.split(" ")[0], n: hs[i].pct, value: hs[i].pct + "%", tint: h.tint }))),
+      badges(t("dashboard.badges.title"), t("dashboard.badges.note"), gam.badges),
     ],
   };
   // Exposed separately (not just buried in the KPI card) so App.jsx can
@@ -403,22 +409,22 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
     .concat(workoutPlannedView && !workoutLoggedView ? [{
       cells: [
         tog(false, () => patch((n) => { n.workouts.push({ date: viewISO, who: "Me", ex: splitFocusView + " session", focus: splitFocusView, sets: 0, reps: 0, weight: 0 }); }), "work"),
-        plain(splitFocusView + " workout"), chip("Fitness", "work"), plain("Fitness", { muted: true }),
+        plain(t("today.checklist.workout", { focus: splitFocusView })), chip(t("today.checklist.sourceFitness"), "work"), plain(t("today.checklist.sourceFitness"), { muted: true }),
       ],
     }] : [])
-    .concat(openTasksView.map((t) => {
-      const i = d.tasks.indexOf(t);
-      return { cells: [tog(false, () => patch((n) => { n.tasks[i].status = "Completed"; }), "health"), plain(t.name), chip(t.cat, CAT_TINT[t.cat]), plain("Task", { muted: true })] };
+    .concat(openTasksView.map((task) => {
+      const i = d.tasks.indexOf(task);
+      return { cells: [tog(false, () => patch((n) => { n.tasks[i].status = "Completed"; }), "health"), plain(task.name), chip(task.cat, CAT_TINT[task.cat]), plain(t("today.checklist.sourceTask"), { muted: true })] };
     }))
     .concat(occViewOpen.map((o) => ({
-      cells: [tog(false, () => catchUp(o.ri, o.oi), "health"), plain(o.task.name), chip(o.task.cat, CAT_TINT[o.task.cat]), plain("Recurring", { muted: true })],
+      cells: [tog(false, () => catchUp(o.ri, o.oi), "health"), plain(o.task.name), chip(o.task.cat, CAT_TINT[o.task.cat]), plain(t("today.checklist.sourceRecurring"), { muted: true })],
     })))
     .concat(billsView.map((b) => {
       const i = d.bills.indexOf(b);
-      return { cells: [tog(false, () => patch((n) => { n.bills[i].paid = true; }), "money"), plain(b.name), chip(b.cat, "money"), plain("Bill", { muted: true })] };
+      return { cells: [tog(false, () => patch((n) => { n.bills[i].paid = true; }), "money"), plain(b.name), chip(b.cat, "money"), plain(t("today.checklist.sourceBill"), { muted: true })] };
     }))
     .concat(habitsView.map(({ h, hi }) => ({
-      cells: [tog(false, () => patch((n) => { n.habits[hi].days[domView] = true; }), h.tint), plain(h.name), chip("Habit", h.tint), plain("Habit Tracker", { muted: true })],
+      cells: [tog(false, () => patch((n) => { n.habits[hi].days[domView] = true; }), h.tint), plain(h.name), chip(t("today.checklist.sourceHabit"), h.tint), plain(t("today.checklist.sourceHabitTracker"), { muted: true })],
     })));
 
   const doneRows = []
@@ -433,22 +439,22 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
           const idx = n.workouts.findIndex((w) => w.date === viewISO && w.ex === splitFocusView + " session");
           if (idx > -1) n.workouts.splice(idx, 1);
         }), "work"),
-        plain(splitFocusView + " workout", { muted: true, strike: true }), chip("Fitness", "work"), plain("Fitness", { muted: true }),
+        plain(t("today.checklist.workout", { focus: splitFocusView }), { muted: true, strike: true }), chip(t("today.checklist.sourceFitness"), "work"), plain(t("today.checklist.sourceFitness"), { muted: true }),
       ],
     }] : [])
-    .concat(doneTasksView.map((t) => {
-      const i = d.tasks.indexOf(t);
-      return { cells: [tog(true, () => patch((n) => { n.tasks[i].status = "Not Started"; }), "health"), plain(t.name, { muted: true, strike: true }), chip(t.cat, CAT_TINT[t.cat]), plain("Task", { muted: true })] };
+    .concat(doneTasksView.map((task) => {
+      const i = d.tasks.indexOf(task);
+      return { cells: [tog(true, () => patch((n) => { n.tasks[i].status = "Not Started"; }), "health"), plain(task.name, { muted: true, strike: true }), chip(task.cat, CAT_TINT[task.cat]), plain(t("today.checklist.sourceTask"), { muted: true })] };
     }))
     .concat(occViewDone.map((o) => ({
-      cells: [tog(true, () => patch((n) => { delete n.done[o.ri + ":" + o.oi]; }), "health"), plain(o.task.name, { muted: true, strike: true }), chip(o.task.cat, CAT_TINT[o.task.cat]), plain("Recurring", { muted: true })],
+      cells: [tog(true, () => patch((n) => { delete n.done[o.ri + ":" + o.oi]; }), "health"), plain(o.task.name, { muted: true, strike: true }), chip(o.task.cat, CAT_TINT[o.task.cat]), plain(t("today.checklist.sourceRecurring"), { muted: true })],
     })))
     .concat(paidBillsView.map((b) => {
       const i = d.bills.indexOf(b);
-      return { cells: [tog(true, () => patch((n) => { n.bills[i].paid = false; }), "money"), plain(b.name, { muted: true, strike: true }), chip(b.cat, "money"), plain("Bill", { muted: true })] };
+      return { cells: [tog(true, () => patch((n) => { n.bills[i].paid = false; }), "money"), plain(b.name, { muted: true, strike: true }), chip(b.cat, "money"), plain(t("today.checklist.sourceBill"), { muted: true })] };
     }))
     .concat(habitsDoneView.map(({ h, hi }) => ({
-      cells: [tog(true, () => patch((n) => { delete n.habits[hi].days[domView]; }), h.tint), plain(h.name, { muted: true, strike: true }), chip("Habit", h.tint), plain("Habit Tracker", { muted: true })],
+      cells: [tog(true, () => patch((n) => { delete n.habits[hi].days[domView]; }), h.tint), plain(h.name, { muted: true, strike: true }), chip(t("today.checklist.sourceHabit"), h.tint), plain(t("today.checklist.sourceHabitTracker"), { muted: true })],
     })));
 
   const dayRows = openRows.concat(doneRows);
@@ -466,46 +472,40 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   ));
 
   P.today = {
-    title: isViewingToday ? "Today" : fmtDate(viewTs), role: isViewingToday ? "Check off as you go" : "Day detail", roleTint: "accent",
-    sub: isViewingToday
-      ? "Pulled together from Task Tracker, Bills, Habit Tracker, and your Fitness split — tick something here and it's ticked there too."
-      : "Whatever was (or is) due that day, its journal entry, and its spending — clicked from the Monthly Calendar.",
+    title: isViewingToday ? t("today.title") : fmtDate(viewTs), role: isViewingToday ? t("today.roleToday") : t("today.roleDayDetail"), roleTint: "accent",
+    sub: isViewingToday ? t("today.subToday") : t("today.subDayDetail"),
     greeting: isViewingToday ? greetingFor(ownName, today, d.settings.birthday) : null,
     kpis: [
-      { label: "Still open", value: String(dayOpen), note: dayOpen ? "left" : "all clear", tint: dayOpen ? "" : "health", explain: "Rows still showing in the checklist below." },
-      { label: "Focus sessions", value: String(sessionsView), note: isViewingToday ? "today" : "that day", tint: "work", explain: "30-minute focus timer sessions completed, from the timer above." },
-      { label: "Spent", value: mon(daySpendTotal), note: daySpend.length + " logged", tint: daySpendTotal ? "money" : "" , explain: "Logged in the Spending table below, for this date only." },
-      // Steps/Sleep depend on a manual Apple Shortcuts setup (see Overview's
-      // Health Sync card) — most visitors never do it, so these only join
-      // the row once there's at least one synced day, same as .fasting-timer
-      // only rendering when settings.fasts === "Yes" in App.jsx.
+      { label: t("today.kpi.stillOpen"), value: String(dayOpen), note: dayOpen ? t("today.kpi.left") : t("today.kpi.allClear"), tint: dayOpen ? "" : "health", explain: t("today.kpi.stillOpenExplain") },
+      { label: t("today.kpi.focusSessions"), value: String(sessionsView), note: isViewingToday ? t("today.kpi.today") : t("today.kpi.thatDay"), tint: "work", explain: t("today.kpi.focusSessionsExplain") },
+      { label: t("today.kpi.spent"), value: mon(daySpendTotal), note: t("today.kpi.logged", { count: daySpend.length }), tint: daySpendTotal ? "money" : "" , explain: t("today.kpi.spentExplain") },
       ...(healthSynced ? [
         {
-          label: "Steps", value: d.health?.steps?.[viewISO] != null ? String(d.health.steps[viewISO]) : "—",
-          note: "from Health via Shortcuts", explain: "Sent in by an Apple Shortcut you set up on Overview — not tracked directly in Align.",
+          label: t("today.kpi.steps"), value: d.health?.steps?.[viewISO] != null ? String(d.health.steps[viewISO]) : "—",
+          note: t("today.kpi.fromHealth"), explain: t("today.kpi.fromHealthExplain"),
         },
         {
-          label: "Sleep", value: d.health?.sleepHours?.[viewISO] != null ? d.health.sleepHours[viewISO] + "h" : "—",
-          note: "from Health via Shortcuts", explain: "Sent in by an Apple Shortcut you set up on Overview — not tracked directly in Align.",
+          label: t("today.kpi.sleep"), value: d.health?.sleepHours?.[viewISO] != null ? d.health.sleepHours[viewISO] + "h" : "—",
+          note: t("today.kpi.fromHealth"), explain: t("today.kpi.fromHealthExplain"),
         },
       ] : []),
     ],
     blocks: [
-      donut("Progress", "everything due that day", dayPct + "%", dayDone + " of " + dayTotal, [
-        { label: "Done", n: dayDone, value: String(dayDone), tint: "health" },
-        { label: "Still open", n: dayOpen, value: String(dayOpen), tint: "" },
+      donut(t("today.donut.title"), t("today.donut.note"), dayPct + "%", t("today.donut.doneOf", { done: dayDone, total: dayTotal }), [
+        { label: t("today.donut.done"), n: dayDone, value: String(dayDone), tint: "health" },
+        { label: t("today.donut.stillOpen"), n: dayOpen, value: String(dayOpen), tint: "" },
       ]),
       table({
-        title: "Checklist", note: dayOpen ? dayOpen + " left" : "nothing left",
-        emptyLabel: "All clear", emptyNote: isViewingToday ? "Nothing due today — enjoy it." : "Nothing was due that day.",
+        title: t("today.checklist.title"), note: dayOpen ? t("today.checklist.leftCount", { count: dayOpen }) : t("today.checklist.nothingLeft"),
+        emptyLabel: t("today.checklist.emptyLabel"), emptyNote: isViewingToday ? t("today.checklist.emptyNoteToday") : t("today.checklist.emptyNoteDay"),
         grid: "34px 2fr 130px 140px",
-        head: ["", "Item", "Category", "Source"],
+        head: ["", t("today.checklist.head.item"), t("today.checklist.head.category"), t("today.checklist.head.source")],
         rows: dayRows,
       }),
       table({
-        title: "Spending", note: daySpend.length ? mon(daySpendTotal) + " so far" : "nothing logged yet",
+        title: t("today.spending.title"), note: daySpend.length ? t("today.spending.soFar", { amount: mon(daySpendTotal) }) : t("today.spending.nothingLogged"),
         grid: "1.8fr 150px 120px",
-        head: ["Description", "Category", { t: "Amount", align: "right" }],
+        head: [t("today.spending.head.description"), t("today.spending.head.category"), { t: t("today.spending.head.amount"), align: "right" }],
         rows: daySpend.map((x) => {
           const i = d.expenses.indexOf(x);
           return {
@@ -517,13 +517,13 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
             ],
           };
         }),
-        add: () => patch((n) => n.expenses.push({ date: viewISO, desc: "New expense", cat: "Groceries", how: "Debit card", amount: 0 })),
-        addLabel: "+ Log spending",
+        add: () => patch((n) => n.expenses.push({ date: viewISO, desc: t("today.spending.newExpense"), cat: "Groceries", how: "Debit card", amount: 0 })),
+        addLabel: t("today.spending.addLabel"),
         voiceAdd: (text) => patch((n) => n.expenses.push({ date: viewISO, desc: text, cat: "Groceries", how: "Debit card", amount: 0 })),
       }),
-      notes(isViewingToday ? "Today's meals" : "Meals that day", DAYNAMES[(viewDateObj.getDay() + 6) % 7], ["Breakfast", "Lunch", "Dinner", "Snacks"].map((label, mi) => {
+      notes(isViewingToday ? t("today.meals.titleToday") : t("today.meals.titleDay"), DAYNAMES[(viewDateObj.getDay() + 6) % 7], [t("today.meals.breakfast"), t("today.meals.lunch"), t("today.meals.dinner"), t("today.meals.snacks")].map((label, mi) => {
         const di = (viewDateObj.getDay() + 6) % 7;
-        return { t: label, s: d.meals[di + "-" + mi] || "Not planned" };
+        return { t: label, s: d.meals[di + "-" + mi] || t("today.meals.notPlanned") };
       })),
     ],
   };
