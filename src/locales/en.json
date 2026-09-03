@@ -242,6 +242,64 @@
       "newBill": "New bill", "addLabel": "+ New bill"
     }
   },
+  "spending": {
+    "title": "Spending", "role": "Type freely",
+    "sub": "Everything variable, plus how it stacks up against what you planned. Bills are tracked separately since they're fixed commitments, not day-to-day spending.",
+    "kpi": {
+      "thisMonth": "This month", "entriesCount": "{{count}} entries", "thisMonthExplain": "Everyday expenses below with a date in the current calendar month — bills aren't counted here.",
+      "leftToSpend": "Left to spend", "leftToSpendNote": "income minus bills & expenses", "leftToSpendExplain": "This month's income minus paid bills and logged expenses.",
+      "savingsRate": "Savings rate", "savingsRateExplain": "Left to spend as a percentage of this month's income.",
+      "biggestCategory": "Biggest category", "biggestCategoryExplain": "The expense category with the highest total this month."
+    },
+    "donut": { "title": "Where it goes", "in": "in", "bills": "Bills", "everydayExpenses": "Everyday expenses", "leftOver": "Left over" },
+    "entries": {
+      "title": "Entries", "note": "newest first",
+      "head": { "date": "Date", "description": "Description", "category": "Category", "paidWith": "Paid with", "amount": "Amount" },
+      "newExpense": "New expense", "addLabel": "+ New expense"
+    },
+    "budget": {
+      "title": "Against your budget", "note": "planned vs. actual, editable",
+      "head": { "category": "Category", "planned": "Planned", "actual": "Actual", "diff": "Diff", "used": "Used" },
+      "addLabel": "+ New budget line"
+    }
+  },
+  "networth": {
+    "title": "Net Worth", "role": "Debts, savings, investments",
+    "sub": "Everything you owe against everything you've put aside or invested — three sections, one page, since they're all one picture.",
+    "kpi": {
+      "netPosition": "Net position", "netPositionNote": "saved + invested − owed", "netPositionExplain": "Total saved plus invested, minus everything you owe, across all three sections below.",
+      "totalOwed": "Total owed", "debtsCount": "{{count}} debts", "totalOwedExplain": "Sum of every debt's current balance, from Your debts below.",
+      "debtPaidOff": "Debt paid off", "debtPaidOffExplain": "How much of your starting debt total you've paid down so far.",
+      "totalSaved": "Total saved", "potsCount": "{{count}} pots", "totalSavedExplain": "Sum of every savings pot's current amount, from Savings pots below.",
+      "invested": "Invested", "gainLoss": "{{pct}}% gain/loss", "investedExplain": "Current value of every holding, from Investment holdings below."
+    },
+    "strategy": { "title": "Debt payoff strategy", "note": "changes the order and every date below", "payoffOrder": "Payoff order", "extraMonthly": "Extra each month" },
+    "chart": {
+      "title": "Total balance", "now": "now",
+      "projection": "{{months}} months to clear, debt-free by {{date}}, {{interest}} interest to come",
+      "noProjection": "raise the extra payment to project a debt-free date"
+    },
+    "debts": {
+      "title": "Your debts", "order": "order",
+      "emptyLabel": "No debts logged", "emptyNote": "Add one to start tracking your payoff plan.",
+      "head": { "debt": "Debt", "balance": "Balance", "apr": "APR %", "minimum": "Minimum", "months": "Months", "clearBy": "Clear by", "yourDeadline": "Your deadline", "paidOff": "Paid off" },
+      "neverAtThisRate": "never at this rate", "newDebt": "New debt", "addLabel": "+ New debt"
+    },
+    "savings": {
+      "title": "Savings pots",
+      "noteProgress": "{{pct}}% saved overall, {{amount}} to go", "noteMonthly": "{{amount}}/mo total",
+      "emptyLabel": "No savings pots yet", "emptyNote": "Add one for anything you're putting money aside for.",
+      "head": { "goal": "Goal", "target": "Target", "saved": "Saved", "targetDate": "Target date", "monthly": "Monthly", "months": "Months", "progress": "Progress", "onTrack": "On track?" },
+      "status": { "done": "Done", "paused": "Paused", "yes": "Yes", "behind": "Behind" },
+      "newPot": "New pot", "addLabel": "+ New pot"
+    },
+    "investments": {
+      "title": "Investment holdings", "overallPct": "{{pct}}% overall",
+      "emptyLabel": "No investments logged yet", "emptyNote": "Add one to start tracking its gain or loss over time.",
+      "head": { "name": "Name", "type": "Type", "invested": "Invested", "currentValue": "Current value", "gainLoss": "Gain / loss", "since": "Since" },
+      "newHolding": "New holding", "addLabel": "+ New holding"
+    }
+  },
   "auth": {
     "title": { "signIn": "Sign in", "signUpShort": "Sign up", "signUp": "Create your account", "reset": "Reset your password" },
     "email": "Email",

@@ -824,24 +824,24 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   // numbers twice. One tab, one budget table (editable, with the Diff
   // column the read-only version had), instead of two.
   P.spending = {
-    title: "Spending", role: "Type freely", roleTint: "money",
-    sub: "Everything variable, plus how it stacks up against what you planned. Bills are tracked separately since they're fixed commitments, not day-to-day spending.",
+    title: t("spending.title"), role: t("spending.role"), roleTint: "money",
+    sub: t("spending.sub"),
     kpis: [
-      { label: "This month", value: mon(expIn), note: inRange(d.expenses, "date", mr.from, mr.to).length + " entries", explain: "Everyday expenses below with a date in the current calendar month — bills aren't counted here." },
-      { label: "Left to spend", value: mon(left), note: "income minus bills & expenses", tint: left < 0 ? "home" : "health", explain: "This month's income minus paid bills and logged expenses." },
-      { label: "Savings rate", value: (incomeIn ? Math.round(100 * left / incomeIn) : 0) + "%", note: "", hasBar: true, pct: incomeIn ? 100 * left / incomeIn : 0, tint: "health", explain: "Left to spend as a percentage of this month's income." },
-      { label: "Biggest category", value: catRows.length ? catRows[0] : "—", note: catRows.length ? mon(expByCat[catRows[0]]) : "", explain: "The expense category with the highest total this month." },
+      { label: t("spending.kpi.thisMonth"), value: mon(expIn), note: t("spending.kpi.entriesCount", { count: inRange(d.expenses, "date", mr.from, mr.to).length }), explain: t("spending.kpi.thisMonthExplain") },
+      { label: t("spending.kpi.leftToSpend"), value: mon(left), note: t("spending.kpi.leftToSpendNote"), tint: left < 0 ? "home" : "health", explain: t("spending.kpi.leftToSpendExplain") },
+      { label: t("spending.kpi.savingsRate"), value: (incomeIn ? Math.round(100 * left / incomeIn) : 0) + "%", note: "", hasBar: true, pct: incomeIn ? 100 * left / incomeIn : 0, tint: "health", explain: t("spending.kpi.savingsRateExplain") },
+      { label: t("spending.kpi.biggestCategory"), value: catRows.length ? catRows[0] : "—", note: catRows.length ? mon(expByCat[catRows[0]]) : "", explain: t("spending.kpi.biggestCategoryExplain") },
     ],
     blocks: [
-      donut("Where it goes", fmtMon(anchor), mon(incomeIn), "in", [
-        { label: "Bills", n: billsIn, value: mon(billsIn), tint: "money" },
-        { label: "Everyday expenses", n: expIn, value: mon(expIn), tint: "work" },
-        { label: "Left over", n: Math.max(0, left), value: mon(left), tint: "health" },
+      donut(t("spending.donut.title"), fmtMon(anchor), mon(incomeIn), t("spending.donut.in"), [
+        { label: t("spending.donut.bills"), n: billsIn, value: mon(billsIn), tint: "money" },
+        { label: t("spending.donut.everydayExpenses"), n: expIn, value: mon(expIn), tint: "work" },
+        { label: t("spending.donut.leftOver"), n: Math.max(0, left), value: mon(left), tint: "health" },
       ]),
       table({
-        title: "Entries", note: "newest first",
+        title: t("spending.entries.title"), note: t("spending.entries.note"),
         grid: "150px 1.8fr 150px 140px 130px",
-        head: ["Date", "Description", "Category", "Paid with", { t: "Amount", align: "right" }],
+        head: [t("spending.entries.head.date"), t("spending.entries.head.description"), t("spending.entries.head.category"), t("spending.entries.head.paidWith"), { t: t("spending.entries.head.amount"), align: "right" }],
         rows: d.expenses.slice().sort((a, b) => (parseISO(b.date) || 0) - (parseISO(a.date) || 0)).slice(0, 14).map((x) => {
           const i = d.expenses.indexOf(x);
           return {
@@ -855,14 +855,14 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
             ],
           };
         }),
-        add: () => patch((n) => n.expenses.unshift({ date: iso(today), desc: "New expense", cat: "Groceries", how: "Debit card", amount: 0 })),
-        addLabel: "+ New expense",
+        add: () => patch((n) => n.expenses.unshift({ date: iso(today), desc: t("spending.entries.newExpense"), cat: "Groceries", how: "Debit card", amount: 0 })),
+        addLabel: t("spending.entries.addLabel"),
         voiceAdd: (text) => patch((n) => n.expenses.unshift({ date: iso(today), desc: text, cat: "Groceries", how: "Debit card", amount: 0 })),
       }),
       table({
-        title: "Against your budget", note: "planned vs. actual, editable",
+        title: t("spending.budget.title"), note: t("spending.budget.note"),
         grid: "1.8fr 140px 140px 140px 1fr",
-        head: ["Category", { t: "Planned", align: "right" }, { t: "Actual", align: "right" }, { t: "Diff", align: "right" }, "Used"],
+        head: [t("spending.budget.head.category"), { t: t("spending.budget.head.planned"), align: "right" }, { t: t("spending.budget.head.actual"), align: "right" }, { t: t("spending.budget.head.diff"), align: "right" }, t("spending.budget.head.used")],
         rows: d.budgets.map((b, i) => {
           const actual = expByCat[b.cat] || 0;
           const planned = num(b.planned);
@@ -880,7 +880,7 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
           };
         }),
         add: () => patch((n) => n.budgets.push({ cat: "Groceries", planned: 0 })),
-        addLabel: "+ New budget line",
+        addLabel: t("spending.budget.addLabel"),
       }),
     ],
   };
@@ -896,28 +896,28 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
   const withInvest = (fn) => patch((n) => { if (!n.investments) n.investments = []; fn(n); });
   const netPosition = savedTotal + investCurrentTotal - owed;
   P.networth = {
-    title: "Net Worth", role: "Debts, savings, investments", roleTint: "money",
-    sub: "Everything you owe against everything you've put aside or invested — three sections, one page, since they're all one picture.",
+    title: t("networth.title"), role: t("networth.role"), roleTint: "money",
+    sub: t("networth.sub"),
     kpis: [
-      { label: "Net position", value: mon(netPosition), note: "saved + invested − owed", tint: netPosition >= 0 ? "health" : "home", explain: "Total saved plus invested, minus everything you owe, across all three sections below." },
-      { label: "Total owed", value: mon(owed), note: d.debts.length + " debts", tint: owed ? "money" : "", explain: "Sum of every debt's current balance, from Your debts below." },
-      { label: "Debt paid off", value: mon(started - owed), note: "", hasBar: true, pct: started ? 100 * (started - owed) / started : 0, tint: "money", explain: "How much of your starting debt total you've paid down so far." },
-      { label: "Total saved", value: mon(savedTotal), note: d.savings.length + " pots", explain: "Sum of every savings pot's current amount, from Savings pots below." },
-      { label: "Invested", value: mon(investCurrentTotal), note: (investGain >= 0 ? "+" : "") + Math.round(investGainPct) + "% gain/loss", tint: investGain < 0 ? "home" : "health", explain: "Current value of every holding, from Investment holdings below." },
+      { label: t("networth.kpi.netPosition"), value: mon(netPosition), note: t("networth.kpi.netPositionNote"), tint: netPosition >= 0 ? "health" : "home", explain: t("networth.kpi.netPositionExplain") },
+      { label: t("networth.kpi.totalOwed"), value: mon(owed), note: t("networth.kpi.debtsCount", { count: d.debts.length }), tint: owed ? "money" : "", explain: t("networth.kpi.totalOwedExplain") },
+      { label: t("networth.kpi.debtPaidOff"), value: mon(started - owed), note: "", hasBar: true, pct: started ? 100 * (started - owed) / started : 0, tint: "money", explain: t("networth.kpi.debtPaidOffExplain") },
+      { label: t("networth.kpi.totalSaved"), value: mon(savedTotal), note: t("networth.kpi.potsCount", { count: d.savings.length }), explain: t("networth.kpi.totalSavedExplain") },
+      { label: t("networth.kpi.invested"), value: mon(investCurrentTotal), note: (investGain >= 0 ? "+" : "") + t("networth.kpi.gainLoss", { pct: Math.round(investGainPct) }), tint: investGain < 0 ? "home" : "health", explain: t("networth.kpi.investedExplain") },
     ],
     blocks: [
-      settingsBlock("Debt payoff strategy", "changes the order and every date below", [
-        { label: "Payoff order", isSelect: true, v: d.strategy, options: ["Snowball", "Avalanche", "Custom"], set: (e) => patch((n) => { n.strategy = e.target.value; }) },
-        { label: "Extra each month", isNum: true, v: String(d.extra), set: (e) => patch((n) => { n.extra = num(e.target.value); }) },
+      settingsBlock(t("networth.strategy.title"), t("networth.strategy.note"), [
+        { label: t("networth.strategy.payoffOrder"), isSelect: true, v: d.strategy, options: ["Snowball", "Avalanche", "Custom"], set: (e) => patch((n) => { n.strategy = e.target.value; }) },
+        { label: t("networth.strategy.extraMonthly"), isNum: true, v: String(d.extra), set: (e) => patch((n) => { n.extra = num(e.target.value); }) },
       ]),
-      line("Total balance", sim.months ? sim.months + " months to clear, debt-free by " + fmtMon(edate(today, sim.months)) + ", " + mon(sim.interest) + " interest to come" : "raise the extra payment to project a debt-free date", sim.trace,
-        sim.trace.length > 1 ? ["now", fmtMon(edate(today, Math.round(sim.months * 0.33))), fmtMon(edate(today, Math.round(sim.months * 0.66))), fmtMon(edate(today, sim.months))] : ["now"],
+      line(t("networth.chart.title"), sim.months ? t("networth.chart.projection", { months: sim.months, date: fmtMon(edate(today, sim.months)), interest: mon(sim.interest) }) : t("networth.chart.noProjection"), sim.trace,
+        sim.trace.length > 1 ? [t("networth.chart.now"), fmtMon(edate(today, Math.round(sim.months * 0.33))), fmtMon(edate(today, Math.round(sim.months * 0.66))), fmtMon(edate(today, sim.months))] : [t("networth.chart.now")],
         (v) => mon(v)),
       table({
-        title: "Your debts", note: d.strategy + " order",
-        emptyLabel: "No debts logged", emptyNote: "Add one to start tracking your payoff plan.",
+        title: t("networth.debts.title"), note: t("options." + d.strategy, { defaultValue: d.strategy }) + " " + t("networth.debts.order"),
+        emptyLabel: t("networth.debts.emptyLabel"), emptyNote: t("networth.debts.emptyNote"),
         grid: "50px 1.4fr 130px 100px 130px 90px 130px 140px 1fr",
-        head: [{ t: "#", align: "left" }, "Debt", { t: "Balance", align: "right" }, { t: "APR %", align: "right" }, { t: "Minimum", align: "right" }, { t: "Months", align: "right" }, "Clear by", "Your deadline", "Paid off"],
+        head: [{ t: "#", align: "left" }, t("networth.debts.head.debt"), { t: t("networth.debts.head.balance"), align: "right" }, { t: t("networth.debts.head.apr"), align: "right" }, { t: t("networth.debts.head.minimum"), align: "right" }, { t: t("networth.debts.head.months"), align: "right" }, t("networth.debts.head.clearBy"), t("networth.debts.head.yourDeadline"), t("networth.debts.head.paidOff")],
         rows: sim.order.map((i, rank) => {
           const x = d.debts[i];
           const m = sim.cleared[i];
@@ -934,28 +934,29 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
               numc(x.apr, (e) => patch((n) => { n.debts[i].apr = num(e.target.value); }), { step: "0.1", tint: num(x.apr) >= 20 ? "home" : "", tinted: num(x.apr) >= 20 }),
               numc(x.min, (e) => patch((n) => { n.debts[i].min = num(e.target.value); })),
               plain(m ? String(m) : "—", { align: "right", tint: m ? "" : "home", tinted: !m }),
-              plain(m ? fmtMon(edate(today, m)) : "never at this rate", { muted: !!m, tint: onTrack === false ? "home" : "", tinted: onTrack === false }),
+              plain(m ? fmtMon(edate(today, m)) : t("networth.debts.neverAtThisRate"), { muted: !!m, tint: onTrack === false ? "home" : "", tinted: onTrack === false }),
               datec(x.deadline || "", (e) => patch((n) => { n.debts[i].deadline = e.target.value; })),
               barc(paid, Math.round(paid) + "%", "money"),
             ],
           };
         }),
-        add: () => patch((n) => n.debts.push({ name: "New debt", start: 1000, balance: 1000, apr: 20, min: 25, order: n.debts.length + 1, deadline: "" })),
-        addLabel: "+ New debt",
+        add: () => patch((n) => n.debts.push({ name: t("networth.debts.newDebt"), start: 1000, balance: 1000, apr: 20, min: 25, order: n.debts.length + 1, deadline: "" })),
+        addLabel: t("networth.debts.addLabel"),
       }),
       table({
-        title: "Savings pots",
-        note: (targetTotal ? Math.round(100 * savedTotal / targetTotal) + "% saved overall, " + mon(targetTotal - savedTotal) + " to go" : "")
-          + (savingsMonthly ? " — " + mon(savingsMonthly) + "/mo total" : ""),
-        emptyLabel: "No savings pots yet", emptyNote: "Add one for anything you're putting money aside for.",
+        title: t("networth.savings.title"),
+        note: (targetTotal ? t("networth.savings.noteProgress", { pct: Math.round(100 * savedTotal / targetTotal), amount: mon(targetTotal - savedTotal) }) : "")
+          + (savingsMonthly ? " — " + t("networth.savings.noteMonthly", { amount: mon(savingsMonthly) }) : ""),
+        emptyLabel: t("networth.savings.emptyLabel"), emptyNote: t("networth.savings.emptyNote"),
         grid: "1.7fr 130px 130px 150px 120px 100px 1fr 110px",
-        head: ["Goal", { t: "Target", align: "right" }, { t: "Saved", align: "right" }, "Target date", { t: "Monthly", align: "right" }, { t: "Months", align: "right" }, "Progress", "On track?"],
+        head: [t("networth.savings.head.goal"), { t: t("networth.savings.head.target"), align: "right" }, { t: t("networth.savings.head.saved"), align: "right" }, t("networth.savings.head.targetDate"), { t: t("networth.savings.head.monthly"), align: "right" }, { t: t("networth.savings.head.months"), align: "right" }, t("networth.savings.head.progress"), t("networth.savings.head.onTrack")],
         rows: d.savings.map((x, i) => {
           const gap = num(x.target) - num(x.saved);
           const months = num(x.monthly) > 0 ? Math.ceil(gap / num(x.monthly)) : null;
           const pct = num(x.target) ? Math.min(100, 100 * num(x.saved) / num(x.target)) : 0;
           const due = parseISO(x.date);
           const status = pct >= 100 ? "Done" : (months === null ? "Paused" : (due && edate(today, months) <= due ? "Yes" : "Behind"));
+          const statusLabel = { Done: t("networth.savings.status.done"), Paused: t("networth.savings.status.paused"), Yes: t("networth.savings.status.yes"), Behind: t("networth.savings.status.behind") }[status];
           return {
             remove: () => patch((n) => n.savings.splice(i, 1)),
             cells: [
@@ -966,18 +967,18 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
               numc(x.monthly, (e) => patch((n) => { n.savings[i].monthly = num(e.target.value); })),
               plain(months === null ? "—" : String(months), { align: "right", muted: true }),
               barc(pct, Math.round(pct) + "%", pct >= 100 ? "health" : "money"),
-              chip(status, status === "Behind" ? "home" : (status === "Paused" ? "" : "health")),
+              chip(statusLabel, status === "Behind" ? "home" : (status === "Paused" ? "" : "health")),
             ],
           };
         }),
-        add: () => patch((n) => n.savings.push({ name: "New pot", target: 500, saved: 0, date: iso(today + 180 * DAY), monthly: 25 })),
-        addLabel: "+ New pot",
+        add: () => patch((n) => n.savings.push({ name: t("networth.savings.newPot"), target: 500, saved: 0, date: iso(today + 180 * DAY), monthly: 25 })),
+        addLabel: t("networth.savings.addLabel"),
       }),
       table({
-        title: "Investment holdings", note: investedTotal ? (investGain >= 0 ? "+" : "") + Math.round(investGainPct) + "% overall" : "",
-        emptyLabel: "No investments logged yet", emptyNote: "Add one to start tracking its gain or loss over time.",
+        title: t("networth.investments.title"), note: investedTotal ? (investGain >= 0 ? "+" : "") + t("networth.investments.overallPct", { pct: Math.round(investGainPct) }) : "",
+        emptyLabel: t("networth.investments.emptyLabel"), emptyNote: t("networth.investments.emptyNote"),
         grid: "1.7fr 140px 140px 140px 140px 1fr",
-        head: ["Name", "Type", { t: "Invested", align: "right" }, { t: "Current value", align: "right" }, { t: "Gain / loss", align: "right" }, "Since"],
+        head: [t("networth.investments.head.name"), t("networth.investments.head.type"), { t: t("networth.investments.head.invested"), align: "right" }, { t: t("networth.investments.head.currentValue"), align: "right" }, { t: t("networth.investments.head.gainLoss"), align: "right" }, t("networth.investments.head.since")],
         rows: investments.map((x, i) => {
           const gain = num(x.current) - num(x.invested);
           const gainPct = num(x.invested) ? Math.round(100 * gain / num(x.invested)) : 0;
@@ -993,8 +994,8 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
             ],
           };
         }),
-        add: () => withInvest((n) => { n.investments.push({ name: "New holding", type: "Stocks", invested: 0, current: 0, date: iso(today) }); }),
-        addLabel: "+ New holding",
+        add: () => withInvest((n) => { n.investments.push({ name: t("networth.investments.newHolding"), type: "Stocks", invested: 0, current: 0, date: iso(today) }); }),
+        addLabel: t("networth.investments.addLabel"),
       }),
     ],
   };
