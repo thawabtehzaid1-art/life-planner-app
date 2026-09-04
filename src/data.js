@@ -4,7 +4,11 @@ export const KEY = "life-planner-web-live-v1";
 export const DAY = 86400000;
 
 export const TINTS = {
-  work: "oklch(0.734 0.125 289)",
+  // 335, not 289 -- matches index.css's [data-c="work"] (moved off violet
+  // this session; see its comment there for why 335 specifically). This
+  // table is the one other place "work"'s hue lives, feeding the Donut
+  // chart's stroke color directly (see engine.js) rather than through CSS.
+  work: "oklch(0.734 0.125 335)",
   home: "oklch(0.734 0.125 25)",
   health: "oklch(0.734 0.125 165)",
   money: "oklch(0.734 0.125 95)",

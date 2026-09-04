@@ -1,27 +1,18 @@
-"""Generates the PWA app icons from the app's own OKLCH category colors,
-so the icon uses exactly the same brand hues as the running app rather
-than eyeballed approximations."""
-import math
+"""Generates the PWA app icons from the app's own brand colors, so the
+icon matches the running app rather than an eyeballed approximation.
+
+ACCENT/BG are literal hex, not derived via OKLCH math, because that's how
+index.css itself expresses --color-accent/--color-bg for the dark theme
+(:root[data-theme="dark"]) as of the circadian-palette rework -- unlike
+the 5-category tint wheel (data.js's TINTS / index.css's [data-c=...]),
+which *is* one shared hue rotated through oklch(cat-l cat-c H), the main
+brand accent is its own bespoke color per theme, not a point on that
+wheel. If index.css's dark-theme values change, update these two to
+match and re-run this script -- there's no formula linking them anymore."""
 from PIL import Image, ImageDraw
 
-def oklch_to_srgb(L, C, H_deg):
-    h = math.radians(H_deg)
-    a = C * math.cos(h)
-    b = C * math.sin(h)
-    l_ = L + 0.3963377774 * a + 0.2158037573 * b
-    m_ = L - 0.1055613458 * a - 0.0638541728 * b
-    s_ = L - 0.0894841775 * a - 1.2914855480 * b
-    l, m, s = l_**3, m_**3, s_**3
-    r = 4.0767416621*l - 3.3077115913*m + 0.2309699292*s
-    g = -1.2684380046*l + 2.6097574011*m - 0.3413193965*s
-    bl = -0.0041960863*l - 0.7034186147*m + 1.7076147010*s
-    def gamma(c):
-        c = max(0.0, min(1.0, c))
-        return 12.92*c if c <= 0.0031308 else 1.055*(c**(1/2.4)) - 0.055
-    return tuple(max(0, min(255, round(gamma(c) * 255))) for c in (r, g, bl))
-
-ACCENT = oklch_to_srgb(0.734, 0.125, 289)  # violet, matches --color-accent
-BG = (22, 24, 38)  # --color-bg #161826
+ACCENT = (0xC9, 0x71, 0x58)  # --color-accent, dark theme: #C97158
+BG = (0x1D, 0x15, 0x12)  # --color-bg, dark theme: #1D1512
 
 def rounded_square(size, radius, fill):
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
