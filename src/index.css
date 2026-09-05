@@ -1,8 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600&display=swap');
 
 :root {
   --font-heading: "Inter", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
+  /* Logotype only (.brand-name) -- not a general heading face. */
+  --font-mark: "Manrope", -apple-system, sans-serif;
+  /* The Align mark's one fixed brand color (see the Align Identity spec) --
+     deliberately NOT one of the --color-accent theme tokens above/below,
+     which shift per light/dark/warm theme. The mark reads as the same
+     brand regardless of which theme is active, the same way a paper
+     letterhead's ink color doesn't change with the room lighting. */
+  --clay: #C1633F;
 
   --space-1: 2.8px;
   --space-2: 5.6px;
@@ -213,7 +221,13 @@ button { font-family: inherit; }
 .brand-block { padding: var(--space-8) var(--space-6) var(--space-6); }
 .brand-row { display: flex; align-items: center; gap: var(--space-3); }
 .brand-dot { width: 10px; height: 10px; border-radius: 2px; background: var(--color-accent); }
-.brand-name { font-family: var(--font-heading); font-weight: 500; font-size: 15px; letter-spacing: -0.01em; }
+/* The Align mark (App.jsx only -- Auth/Paywall keep .brand-dot above for
+   now, see the design-audit prompt's own file scoping). 18px clears the
+   identity spec's 16px minimum digital size with a little room; color is
+   the fixed --clay token above, not --color-accent, since the mark itself
+   is never theme-reactive. */
+.brand-mark { width: 18px; height: 18px; color: var(--clay); flex-shrink: 0; }
+.brand-name { font-family: var(--font-mark); font-weight: 600; font-size: 15px; letter-spacing: -0.02em; }
 .brand-sub { color: var(--color-neutral-500); font-size: 11.5px; margin-top: var(--space-2); padding-inline-start: 19px; }
 
 .storage-warning {
@@ -255,7 +269,7 @@ button { font-family: inherit; }
 .nav-group { margin-bottom: var(--space-6); }
 .nav-group-name {
   display: flex; align-items: center; justify-content: space-between; cursor: pointer;
-  font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase;
+  font-size: 12.5px; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--color-neutral-600); padding: 0 var(--space-6) var(--space-3);
 }
 .nav-group-name:hover { color: var(--color-neutral-400); }
@@ -383,7 +397,7 @@ button { font-family: inherit; }
   padding: var(--space-6) var(--space-6) var(--space-4);
   flex: 1 0 150px;
 }
-.kpi-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-600); }
+.kpi-label { font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-600); }
 .kpi-value {
   font-family: var(--font-heading); font-weight: 500; font-size: 30px; letter-spacing: -0.025em;
   margin-top: var(--space-3); color: var(--c, var(--color-text));
@@ -470,7 +484,7 @@ button { font-family: inherit; }
 .grid-table { display: grid; min-width: max-content; }
 .grid-row { display: contents; }
 .head-cell {
-  padding: var(--space-3) var(--space-6); font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase;
+  padding: var(--space-3) var(--space-6); font-size: 12.5px; letter-spacing: 0.09em; text-transform: uppercase;
   color: var(--color-neutral-600); border-top: 1px solid var(--color-neutral-800);
   border-bottom: 1px solid var(--color-neutral-800); white-space: nowrap;
 }
@@ -595,7 +609,7 @@ button { font-family: inherit; }
    container. .block-body (the card wrapping this) scrolls rather than
    clips overflow, so that excess doesn't get cropped away — it renders
    fully readable just past the visible card, scrolled out of view on load. */
-.cal-dayname { padding: var(--space-3) var(--space-4); font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--color-neutral-600); min-width: 0; white-space: nowrap; overflow: hidden; }
+.cal-dayname { padding: var(--space-3) var(--space-4); font-size: 12.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--color-neutral-600); min-width: 0; white-space: nowrap; overflow: hidden; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--color-neutral-800); border-radius: var(--radius-md); overflow: hidden; }
 /* min-width:0 — a grid item's default min-width is auto, which refuses to
    shrink below its content's intrinsic size. A day with a long event name
@@ -671,6 +685,11 @@ button { font-family: inherit; }
    narrow to fit a month's worth of these at width just scrolls inside
    .block-body's existing overflow-x, same as the wide tables already do. */
 .habit-box { width: 30px; height: 30px; }
+/* Design audit: an all-neutral-900 fill with no border reads as a flat
+   swatch rather than a tappable box once the checked-state tint is gone --
+   a visible edge makes the untapped state legible as "empty," not just
+   "different color," at a glance across a month-wide grid. */
+.cell-box.habit-box { border: 1.5px solid var(--color-neutral-700); }
 .habit-metric { text-align: end; color: var(--color-neutral-500); }
 
 /* ---- columns chart ---- */
@@ -734,7 +753,7 @@ button { font-family: inherit; }
 /* Matches .kpi-label's exact type treatment, not a value invented fresh
    for this one screen. */
 .settings-group-label {
-  display: block; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  display: block; font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--color-neutral-600); padding: 0; margin: 0 0 var(--space-4);
 }
 
@@ -773,7 +792,7 @@ button { font-family: inherit; }
   box-shadow: inset 0 0 0 1.5px var(--c, var(--color-accent));
 }
 .badge-label { font-size: 12px; line-height: 1.3; }
-.badge-status { font-size: 10.5px; color: var(--color-neutral-600); text-transform: uppercase; letter-spacing: 0.06em; }
+.badge-status { font-size: 12.5px; color: var(--color-neutral-600); text-transform: uppercase; letter-spacing: 0.06em; }
 
 /* ---- account settings ----
    Reuses .block-card/.block-header/.block-body chrome (Account reads as
@@ -1170,7 +1189,7 @@ button { font-family: inherit; }
   flex-wrap: wrap;
 }
 .focus-timer-left { flex: 1; min-width: 220px; }
-.focus-timer-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-600); }
+.focus-timer-label { font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-600); }
 .focus-timer-clock {
   font-family: var(--font-heading); font-size: 44px; font-weight: 500; letter-spacing: -0.02em;
   margin-top: var(--space-2); font-variant-numeric: tabular-nums;
@@ -1189,7 +1208,7 @@ button { font-family: inherit; }
   flex-wrap: wrap;
 }
 .fasting-timer-left { flex: 1; min-width: 220px; }
-.fasting-timer-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-600); }
+.fasting-timer-label { font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-600); }
 .fasting-timer-clock {
   font-family: var(--font-heading); font-size: 44px; font-weight: 500; letter-spacing: -0.02em;
   margin-top: var(--space-2); font-variant-numeric: tabular-nums;

@@ -521,7 +521,18 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
       <div className="sidebar" data-open={sidebarOpen ? "1" : ""}>
         <div className="brand-block">
           <div className="brand-row">
-            <div className="brand-dot" />
+            {/* Align mark: three flush-right bars, shortest to longest --
+                see the Align Identity spec. Proportions/positions are fixed
+                (the spec: "never change proportion or reorder — only their
+                color and overall scale move"), so this is a literal,
+                unmodified copy of the spec's own <symbol> geometry, just
+                inlined rather than defined once and <use>'d, since this is
+                the only place in the app that renders it. */}
+            <svg className="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+              <rect x="28" y="12" width="28" height="8" rx="4" fill="currentColor" />
+              <rect x="16" y="28" width="40" height="8" rx="4" fill="currentColor" />
+              <rect x="8" y="44" width="48" height="8" rx="4" fill="currentColor" />
+            </svg>
             <div className="brand-name">Align</div>
           </div>
           <div className="brand-sub">{translate("app.syncedToAccount")}</div>

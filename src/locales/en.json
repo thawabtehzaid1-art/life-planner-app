@@ -67,7 +67,7 @@
       "title": "Danger zone", "note": "These affect your whole account",
       "signOut": "Sign out", "signOutHint": "End your session on this device",
       "resetToSample": "Reset to sample data", "resetToSampleHint": "Replaces everything with the example planner — can't be undone",
-      "resetConfirm": "Reset to sample data? Everything you've entered will be replaced. This can't be undone.",
+      "typeResetToConfirm": { "pre": "Type ", "post": " to confirm. Everything you've entered will be replaced." },
       "reset": "Reset",
       "deleteAccount": "Delete account", "deleteAccountHint": "Permanently erases your tasks, budget, habits, and everything else — this can't be undone",
       "typeEmailToConfirm": { "pre": "Type your email (", "post": ") to confirm. Everything you've entered will be gone for good." },

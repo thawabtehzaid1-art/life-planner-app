@@ -585,7 +585,12 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
       table({
         title: t("tasks.all.title"), note: t("tasks.all.note"),
         emptyLabel: t("tasks.all.emptyLabel"), emptyNote: t("tasks.all.emptyNote"),
-        grid: "1.5fr 1.4fr 110px 110px 130px 100px 130px 100px 90px",
+        // Category/Priority/Status widened from 110/110/130 -- at the old
+        // widths the <select>'s longest real option ("Personal", "Very
+        // High", "In Progress"/"Not Started") ran right up against the
+        // native dropdown arrow with no breathing room. Each is now sized
+        // to its own column's longest option, not a shared guess.
+        grid: "1.5fr 1.4fr 130px 130px 150px 100px 130px 100px 90px",
         head: [t("tasks.all.head.task"), t("tasks.all.head.description"), t("tasks.all.head.category"), t("tasks.all.head.priority"), t("tasks.all.head.status"), t("tasks.all.head.owner"), t("tasks.all.head.dueDate"), t("tasks.all.head.remindAt"), { t: t("tasks.all.head.daysLeft"), align: "right" }],
         rows: d.tasks.map((task, i) => {
           const due = parseISO(task.due);

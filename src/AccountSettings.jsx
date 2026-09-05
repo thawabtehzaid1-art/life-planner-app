@@ -32,6 +32,41 @@ function SettingsSection({ title, note, children, danger }) {
   );
 }
 
+// Shared by "Reset to sample data" and "Delete account" -- both are
+// one-tap-of-doom actions, and a plain window.confirm() (Reset's old
+// guard) or nothing at all (Delete's, historically) is trivial to
+// reflexively click/dismiss through without reading it. Typing back a
+// distinct phrase forces a genuine pause before either actually fires.
+// `instructionsId` is per-instance (not a shared literal) so the two
+// panels stay valid markup even if both were somehow open at once.
+function TypedConfirmPanel({ instructionsId, instructions, requiredText, value, onChange, onConfirm, onCancel, busy, error, confirmLabel, busyLabel, inputRef }) {
+  const { t } = useTranslation();
+  const matches = value.trim().toLowerCase() === requiredText.trim().toLowerCase();
+  return (
+    <div className="account-delete-confirm">
+      <p id={instructionsId}>{instructions}</p>
+      <div className="account-delete-confirm-row">
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          onChange={onChange}
+          placeholder={requiredText}
+          aria-labelledby={instructionsId}
+          autoComplete="off"
+        />
+        <button type="button" className="btn-danger" onClick={onConfirm} disabled={!matches || busy}>
+          {busy ? busyLabel : confirmLabel}
+        </button>
+        <button type="button" className="header-link-btn" onClick={onCancel} disabled={busy}>
+          {t("common.cancel")}
+        </button>
+      </div>
+      {error && <div className="auth-notice" data-c="home" role="alert">{error}</div>}
+    </div>
+  );
+}
+
 export default function AccountSettings({ userEmail, subscription, theme, setTheme, themeAuto, setThemeAuto, THEMES, push, gcal, health, onSignOut, onNavigate, onboarded, patch, reset }) {
   const { t, i18n } = useTranslation();
   const [resetState, setResetState] = useState("idle"); // idle | busy | sent | error
@@ -45,15 +80,28 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
-  // The "Delete account" button and the confirm panel's input are two
-  // different elements that swap in/out of the DOM — without this, a
-  // keyboard user's focus silently drops to <body> on either transition.
-  // Move it explicitly instead: into the input when the panel opens, back
-  // to the trigger when it closes. Skipped on first mount (deleteOpen
-  // starts false) so page load doesn't steal focus onto this button.
+  // Same typed-confirmation shape as delete-account below, for the same
+  // reason -- a plain window.confirm() this used to have is trivial to
+  // reflexively click through. reset() itself (see App.jsx) is
+  // synchronous (setData fires immediately; the Supabase upsert is
+  // fire-and-forget), so unlike delete there's no real "busy" state to
+  // show -- confirming just closes the panel.
+  const [resetSampleOpen, setResetSampleOpen] = useState(false);
+  const [resetSampleText, setResetSampleText] = useState("");
+
+  // The "Delete account"/"Reset to sample data" buttons and their confirm
+  // panels' inputs are two different elements that swap in/out of the DOM
+  // -- without this, a keyboard user's focus silently drops to <body> on
+  // either transition. Move it explicitly instead: into the input when
+  // the panel opens, back to the trigger when it closes. Skipped on first
+  // mount (both start false) so page load doesn't steal focus onto either
+  // button.
   const deleteTriggerRef = useRef(null);
   const deleteInputRef = useRef(null);
   const deleteOpenedBefore = useRef(false);
+  const resetSampleTriggerRef = useRef(null);
+  const resetSampleInputRef = useRef(null);
+  const resetSampleOpenedBefore = useRef(false);
   const themeBtnRefs = useRef({});
   const langBtnRefs = useRef({});
   const LANGUAGES = [{ id: "en", label: "English" }, { id: "ar", label: "العربية" }];
@@ -62,6 +110,11 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
     if (deleteOpen) deleteInputRef.current?.focus();
     else deleteTriggerRef.current?.focus();
   }, [deleteOpen]);
+  useEffect(() => {
+    if (!resetSampleOpenedBefore.current) { resetSampleOpenedBefore.current = true; return; }
+    if (resetSampleOpen) resetSampleInputRef.current?.focus();
+    else resetSampleTriggerRef.current?.focus();
+  }, [resetSampleOpen]);
 
   async function sendPasswordReset() {
     if (resetState === "busy" || !userEmail) return;
@@ -97,10 +150,17 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
     }
   }
 
+  const RESET_SAMPLE_WORD = "RESET";
+  function confirmResetSample() {
+    if (resetSampleText.trim().toLowerCase() !== RESET_SAMPLE_WORD.toLowerCase()) return;
+    reset();
+    setResetSampleOpen(false);
+    setResetSampleText("");
+  }
+
   const status = subscription?.status ? { label: t("account.plan.status." + subscription.status, { defaultValue: subscription.status }), tint: STATUS_TINT[subscription.status] || "" } : null;
   const trialing = subscription?.status === "trialing";
   const left = trialing ? daysLeft(subscription.trial_ends_at) : 0;
-  const deleteMatches = deleteText.trim().toLowerCase() === (userEmail || "").toLowerCase();
 
   return (
     <>
@@ -357,24 +417,38 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
           <button type="button" className="btn-outline" onClick={onSignOut}>{t("account.danger.signOut")}</button>
         </div>
 
-        {/* Used to be a plain, unguarded link in Today's header (one
-            misclick wiped everything, no confirmation at all) — same
-            confirm() guard every other destructive row-delete in this app
-            already uses, since this wipes just as much as one of those,
-            just all at once. */}
+        {/* Used to be a plain window.confirm() -- trivial to reflexively
+            click through without reading it, for an action that wipes just
+            as much as the (typed-confirmation-guarded) delete below, just
+            all at once. Same TypedConfirmPanel as delete-account now. */}
         <div className="account-row">
           <div className="account-row-label">
             <div>{t("account.danger.resetToSample")}</div>
             <div className="settings-hint">{t("account.danger.resetToSampleHint")}</div>
           </div>
-          <button
-            type="button"
-            className="btn-danger"
-            onClick={() => { if (window.confirm(t("account.danger.resetConfirm"))) reset(); }}
-          >
-            {t("account.danger.reset")}
-          </button>
+          {!resetSampleOpen && (
+            <button type="button" ref={resetSampleTriggerRef} className="btn-danger" aria-expanded={resetSampleOpen} onClick={() => setResetSampleOpen(true)}>
+              {t("account.danger.reset")}
+            </button>
+          )}
         </div>
+
+        {resetSampleOpen && (
+          <TypedConfirmPanel
+            instructionsId="reset-sample-confirm-instructions"
+            instructions={<>{t("account.danger.typeResetToConfirm.pre")}<strong>{RESET_SAMPLE_WORD}</strong>{t("account.danger.typeResetToConfirm.post")}</>}
+            requiredText={RESET_SAMPLE_WORD}
+            value={resetSampleText}
+            onChange={(e) => setResetSampleText(e.target.value)}
+            onConfirm={confirmResetSample}
+            onCancel={() => { setResetSampleOpen(false); setResetSampleText(""); }}
+            busy={false}
+            error=""
+            confirmLabel={t("account.danger.reset")}
+            busyLabel={t("account.danger.reset")}
+            inputRef={resetSampleInputRef}
+          />
+        )}
 
         <div className="account-row">
           <div className="account-row-label">
@@ -389,34 +463,20 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
         </div>
 
         {deleteOpen && (
-          <div className="account-delete-confirm">
-            <p id="delete-confirm-instructions">
-              {t("account.danger.typeEmailToConfirm.pre")} <strong>{userEmail}</strong>{t("account.danger.typeEmailToConfirm.post")}
-            </p>
-            <div className="account-delete-confirm-row">
-              <input
-                ref={deleteInputRef}
-                type="text"
-                value={deleteText}
-                onChange={(e) => setDeleteText(e.target.value)}
-                placeholder={userEmail || ""}
-                aria-labelledby="delete-confirm-instructions"
-                autoComplete="off"
-              />
-              <button type="button" className="btn-danger" onClick={confirmDelete} disabled={!deleteMatches || deleteBusy}>
-                {deleteBusy ? t("account.danger.deleting") : t("account.danger.permanentlyDelete")}
-              </button>
-              <button
-                type="button"
-                className="header-link-btn"
-                onClick={() => { setDeleteOpen(false); setDeleteText(""); setDeleteError(""); }}
-                disabled={deleteBusy}
-              >
-                {t("common.cancel")}
-              </button>
-            </div>
-            {deleteError && <div className="auth-notice" data-c="home" role="alert">{deleteError}</div>}
-          </div>
+          <TypedConfirmPanel
+            instructionsId="delete-confirm-instructions"
+            instructions={<>{t("account.danger.typeEmailToConfirm.pre")}<strong>{userEmail}</strong>{t("account.danger.typeEmailToConfirm.post")}</>}
+            requiredText={userEmail || ""}
+            value={deleteText}
+            onChange={(e) => setDeleteText(e.target.value)}
+            onConfirm={confirmDelete}
+            onCancel={() => { setDeleteOpen(false); setDeleteText(""); setDeleteError(""); }}
+            busy={deleteBusy}
+            error={deleteError}
+            confirmLabel={t("account.danger.permanentlyDelete")}
+            busyLabel={t("account.danger.deleting")}
+            inputRef={deleteInputRef}
+          />
         )}
       </SettingsSection>
     </>
