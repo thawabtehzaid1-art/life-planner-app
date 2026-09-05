@@ -909,7 +909,7 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
           two that originally tested as confusing with no signal about what
           it could do; the hint text inside the panel itself now names all
           four with examples the moment it opens. */}
-      <QuickCapture data={data} patch={patch} />
+      {import.meta.env.DEV && <QuickCapture data={data} patch={patch} />}
 
       {celebrate && (
         <div className="celebrate-burst" aria-hidden="true">

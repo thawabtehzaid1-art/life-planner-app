@@ -1215,8 +1215,7 @@ button { font-family: inherit; }
 }
 .fasting-timer-track { height: 4px; border-radius: 2px; background: var(--color-neutral-900); margin-top: var(--space-4); overflow: hidden; max-width: 280px; }
 .fasting-timer-fill { height: 4px; border-radius: 2px; transition: width 30s linear; }
-.fasting-timer-fill[data-state="fasting"] { background: var(--color-accent); }
-.fasting-timer-fill[data-state="eating"] { background: oklch(0.734 0.125 165); }
+.fasting-timer-fill[data-state="fasting"], .fasting-timer-fill[data-state="eating"] { background: var(--color-accent); }
 .fasting-timer-right { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-3); }
 .fasting-timer-note { color: var(--color-neutral-500); font-size: 12px; max-width: 200px; text-align: end; }
 .fasting-timer-action { font-size: 12px; }
