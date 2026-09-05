@@ -67,6 +67,11 @@ export function seed() {
       timezone: (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { return "UTC"; } })(),
       mealsPerDay: 3, diet: "No restrictions",
       fasts: "No", fastStart: "20:00", fastEnd: "12:00",
+      // Phase 3 voice answer-back -- off by default (see QuickCapture.jsx's
+      // speakResult()): reading a result aloud after a voice command is a
+      // real, immediate surprise the first time it happens in a quiet room,
+      // so this opts in rather than opting out.
+      speakResults: "No",
     },
     onboarded: false,
     // Manual overrides for the setup guide's checklist — most steps detect
@@ -87,10 +92,10 @@ export function seed() {
     done: {},
     blocks: {},
     income: [
-      { date: d(-21), source: "Monthly salary", type: "Paycheck", amount: 2450, note: "after tax" },
+      { date: d(-21), source: "Acme Corp Paycheck", type: "Paycheck", amount: 2450, note: "after tax" },
     ],
     bills: [
-      { name: "Rent", cat: "Housing", freq: "Monthly", due: d(-21), budget: 1150, actual: 1150, paid: true },
+      { name: "Studio Apartment Lease", cat: "Housing", freq: "Monthly", due: d(-21), budget: 1150, actual: 1150, paid: true },
     ],
     budgets: [
       { cat: "Groceries", planned: 320 },
@@ -131,10 +136,26 @@ export function seed() {
     ],
     weightGoal: { target: 0, motivation: "" },
     habits: [
-      { name: "Take meds", tint: "health", days: {}, reminderTime: "" },
+      { name: "Floss teeth", tint: "health", days: {}, reminderTime: "" },
     ],
     focusSessions: {}, // ISO date -> count of completed 30-min focus sessions
     journal: {}, // ISO date -> free-text journal entry
+    // Learned voice-command corrections ({domain, phrase, target_name}) --
+    // this array is a client-side mirror of the separate voice_aliases
+    // Supabase table (see supabase/migrations/0008_voice_aliases.sql), not
+    // its source of truth. App.jsx loads it fresh from that table on boot
+    // and merges it in directly (not through patch()), so a stale copy
+    // here never gets treated as authoritative; quickCapture.js's
+    // matchByName reads it purely for synchronous, no-network lookups.
+    voiceAliases: [],
+    // Same shape/purpose as voiceAliases above, for a different question:
+    // not "which habit did 'X' mean" but "was 'X' even a weight, habit,
+    // expense, task, bill, account, meal, or question at all" -- a
+    // client-side mirror of command_type_aliases (see
+    // supabase/migrations/0009_command_type_aliases.sql), loaded and
+    // merged the same way, for the same reason (synchronous, no-network
+    // lookups from quickCapture.js/QuickCapture.jsx).
+    commandTypeAliases: [],
   };
 }
 

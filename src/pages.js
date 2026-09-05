@@ -5,7 +5,7 @@ import {
 } from "./data.js";
 import {
   plain, chip, edit, numc, datec, timec, sel, tog, barc, datelink, table, notes, phasesBlock, badges, columns, line, donut,
-  settingsBlock, calendarBlock, weekBlock, habitGridBlock,
+  settingsBlock, calendarBlock, weekBlock, habitGridBlock, disclosure,
   todayTs, wkStart, monthAnchorAt, monthRange, inRange, weekBounds,
   occurrences, nextDue, lateOccurrences, simulateDebt, groceryRoll, habitStats, cycleStats, cyclePhases, gamificationStats, money,
 } from "./engine.js";
@@ -103,33 +103,47 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
           hint: t("overview.setup.timezoneHint"),
           set: setS("timezone"), group: t("overview.setup.groupPreferences"),
         },
+        {
+          label: t("overview.setup.speakResults"), isSelect: true, v: d.settings.speakResults || "No",
+          hint: t("overview.setup.speakResultsHint"),
+          options: ["No", "Yes"], set: setS("speakResults"), group: t("overview.setup.groupPreferences"),
+        },
       ]),
-      table({
-        title: t("overview.goals.title"), note: t("overview.goals.note"),
-        emptyLabel: t("overview.goals.emptyLabel"), emptyNote: t("overview.goals.emptyNote"),
-        grid: "1.9fr 120px 150px 110px 110px 1fr 110px",
-        head: [t("overview.goals.head.goal"), t("overview.goals.head.category"), t("overview.goals.head.targetDate"), { t: t("overview.goals.head.target"), align: "right" }, { t: t("overview.goals.head.current"), align: "right" }, t("overview.goals.head.progress"), t("overview.goals.head.status")],
-        rows: d.goals.map((g, i) => {
-          const pct = num(g.target) ? Math.min(100, 100 * num(g.current) / num(g.target)) : 0;
-          const due = parseISO(g.date);
-          const status = pct >= 100 ? "Done" : (!due ? "No date" : (due < today ? "Overdue" : "On track"));
-          const statusLabel = { Done: t("overview.goals.status.done"), "No date": t("overview.goals.status.noDate"), Overdue: t("overview.goals.status.overdue"), "On track": t("overview.goals.status.onTrack") }[status];
-          return {
-            remove: () => patch((n) => n.goals.splice(i, 1)),
-            cells: [
-              edit(g.name, (e) => patch((n) => { n.goals[i].name = txt(e); })),
-              sel(g.cat, (e) => patch((n) => { n.goals[i].cat = e.target.value; }), CATS, CAT_TINT[g.cat]),
-              datec(g.date, (e) => patch((n) => { n.goals[i].date = e.target.value; })),
-              numc(g.target, (e) => patch((n) => { n.goals[i].target = num(e.target.value); })),
-              numc(g.current, (e) => patch((n) => { n.goals[i].current = num(e.target.value); })),
-              barc(pct, Math.round(pct) + "%", pct >= 100 ? "health" : CAT_TINT[g.cat]),
-              chip(statusLabel, status === "Overdue" ? "home" : (status === "Done" ? "health" : (status === "No date" ? "" : "health"))),
-            ],
-          };
+      // Deferred behind a disclosure placeholder until onboarding finishes
+      // -- a brand-new account's first screen used to show the onboarding
+      // checklist, a 9-field settings form, AND a full goals table (with
+      // add/edit/delete) all competing for attention at once, undercutting
+      // the one-clear-next-action framing the checklist itself is trying
+      // to establish. d.onboarded is only ever explicitly false for an
+      // account still mid-setup -- undefined/true both mean onboarded.
+      d.onboarded === false
+        ? disclosure(t("overview.goals.title"), t("overview.goals.showGoals"))
+        : table({
+          title: t("overview.goals.title"), note: t("overview.goals.note"),
+          emptyLabel: t("overview.goals.emptyLabel"), emptyNote: t("overview.goals.emptyNote"),
+          grid: "1.9fr 120px 150px 110px 110px 1fr 110px",
+          head: [t("overview.goals.head.goal"), t("overview.goals.head.category"), t("overview.goals.head.targetDate"), { t: t("overview.goals.head.target"), align: "right" }, { t: t("overview.goals.head.current"), align: "right" }, t("overview.goals.head.progress"), t("overview.goals.head.status")],
+          rows: d.goals.map((g, i) => {
+            const pct = num(g.target) ? Math.min(100, 100 * num(g.current) / num(g.target)) : 0;
+            const due = parseISO(g.date);
+            const status = pct >= 100 ? "Done" : (!due ? "No date" : (due < today ? "Overdue" : "On track"));
+            const statusLabel = { Done: t("overview.goals.status.done"), "No date": t("overview.goals.status.noDate"), Overdue: t("overview.goals.status.overdue"), "On track": t("overview.goals.status.onTrack") }[status];
+            return {
+              remove: () => patch((n) => n.goals.splice(i, 1)),
+              cells: [
+                edit(g.name, (e) => patch((n) => { n.goals[i].name = txt(e); })),
+                sel(g.cat, (e) => patch((n) => { n.goals[i].cat = e.target.value; }), CATS, CAT_TINT[g.cat]),
+                datec(g.date, (e) => patch((n) => { n.goals[i].date = e.target.value; })),
+                numc(g.target, (e) => patch((n) => { n.goals[i].target = num(e.target.value); })),
+                numc(g.current, (e) => patch((n) => { n.goals[i].current = num(e.target.value); })),
+                barc(pct, Math.round(pct) + "%", pct >= 100 ? "health" : CAT_TINT[g.cat]),
+                chip(statusLabel, status === "Overdue" ? "home" : (status === "Done" ? "health" : (status === "No date" ? "" : "health"))),
+              ],
+            };
+          }),
+          add: () => patch((n) => n.goals.push({ name: t("overview.goals.newGoal"), cat: "Personal", date: iso(today + 90 * DAY), target: 100, current: 0 })),
+          addLabel: t("overview.goals.addLabel"),
         }),
-        add: () => patch((n) => n.goals.push({ name: t("overview.goals.newGoal"), cat: "Personal", date: iso(today + 90 * DAY), target: 100, current: 0 })),
-        addLabel: t("overview.goals.addLabel"),
-      }),
     ],
   };
 
@@ -805,9 +819,20 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
               sel(b.freq, (e) => patch((n) => { n.bills[i].freq = e.target.value; }), RECUR),
               datec(b.due, (e) => patch((n) => { n.bills[i].due = e.target.value; })),
               numc(b.budget, (e) => patch((n) => { n.bills[i].budget = num(e.target.value); })),
-              numc(b.actual, (e) => patch((n) => { n.bills[i].actual = num(e.target.value); }), { tint: num(b.actual) > num(b.budget) ? "home" : "", tinted: num(b.actual) > num(b.budget) }),
+              numc(b.actual, (e) => patch((n) => { n.bills[i].actual = num(e.target.value); }), {
+                tint: num(b.actual) > num(b.budget) ? "home" : "", tinted: num(b.actual) > num(b.budget),
+                // Same "+$X" convention Spending's own Diff column already
+                // uses -- color alone shouldn't be the only signal for how
+                // far over budget this is.
+                suffix: num(b.actual) > num(b.budget) ? "(+" + mon(num(b.actual) - num(b.budget)) + ")" : null,
+              }),
               timec(b.reminderTime || "", (e) => patch((n) => { n.bills[i].reminderTime = e.target.value; })),
-              tog(b.paid, () => patch((n) => { n.bills[i].paid = !n.bills[i].paid; if (n.bills[i].paid && !num(n.bills[i].actual)) n.bills[i].actual = num(n.bills[i].budget); }), late ? "home" : "health"),
+              tog(
+                b.paid,
+                () => patch((n) => { n.bills[i].paid = !n.bills[i].paid; if (n.bills[i].paid && !num(n.bills[i].actual)) n.bills[i].actual = num(n.bills[i].budget); }),
+                late ? "home" : "health",
+                t("block.table.cellFor", { field: t("bills.commitments.head.paid"), row: b.name }),
+              ),
             ],
           };
         }),
@@ -967,7 +992,14 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
               numc(x.monthly, (e) => patch((n) => { n.savings[i].monthly = num(e.target.value); })),
               plain(months === null ? "—" : String(months), { align: "right", muted: true }),
               barc(pct, Math.round(pct) + "%", pct >= 100 ? "health" : "money"),
-              chip(statusLabel, status === "Behind" ? "home" : (status === "Paused" ? "" : "health")),
+              // Solid .status-chip fill for the hue-tinted statuses (the
+              // exact contrast fix already proven for Account > Plan --
+              // the translucent .chip alone measures ~3.2-4.0:1, below the
+              // 4.5:1 AA floor) -- NOT for "Paused" (tint ""), since
+              // .status-chip has no defined solid fill for an untinted
+              // chip and would otherwise pair on-accent text with a plain
+              // neutral background, which is unreadable in every theme.
+              chip(statusLabel, status === "Behind" ? "home" : (status === "Paused" ? "" : "health"), status !== "Paused"),
             ],
           };
         }),
@@ -1342,6 +1374,16 @@ export function buildPages(data, state, { patch, catchUp, setWeek, goToDay, trig
 // be "Me"; "no restrictions, 3 meals, no fasting" can really be correct)
 // fall back to a manual checkbox stored in `onboarding.steps`, so those
 // are never stuck unable to be marked done.
+//
+// The task/bill/habit steps instead rely on their seed row's name being
+// implausible enough that a real entry basically never collides with it
+// by coincidence (data.js's seed() picks "Renew passport", "Studio
+// Apartment Lease"/"Acme Corp Paycheck", and "Floss teeth" specifically
+// for this). Bill and habit used to seed with "Rent" and "Take meds" --
+// both completely ordinary real bill/habit names, so anyone whose actual
+// rent or actual medication habit genuinely matched the sample got stuck
+// at 4/5 forever with no visible way out. Keep this in mind before ever
+// "simplifying" these seed names back to something generic.
 export function onboardingSteps(data, patch) {
   const d = data;
   const manual = (d.onboarding && d.onboarding.steps) || {};
@@ -1369,12 +1411,12 @@ export function onboardingSteps(data, patch) {
     {
       id: "bill", tab: "bills", label: i18n.t("onboarding.bill.label"),
       note: i18n.t("onboarding.bill.note"),
-      derived: d.bills.some((b) => b.name !== "Rent") || d.income.some((i) => i.source !== "Monthly salary"),
+      derived: d.bills.some((b) => b.name !== "Studio Apartment Lease") || d.income.some((i) => i.source !== "Acme Corp Paycheck"),
     },
     {
       id: "habit", tab: "habits", label: i18n.t("onboarding.habit.label"),
       note: i18n.t("onboarding.habit.note"),
-      derived: d.habits.some((h) => h.name !== "Take meds"),
+      derived: d.habits.some((h) => h.name !== "Floss teeth"),
     },
   ];
   return defs.map((s) => {

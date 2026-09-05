@@ -442,6 +442,10 @@ function BadgesBlock({ b }) {
   );
 }
 
+function DisclosureBlock({ b }) {
+  return <div className="disclosure-placeholder">{b.label}</div>;
+}
+
 const RENDERERS = {
   table: TableBlock,
   calendar: CalendarBlock,
@@ -454,6 +458,7 @@ const RENDERERS = {
   notes: NotesBlock,
   phases: PhasesBlock,
   badges: BadgesBlock,
+  disclosure: DisclosureBlock,
 };
 
 export default function Block({ b, highlightIds, revealed, toggleReveal }) {

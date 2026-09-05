@@ -9,6 +9,7 @@ import Auth from "./Auth.jsx";
 import Paywall from "./Paywall.jsx";
 import FocusTimer from "./FocusTimer.jsx";
 import MicButton from "./MicButton.jsx";
+import QuickCapture from "./QuickCapture.jsx";
 import FastingTimer from "./FastingTimer.jsx";
 import OnboardingGuide from "./OnboardingGuide.jsx";
 import { useAutoHide } from "./useAutoHide.js";
@@ -320,11 +321,34 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
           try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { /* keep UTC */ }
           withTimezone = { ...withEngagement, settings: { ...withEngagement.settings, timezone: tz } };
         }
-        setData(withTimezone);
         // Brand-new accounts land on Overview first (set your name/basics
         // before anything else); the `tab` state's own default ("today")
         // covers every other case — a returning account on any other day.
         if (withTimezone.onboarded === false) setTab("overview");
+        // voice_aliases is its own table (see
+        // supabase/migrations/0008_voice_aliases.sql), loaded alongside
+        // planner_data rather than derived from it, and merged in here --
+        // not through patch() -- so a fresh boot never turns into an
+        // unnecessary write of data nothing actually changed. Fetched
+        // before the one setData() call below (not a separate effect
+        // keyed off whether `data` has loaded yet), so there's no race to
+        // reason about between the two, and no render happens with
+        // voiceAliases still stale/missing.
+        const { data: aliasRows } = await supabase
+          .from("voice_aliases")
+          .select("domain, phrase, target_name")
+          .eq("user_id", userId);
+        if (cancelled) return;
+        if (aliasRows) withTimezone = { ...withTimezone, voiceAliases: aliasRows };
+        // command_type_aliases is the same idea, one table over -- see
+        // supabase/migrations/0009_command_type_aliases.sql.
+        const { data: typeAliasRows } = await supabase
+          .from("command_type_aliases")
+          .select("phrase, command_type")
+          .eq("user_id", userId);
+        if (cancelled) return;
+        if (typeAliasRows) withTimezone = { ...withTimezone, commandTypeAliases: typeAliasRows };
+        setData(withTimezone);
         if (isEmpty || withEngagement !== loaded || withTimezone !== withEngagement) {
           await supabase.from("planner_data").upsert({ user_id: userId, data: withTimezone, updated_at: new Date().toISOString() });
         }
@@ -869,14 +893,12 @@ function PlannerApp({ userId, userEmail, subscription, onSignOut }) {
         ☰ {translate("app.menu")}
       </button>
 
-      {/* Quick Capture (QuickCapture.jsx / quickCapture.js) is intentionally
-          not rendered right now -- the parsing/matching logic and UI are
-          intact and tested, just not wired up. It shipped globally-visible
-          with only two working commands (log weight, mark habit done), which
-          tested as confusing: no signal on any tab about what it could
-          actually do. Re-enable once there's a better activation trigger
-          than an always-on floating button -- see the "voice wizard" idea
-          discussed for that. */}
+      {/* Re-enabled as part of Phase 3 (voice answer-back) -- it now covers
+          four command shapes (weight, habit, expense, task) instead of the
+          two that originally tested as confusing with no signal about what
+          it could do; the hint text inside the panel itself now names all
+          four with examples the moment it opens. */}
+      <QuickCapture data={data} patch={patch} />
 
       {celebrate && (
         <div className="celebrate-burst" aria-hidden="true">

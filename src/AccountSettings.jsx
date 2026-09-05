@@ -55,6 +55,8 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
   const deleteInputRef = useRef(null);
   const deleteOpenedBefore = useRef(false);
   const themeBtnRefs = useRef({});
+  const langBtnRefs = useRef({});
+  const LANGUAGES = [{ id: "en", label: "English" }, { id: "ar", label: "العربية" }];
   useEffect(() => {
     if (!deleteOpenedBefore.current) { deleteOpenedBefore.current = true; return; }
     if (deleteOpen) deleteInputRef.current?.focus();
@@ -220,13 +222,33 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
       <SettingsSection title={t("account.language.title")} note={t("account.language.note")}>
         <div className="settings-field">
           <div className="settings-label">{t("account.language.label")}</div>
-          <div className="theme-switch-full" role="radiogroup" aria-label={t("account.language.label")}>
-            {[{ id: "en", label: "English" }, { id: "ar", label: "العربية" }].map((l) => (
+          <div
+            className="theme-switch-full"
+            role="radiogroup"
+            aria-label={t("account.language.label")}
+            onKeyDown={(e) => {
+              // Same arrow-key/roving-tabindex pattern as the Theme
+              // switcher above -- role="radiogroup" promises this
+              // interaction regardless of the list length, and this one
+              // used to declare the role without wiring up the behavior
+              // it promises.
+              if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key)) return;
+              e.preventDefault();
+              const idx = LANGUAGES.findIndex((l) => l.id === i18n.language);
+              const dir = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
+              const next = LANGUAGES[(idx + dir + LANGUAGES.length) % LANGUAGES.length];
+              i18n.changeLanguage(next.id);
+              langBtnRefs.current[next.id]?.focus();
+            }}
+          >
+            {LANGUAGES.map((l) => (
               <button
                 key={l.id}
+                ref={(el) => { langBtnRefs.current[l.id] = el; }}
                 type="button"
                 role="radio"
                 aria-checked={i18n.language === l.id}
+                tabIndex={i18n.language === l.id ? 0 : -1}
                 data-on={i18n.language === l.id ? "1" : ""}
                 className="theme-option-btn"
                 onClick={() => i18n.changeLanguage(l.id)}
@@ -347,7 +369,7 @@ export default function AccountSettings({ userEmail, subscription, theme, setThe
           </div>
           <button
             type="button"
-            className="btn-outline"
+            className="btn-danger"
             onClick={() => { if (window.confirm(t("account.danger.resetConfirm"))) reset(); }}
           >
             {t("account.danger.reset")}

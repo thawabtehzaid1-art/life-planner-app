@@ -8,14 +8,14 @@ import i18n from "./i18n.js";
 export function plain(v, o = {}) {
   return { kind: "plain", v, align: o.align || "left", justify: o.align === "right" ? "flex-end" : "flex-start", muted: !!o.muted, tint: o.tint || "", tinted: !!o.tinted, strike: !!o.strike };
 }
-export function chip(v, tint) {
-  return { kind: "chip", v, align: "left", justify: "flex-start", tint: tint || "", tinted: false };
+export function chip(v, tint, solid) {
+  return { kind: "chip", v, align: "left", justify: "flex-start", tint: tint || "", tinted: false, solid: !!solid };
 }
 export function edit(v, set) {
   return { kind: "edit", v, set, align: "left", justify: "flex-start", tint: "", tinted: false };
 }
 export function numc(v, set, o = {}) {
-  return { kind: "num", v: String(v), set, step: o.step || "1", align: "right", justify: "flex-end", tint: o.tint || "", tinted: !!o.tinted };
+  return { kind: "num", v: String(v), set, step: o.step || "1", align: "right", justify: "flex-end", tint: o.tint || "", tinted: !!o.tinted, suffix: o.suffix || null };
 }
 export function datec(v, set) {
   return { kind: "date", v, set, align: "left", justify: "flex-start", tint: "", tinted: false };
@@ -26,8 +26,8 @@ export function timec(v, set) {
 export function sel(v, set, options, tint) {
   return { kind: "select", v, set, options, align: "left", justify: "flex-start", tint: tint || "", tinted: false };
 }
-export function tog(on, set, tint) {
-  return { kind: "toggle", on: !!on, set, align: "center", justify: "center", tint: tint || "health", tinted: false };
+export function tog(on, set, tint, label) {
+  return { kind: "toggle", on: !!on, set, align: "center", justify: "center", tint: tint || "health", tinted: false, label: label || undefined };
 }
 export function barc(pct, label, tint) {
   return { kind: "bar", v: label, pct: Math.max(0, Math.min(100, Math.round(pct))), align: "left", justify: "flex-start", tint: tint || "", tinted: false };
@@ -134,6 +134,14 @@ export function donut(title, note, centre, centreNote, segments) {
 }
 export function settingsBlock(title, note, fields) {
   return { type: "settings", title, note: note || "", fields };
+}
+// A placeholder standing in for a block that isn't relevant yet -- Overview's
+// Goals table uses this while data.onboarded is false, so a brand-new
+// account's first screen shows one clear next action (the onboarding
+// checklist) instead of the checklist, a 9-field settings form, and a full
+// goals table with add/edit/delete all competing for attention at once.
+export function disclosure(title, label) {
+  return { type: "disclosure", title, label };
 }
 export function calendarBlock(title, note, dayNames, days) {
   return { type: "calendar", title, note, dayNames, days };

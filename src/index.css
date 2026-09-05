@@ -351,7 +351,15 @@ button { font-family: inherit; }
 .onboarding-fill { height: 4px; border-radius: 2px; background: var(--color-accent); transition: width 0.3s ease; }
 .onboarding-list { list-style: none; margin: var(--space-4) 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
 .onboarding-step { display: flex; align-items: center; gap: var(--space-4); }
-.onboarding-box { flex-shrink: 0; }
+/* Bigger than the base .cell-box (24x24, the WCAG 2.5.8 floor) -- this is
+   the very first interactive element a brand-new account ever taps, and
+   friction on the very first action disproportionately shapes whether
+   someone trusts the app enough to continue. Sized here rather than by
+   raising .cell-box itself, which is shared by every table toggle
+   app-wide -- several of those tables' toggle columns are only 34px wide
+   (see .cell-box's own comment), so growing the base class would clip
+   every one of them. */
+.cell-box.onboarding-box { width: 30px; height: 30px; flex-shrink: 0; }
 .onboarding-step-text { flex: 1; min-width: 0; }
 .onboarding-step-label { font-size: 13px; color: var(--color-text); }
 .onboarding-step-note { font-size: 12px; color: var(--color-neutral-500); margin-top: 1px; }
@@ -491,6 +499,14 @@ button { font-family: inherit; }
    blocks (line/donut/columns) — those aren't CSS grids, so this drops the
    grid-column span the table version needs. */
 .chart-empty { padding: var(--space-6) var(--space-4); text-align: center; }
+/* Overview's Goals table while data.onboarded is false (see engine.js's
+   disclosure()) -- a dashed, muted placeholder rather than the real table,
+   so a brand-new account's first screen reads as one clear next action
+   instead of three competing for attention at once. */
+.disclosure-placeholder {
+  padding: var(--space-4); border: 1px dashed var(--color-neutral-800); border-radius: var(--radius-md);
+  color: var(--color-neutral-500); font-size: 13px; font-style: italic; text-align: center;
+}
 /* Sticky first column: on a table wide enough to need side-scrolling, the
    row's label stays put so you always know which row you're looking at. */
 .head-cell:first-child, .body-cell:first-child {
@@ -555,6 +571,17 @@ button { font-family: inherit; }
   40% { transform: scale(1.35); }
   100% { transform: scale(1); }
 }
+/* Wraps the num input so an over-budget suffix (Bills' "Actual" column)
+   can render alongside it -- stacked below, not beside: these number
+   columns are only 110-140px, and putting "(+$150)" inline next to the
+   input squeezed the input itself down far enough to visibly clip its own
+   value (confirmed live). .cell-num-wrap takes over the flex:1 the bare
+   input used to have as .body-cell's direct child, so wrapping it doesn't
+   shrink the cell down to content width. --c is already set on the
+   ancestor .body-cell by its own tint/data-c attributes (see TableBlock),
+   so the suffix picks up the matching hue for free. */
+.cell-num-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; flex: 1; min-width: 0; }
+.cell-num-suffix { font-size: 10.5px; line-height: 1.2; color: var(--c, var(--color-neutral-500)); white-space: nowrap; }
 .cell-bar-wrap { display: flex; align-items: center; gap: var(--space-3); width: 100%; }
 .cell-bar-track { flex: 1; height: 4px; border-radius: 2px; background: var(--color-neutral-900); overflow: hidden; }
 .cell-bar-fill { display: block; height: 4px; background: var(--c, var(--color-accent)); }
@@ -630,16 +657,20 @@ button { font-family: inherit; }
 }
 .habit-grid-head { padding-bottom: var(--space-3); }
 .habit-ticks { display: flex; gap: 3px; }
-.habit-ticks span { width: 24px; text-align: center; font-size: 10px; color: var(--color-neutral-700); }
+.habit-ticks span { width: 30px; text-align: center; font-size: 10px; color: var(--color-neutral-700); }
 .habit-col-label { font-size: 10px; color: var(--color-neutral-600); text-align: end; }
 .habit-row { padding-top: var(--space-2); padding-bottom: var(--space-2); }
 .habit-days { display: flex; gap: 3px; }
-/* 24x24 CSS px is the WCAG 2.2 SC 2.5.8 (Target Size, Minimum) floor for a
-   pointer target; the tick labels above (.habit-ticks span) match this
-   width so each day number still lines up with its own square. Any card
-   too narrow to fit a month's worth of these at width just scrolls inside
+/* 30x24 CSS px would clear the WCAG 2.2 SC 2.5.8 (Target Size, Minimum)
+   24x24 floor with real margin, not sit right at it -- a 31-day grid of
+   cells at the bare floor invites mis-taps exactly when attention/motor
+   precision is already strained, which matters more here than in most
+   apps given this one is explicitly built around ADHD-friendly cognitive
+   load. The tick labels above (.habit-ticks span) match this width so
+   each day number still lines up with its own square. Any card too
+   narrow to fit a month's worth of these at width just scrolls inside
    .block-body's existing overflow-x, same as the wide tables already do. */
-.habit-box { width: 24px; height: 24px; }
+.habit-box { width: 30px; height: 30px; }
 .habit-metric { text-align: end; color: var(--color-neutral-500); }
 
 /* ---- columns chart ---- */
@@ -842,7 +873,19 @@ button { font-family: inherit; }
   [dir="rtl"] .sidebar[data-open="1"] { transform: translateX(0); }
   .sidebar-backdrop { position: fixed; inset: 0; z-index: 29; background: rgba(0, 0, 0, 0.5); }
 
-  .main-col { height: 100dvh; overflow-y: auto; }
+  /* padding-bottom: .quick-capture-btn sits fixed at the viewport's
+     bottom-left at every breakpoint (see its own rule below), but only
+     below 900px does .main-col actually reach that corner -- above it the
+     sidebar still occupies that space. Confirmed live: without this, the
+     button alone already clips the last card's trailing text on a long
+     page (e.g. Account Settings' Danger Zone, the worst case since it's
+     always the final card), and opening the panel fully covers whatever's
+     there. This reserves space for the always-present button only, not
+     the taller panel -- the panel's own footprint is transient (only
+     while a voice session is actually open) and reserving permanent
+     space for it would waste far more layout on every page than the
+     problem it'd solve. */
+  .main-col { height: 100dvh; overflow-y: auto; padding-bottom: calc(52px + var(--space-6) * 2); }
 
   .mobile-tabs-btn {
     display: flex; align-items: center; gap: var(--space-2);
@@ -934,11 +977,33 @@ button { font-family: inherit; }
 .quick-capture-btn {
   position: fixed; inset-inline-start: var(--space-6); bottom: var(--space-6); z-index: 20;
   background: var(--color-accent); color: var(--color-bg); border: none;
-  font-family: inherit; font-size: 13px; font-weight: 500;
-  padding: 11px 18px; border-radius: 999px; box-shadow: var(--shadow-md, 0 6px 18px rgba(0, 0, 0, 0.35));
+  width: 52px; height: 52px; border-radius: 999px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-md, 0 6px 18px rgba(0, 0, 0, 0.35));
   cursor: pointer;
 }
 .quick-capture-btn:hover { background: var(--color-accent-400); }
+/* Same glyph throughout listening or not -- color is what signals state,
+   reusing .mic-btn[data-on="1"]'s own accent/accent-900/border treatment
+   rather than inventing a second "listening" palette. */
+.quick-capture-btn[data-on="1"] { background: var(--color-accent-900); color: var(--color-accent); border: 2px solid var(--color-accent); }
+/* Listening indicator: a static color/border swap alone is easy to miss on
+   a small, peripherally-glanced corner control -- the same blind spot
+   behind the 31s-round-trip race condition fixed earlier. A soft outward
+   ring gives it an ongoing, ambient sign of life instead of a one-time
+   state change. */
+.quick-capture-btn[data-on="1"]::after {
+  content: ""; position: absolute; inset: -2px; border-radius: 999px;
+  border: 2px solid var(--color-accent); opacity: 0.55;
+  animation: qc-pulse 1.8s ease-out infinite; pointer-events: none;
+}
+@keyframes qc-pulse {
+  0% { transform: scale(1); opacity: 0.55; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .quick-capture-btn[data-on="1"]::after { animation: none; opacity: 0; }
+}
 .quick-capture-panel {
   position: fixed; inset-inline-start: var(--space-6); bottom: 76px; z-index: 20;
   width: min(320px, calc(100vw - var(--space-6) * 2));
@@ -949,12 +1014,36 @@ button { font-family: inherit; }
 .quick-capture-header {
   padding: var(--space-3) var(--space-4); font-weight: 600; font-size: 13px;
   border-bottom: 1px solid var(--color-neutral-800);
+  display: flex; align-items: center; justify-content: space-between;
 }
+.quick-capture-speak-toggle {
+  background: none; border: none; cursor: pointer; font-size: 14px; line-height: 1;
+  padding: 2px 4px; opacity: 0.55;
+}
+.quick-capture-speak-toggle[aria-pressed="true"] { opacity: 1; }
 .quick-capture-body { padding: var(--space-3) var(--space-4); min-height: 20px; }
 .quick-capture-hint { color: var(--color-neutral-500); font-size: 12.5px; line-height: 1.4; }
 .quick-capture-status { font-size: 13px; line-height: 1.4; }
 .quick-capture-status-ok { color: var(--color-accent-400); }
 .quick-capture-status-hint { color: var(--color-neutral-500); }
+/* Settled (already recognized, about to be acted on) vs. still-forming
+   interim text -- both used to render identically as one flat gray line,
+   making it impossible to tell what actually locked in from what's still
+   being guessed at. */
+.quick-capture-caption-settled { color: var(--color-text); font-weight: 500; }
+.quick-capture-caption-forming { font-style: italic; opacity: 0.7; }
+/* The one panel state that's genuinely blocking ("what kind was that?") --
+   same left-accent-rule convention as [data-today="1"] elsewhere in this
+   file, so it visually reads as "needs a response" instead of the same
+   passive gray as a safe-to-ignore hint. */
+.quick-capture-question {
+  font-size: 13px; line-height: 1.4; color: var(--color-text);
+  border-inline-start: 3px solid var(--color-accent); padding-inline-start: 10px;
+}
+.quick-capture-question-tag {
+  display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--color-accent); margin-bottom: 4px;
+}
 .quick-capture-choices { display: flex; flex-direction: column; gap: var(--space-2); }
 .quick-capture-choice-row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
 .quick-capture-input-row { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-neutral-800); }
@@ -1130,6 +1219,8 @@ button { font-family: inherit; }
 }
 .mic-btn:hover { border-color: var(--color-neutral-700); color: var(--color-text); }
 .mic-btn[data-on="1"] { border-color: var(--color-accent); color: var(--color-accent); background: var(--color-accent-900); }
+.mic-btn-wrap { display: inline-flex; flex-direction: column; gap: var(--space-1); }
+.mic-btn-error { font-size: 11px; color: var(--color-neutral-500); }
 .journal-box {
   width: 100%; min-height: 140px; resize: vertical; border: 1px solid var(--color-neutral-800);
   border-radius: var(--radius-md); padding: var(--space-4); font-family: inherit; font-size: 13.5px;

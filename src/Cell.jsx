@@ -101,14 +101,21 @@ export default function Cell({ c, ariaLabel }) {
       );
     case "num":
       return (
-        <SyncedInput
-          type="number"
-          step={c.step}
-          value={c.v}
-          onChange={c.set}
-          onFocus={(e) => e.target.select()}
-          style={{ textAlign: "end" }}
-        />
+        <span className="cell-num-wrap">
+          <SyncedInput
+            type="number"
+            step={c.step}
+            value={c.v}
+            onChange={c.set}
+            onFocus={(e) => e.target.select()}
+            style={{ textAlign: "end" }}
+          />
+          {/* Same wrapper the cell's own tint/tinted attributes already
+              color the background of (see TableBlock) -- inheriting the
+              --c custom property they set gives this the matching hue for
+              free, no separate color to keep in sync. */}
+          {c.suffix && <span className="cell-num-suffix">{c.suffix}</span>}
+        </span>
       );
     case "date":
       return <SyncedInput type="date" value={c.v} onChange={c.set} />;
@@ -125,12 +132,13 @@ export default function Cell({ c, ariaLabel }) {
           tabIndex={0}
           role="checkbox"
           aria-checked={c.on}
+          aria-label={c.label}
           onClick={c.set}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); c.set(e); } }}
         />
       );
     case "chip":
-      return <span className="chip" data-c={c.tint}>{c.v}</span>;
+      return <span className={c.solid ? "chip status-chip" : "chip"} data-c={c.tint}>{c.v}</span>;
     case "bar":
       return (
         <span className="cell-bar-wrap">

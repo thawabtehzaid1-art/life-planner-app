@@ -179,14 +179,16 @@
       "weekStart": "Week starts on",
       "currency": "Currency symbol",
       "units": "Measurement units",
-      "timezone": "Timezone", "timezoneHint": "Detected from this device automatically — only change it if that's wrong"
+      "timezone": "Timezone", "timezoneHint": "Detected from this device automatically — only change it if that's wrong",
+      "speakResults": "Speak Quick Capture results aloud", "speakResultsHint": "Reads the result back after a voice command (not typed ones) — off by default since not everyone wants their phone talking back"
     },
     "goals": {
       "title": "Your goals", "note": "target dates land on the calendar; progress feeds the dashboard",
       "emptyLabel": "No goals yet", "emptyNote": "Add one below to start tracking progress toward it.",
       "head": { "goal": "Goal", "category": "Category", "targetDate": "Target date", "target": "Target", "current": "Current", "progress": "Progress", "status": "Status" },
       "status": { "done": "Done", "noDate": "No date", "overdue": "Overdue", "onTrack": "On track" },
-      "newGoal": "New goal", "addLabel": "+ New goal"
+      "newGoal": "New goal", "addLabel": "+ New goal",
+      "showGoals": "▸ Show goals (unlocks once setup is finished)"
     }
   },
   "greeting": {
@@ -567,8 +569,8 @@
     "name": { "label": "Add your name", "note": "so the app can greet you properly" },
     "meals": { "label": "Tell us about your eating habits", "note": "meals a day, diet, and whether you fast — takes 10 seconds" },
     "task": { "label": "Add something you need to do", "note": "a real task, not the sample one" },
-    "bill": { "label": "Add a bill or income entry", "note": "so Money reflects your real numbers" },
-    "habit": { "label": "Add a habit to build a streak on", "note": "anything you'd like to track daily" }
+    "bill": { "label": "Add a bill or income entry", "note": "a real one, not the sample ones" },
+    "habit": { "label": "Add a habit to build a streak on", "note": "a real habit, not the sample one" }
   },
   "paywall": {
     "checkoutError": "Could not start checkout. Try again.",
